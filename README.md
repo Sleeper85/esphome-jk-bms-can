@@ -6,11 +6,11 @@
 
 **ESPHome component to monitor a Jikong Battery Management System (JK-BMS) and communicate with inverters supporting CAN bus protocol compatible with Pylontech V1.3 and Goodwe V1.5.**
 
-Note Pylontech uses 15s/48v Goodwe uses 16s/51.2v @3.2v/cell nominal.
-Other battery profiles that utilise the PYLON/Goodwe protocol with differnt cell counts may also work, eg Alpha Ess Smile, BYD Battery-Box LV Flex Lite 
+**Note: Pylontech uses 15s/48v and many others uses 16s/51.2v @3.2v/cell nominal.**
+Other battery profiles that utilise the **PYLON** protocol with different cell counts may also work, eg Alpha Ess Smile, BYD Battery-Box LV Flex Lite.
 Select the correct battery profile in the inverter to match your battery pack!
 
-The ESP32 communicates with the JK-BMS using the RS485 port (GPS) which is in fact not RS485, it is 3.3V TTL so it can be directly connected to the ESP32.
+The ESP32 communicates with the JK-BMS using the RS485 port (GPS) which is in fact not RS485 but 3.3V UART-TTL, so it can be directly connected to the ESP32.
 The ESP32 then sends the required CAN bus data to the inverter via a TJA1050 or TJA1051T CAN bus transceiver.
 
 Sends over CAN bus to inverter:
@@ -34,16 +34,28 @@ Each LX U5.4-L battery has 5.4kWh of storage, so select the number that is the c
 
 **Note: I'm using this with my Deye SUN-6K-SG03-LP1-EU inverter however CAN bus support is still in development and testing...**
 
-## Home Assistant intergration
+## Home Assistant integration
 
 ![Lovelace entities card](images/HA_Dashboard.png "HA Dashboard")
+
+## Changelog
+
+* V1.14.2 Sleeper85 : Improve 'Charging Voltage' behavior
+* V1.14.1 Sleeper85 : Add 'Float charge function'
+* V1.13.6 Sleeper85 : Add 'Absorption time' and 'Absorption Offset V.' slider
+* V1.13.5 Sleeper85 : Set CAN manufacter to "PYLON" for improve compatibility with Deye and other inverters
+* V1.13.4 Sleeper85 : Improve 'Charge Status' behavior + add 'Rebulk Offset V.' slider
+* V1.13.3 uksa007   : Improve compatibility with Deye and other inverters
+* V1.13.2 uksa007   : Send Max Temperature of T1, T2 to inverter
+* V1.13.1 uksa007   : Fix compile issues with new version of ESPhome 2023.4.0, set rebulk offset to 2.5
 
 ## Supported devices
 
 Inverters supporting CAN Pylon/Goodwe Low Voltage protocol should work, check your inverter manual to confirm.
 
 The following are confirmed and known to work:
-* Deye SUN-5k-SG03LP1-EU  (reported by [@vdiex](https://github.com/Uksa007/esphome-jk-bms-can/discussions/1#discussioncomment-4481364))
+* Deye SUN-6k-SG03LP1-EU (reported by [@Sleeper85](https://github.com/Sleeper85/esphome-jk-bms-can))
+* Deye SUN-5k-SG03LP1-EU (reported by [@vdiex](https://github.com/Uksa007/esphome-jk-bms-can/discussions/1#discussioncomment-4481364))
 * Deye SUN-12K-SG04LP3-EU (reported by [@lucize](https://github.com/Uksa007/esphome-jk-bms-can/discussions/25#discussioncomment-5890844))
 * Goodwe 3648-ES (GW5048-ES) (reported by [@jirdol](https://github.com/Uksa007/esphome-jk-bms-can/discussions/1#discussioncomment-5498743))
 * Goodwe GW5000S-BP (reported by [@Uksa007](https://github.com/Uksa007/esphome-jk-bms-can/discussions/2#discussion-4469605) using the "Goodwe LX U5.4-L * 3" battery profile)
@@ -106,6 +118,8 @@ The following are confirmed and known to work:
 
 ![Lovelace entities card](images/PCB_ESP32_JK-BMS-CAN_powered_by_JK-BMS.png "PCB ESP32 JK-BMS-CAN powered by JK-BMS")
 
+![Lovelace entities card](images/PCB_ESP32_JK-BMS-CAN_Prototype.jpg "PCB ESP32 JK-BMS-CAN powered by JK-BMS")
+
 
 ```
                 RS485-TTL                   RS232-TTL                CAN BUS
@@ -147,14 +161,14 @@ The UART-TTL (labeled as `RS485`) socket of the BMS can be attached to any UART 
 
 ## Installation
 
-This YAML file is based on the syssi 'esphome-jk-bms' repository.
+This YAML file is based on the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/syssi/esphome-jk-bms) repository.
 
 ```yaml
 external_components:
   - source: github://syssi/esphome-jk-bms@main
 ```
 
-Installation procedure:
+**Installation procedure:**
 
 ```bash
 # Install esphome
@@ -183,7 +197,7 @@ In Home Assistant under settings->Intergration "Add Intergration" select ESPHome
 # test the config
 esphome config esp32-jk-bms-can.yaml
 
-# install configuration in ESP32
+# install the config in ESP32
 esphome run esp32-jk-bms-can.yaml
 
 # check the logs	
@@ -193,6 +207,7 @@ esphome logs esp32-jk-bms-can.yaml
 ## Known issues
 
 * ESP32 has a bug that causes WDT reboot if no other devices on CAN bus to ACK the packets. If you try to run without inverter it will not work as it will constantly WDT reboot!
+* Probably daily reboots if the ESP32 is not connected to Home Assistant.
 * The battery type sensor is pretty useless because the BMS reports always the same value (`Ternary Lithium`). Regardless of which battery type was set / parameter set was loaded via the android app. ([#9][i9])
 * ESP32: Adding all supported sensors can lead to a stack overflow / boot loop. This can be solved by increasing the stack size. ([#63][i63])
 
@@ -201,7 +216,7 @@ esphome logs esp32-jk-bms-can.yaml
 
 ## Goodies
 
-A user of the [syssi 'esphome-jk-bms' project](https://github.com/syssi/esphome-jk-bms) ([@dr3amr](https://github.com/dr3amr)) shared some [Home Assistant Lovelace UI cards for a beautiful dashboard here](https://github.com/syssi/esphome-jk-bms/discussions/230).
+A user of the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/syssi/esphome-jk-bms) project ([@dr3amr](https://github.com/dr3amr)) shared some [Home Assistant Lovelace UI cards for a beautiful dashboard here](https://github.com/syssi/esphome-jk-bms/discussions/230).
 
 ![Lovelace entities card](images/lovelace-cards-contribution.png "Home Assistant Lovelace UI cards")
 
@@ -225,6 +240,6 @@ uart:
 
 ## References
 
-* https://www.patreon.com/Uksa007Codedevelopment Thanks to uksa007 for making the original CAN code.
-* https://github.com/syssi/esphome-jk-bms Thanks go to syssi for help and making the original RS485 code.
+* https://www.patreon.com/Uksa007Codedevelopment Thanks to @uksa007 for making the original CAN code.
+* https://github.com/syssi/esphome-jk-bms Thanks go to @syssi for help and making the original RS485 code.
 
