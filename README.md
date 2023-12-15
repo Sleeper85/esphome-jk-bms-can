@@ -1,11 +1,10 @@
 # esphome-jk-bms
 
-![GitHub actions](https://github.com/Sleeper85/esphome-jk-bms-can/actions/workflows/ci.yaml/badge.svg)
 ![GitHub stars](https://img.shields.io/github/stars/Sleeper85/esphome-jk-bms-can)
 ![GitHub forks](https://img.shields.io/github/forks/Sleeper85/esphome-jk-bms-can)
 ![GitHub watchers](https://img.shields.io/github/watchers/Sleeper85/esphome-jk-bms-can)
 
-**ESPHome component to monitor a Jikong Battery Management System (JK-BMS) and communicate with inverters supporting CAN bus protocol compatible with Pylontech V1.3 and Goodwe V1.5.
+**ESPHome component to monitor a Jikong Battery Management System (JK-BMS) and communicate with inverters supporting CAN bus protocol compatible with Pylontech V1.3 and Goodwe V1.5.**
 
 Note Pylontech uses 15s/48v Goodwe uses 16s/51.2v @3.2v/cell nominal.
 Other battery profiles that utilise the PYLON/Goodwe protocol with differnt cell counts may also work, eg Alpha Ess Smile, BYD Battery-Box LV Flex Lite 
@@ -27,14 +26,13 @@ Sends over CAN bus to inverter:
   - Alarms: Cell over/under voltage, Charge/discharge over current, High/low Temp, BMS fault
   - Charging logic: Bulk charge with absorption timer followed or not by a float charge. Everything is easily configurable in Home Assistant.
   
-**Note:- This code support only one BMS connection per inverter.
+**Note: This code support only one BMS connection per inverter.**
 
 Tested with Deye inverter using the battery mode 'Lithium 00'.<br>
 Tested with Goodwe inverter using the Goodwe LX U5.4-L battery profile.<br>
 Each LX U5.4-L battery has 5.4kWh of storage, so select the number that is the closest match to your battery's total capacity.<br>
 
-**Note:- I'm using this with my Deye SUN-6K-SG03-LP1-EU inverter however CAN bus support is still in development and testing...**<br>
-Further details in the discussion tab https://github.com/Sleeper85/esphome-jk-bms-can/discussions
+**Note: I'm using this with my Deye SUN-6K-SG03-LP1-EU inverter however CAN bus support is still in development and testing...**
 
 ## Home Assistant intergration
 
@@ -179,7 +177,7 @@ In Home Assistant under settings->Intergration "Add Intergration" select ESPHome
 
 ```
 
-##ESPHome bash command
+## ESPHome bash command
 
 ```bash
 # test the config
@@ -205,7 +203,7 @@ esphome logs esp32-jk-bms-can.yaml
 
 A user of the [syssi 'esphome-jk-bms' project](https://github.com/syssi/esphome-jk-bms) ([@dr3amr](https://github.com/dr3amr)) shared some [Home Assistant Lovelace UI cards for a beautiful dashboard here](https://github.com/syssi/esphome-jk-bms/discussions/230).
 
-![Custom Lovelace UI cards](images/lovelace-cards-contribution.jpg "Home Assistant Lovelace UI cards")
+![Lovelace entities card](images/lovelace-cards-contribution.jpg "Home Assistant Lovelace UI cards")
 
 ## Debugging
 
