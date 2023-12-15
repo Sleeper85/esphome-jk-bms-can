@@ -1,4 +1,4 @@
-# esphome-jk-bms
+# esphome-jk-bms-can
 
 ![GitHub stars](https://img.shields.io/github/stars/Sleeper85/esphome-jk-bms-can)
 ![GitHub forks](https://img.shields.io/github/forks/Sleeper85/esphome-jk-bms-can)
