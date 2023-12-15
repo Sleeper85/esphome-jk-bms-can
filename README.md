@@ -120,6 +120,8 @@ The following are confirmed and known to work:
 
 ![Lovelace entities card](images/PCB_ESP32_JK-BMS-CAN_Prototype.jpg "PCB ESP32 JK-BMS-CAN powered by JK-BMS")
 
+![Lovelace entities card](images/JK-BMS_24S_GPS_port.png "PCB ESP32 JK-BMS-CAN powered by JK-BMS")
+
 
 ```
                 RS485-TTL                   RS232-TTL                CAN BUS
