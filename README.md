@@ -6,6 +6,8 @@
 
 **ESPHome component to monitor a Jikong Battery Management System (JK-BMS) and communicate with inverters supporting CAN bus protocol compatible with Pylontech V1.3 and Goodwe V1.5.**
 
+**This project should work with inverters that support the Pylontech CAN bus protocol but I'm only testing it with the Deye inverter for the moment!**
+
 **Note: Pylontech uses 15s/48v and many others uses 16s/51.2v @3.2v/cell nominal.**
 Other battery profiles that utilise the **PYLON** protocol with different cell counts may also work, eg Alpha Ess Smile, BYD Battery-Box LV Flex Lite.
 Select the correct battery profile in the inverter to match your battery pack!
