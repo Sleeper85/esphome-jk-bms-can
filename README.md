@@ -203,7 +203,7 @@ esphome logs esp32-jk-bms-can.yaml
 
 A user of the [syssi 'esphome-jk-bms' project](https://github.com/syssi/esphome-jk-bms) ([@dr3amr](https://github.com/dr3amr)) shared some [Home Assistant Lovelace UI cards for a beautiful dashboard here](https://github.com/syssi/esphome-jk-bms/discussions/230).
 
-![Lovelace entities card](images/lovelace-cards-contribution.jpg "Home Assistant Lovelace UI cards")
+![Lovelace entities card](images/lovelace-cards-contribution.png "Home Assistant Lovelace UI cards")
 
 ## Debugging
 
