@@ -38,8 +38,17 @@ Each LX U5.4-L battery has 5.4kWh of storage, so select the number that is the c
 
 ![Lovelace entities card](images/HA_Dashboard.png "HA Dashboard")
 
+
+## Tips for Deye inverter
+Add 0.1v to the settings below because the Deye charging voltage is always 0.1v lower than requested.
+* Float V. : 53.7v (3.35v/cell - Natural voltage of a fully charged cell at rest, I advise you not to go higher.)
+* Absorption V : 55.3v (3.45v/cell - It's not necessary to use a charging voltage higher than 55.2V for a full charge.)
+* Absorption Offset V. : 0.15v (The absorption phase will start at 55.15v (BMS voltage). Warning: the BMS voltage must be correctly calibrated.)
+
+
 ## Changelog
 
+* V1.14.3 Sleeper85 : Improved documentation + Charging Voltage tips for Deye
 * V1.14.2 Sleeper85 : Improve 'Charging Voltage' behavior
 * V1.14.1 Sleeper85 : Add 'Float charge function'
 * V1.13.6 Sleeper85 : Add 'Absorption time' and 'Absorption Offset V.' slider
