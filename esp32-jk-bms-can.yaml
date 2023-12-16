@@ -1,5 +1,6 @@
 # JK-BMS-CAN ( PYLON protocol )
 
+# V1.14.3 Sleeper85 : Improved documentation + Charging Voltage tips for Deye
 # V1.14.2 Sleeper85 : Improve 'Charging Voltage' behavior
 # V1.14.1 Sleeper85 : Add 'Float charge function'
 # V1.13.6 Sleeper85 : Add 'Absorption time' and 'Absorption Offset V.' slider
@@ -10,46 +11,56 @@
 # V1.13.1 uksa007   : Fix compile issues with new version of ESPhome 2023.4.0, set rebulk offset to 2.5
 
 substitutions:
-# --------------------------
+# +--------------------------------------+
 # name that will appear in esphome and homeassistant.
   name: jk-bms-can
-# --------------------------
+# +--------------------------------------+
 # Number of Battery modules max 8. Each LX U5.4-L battery is 5.4kWh, select the number closest to your capactiy eg 3.2V * 280Ah * 16 = 14.3kWh
   batt_modules: "3"
-# --------------------------------------
-# Battery Charging setting:
+# +--------------------------------------+
+# | Battery Charge Settings              |
+# +--------------------------------------+
+# Tips for Deye inverter : Add 0.1v to the settings below because the Deye charging voltage is always 0.1v lower than requested.
+# Float V. : 53.7v		(3.35v/cell - Natural voltage of a fully charged cell at rest, I advise you not to go higher.)
+# Absorption V : 55.3v		(3.45v/cell - It's not necessary to use a charging voltage higher than 55.2V for a full charge.)
+# Absorption Offset V. : 0.15v	(The absorption phase will start at 55.15v (BMS voltage). Warning: the BMS voltage must be correctly calibrated.)
+# +--------------------------------------+
 # This is max charging amps eg 50A, for Bulk - Constant Current charging(CC), should be at least 10A less than BMS change current protection, 0.5C max 
   charge_a: "100"
-# Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6v eg 3.35v/cell for 16 cells 48V battery) 
+# Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6v eg 3.35v/cell for 16 cells 48V battery)
   float_v: "53.6"
 # Absorption Voltage : corresponds to the Bulk voltage that will be used to charge the battery. (55.2v eg 3.45v/cell for 16 cells 48V battery)
   absorption_v: "55.2"
 # Absorption time in minutes to hold charge voltage after charge voltage is reached eg 30
   absorption_time: "30"
-# Absorption offset, x Volts below absorption voltage battery will start the absorption timer, eg 55.2-0.1 = 52.1v
-  absorption_offset_v: "0.15"
+# Absorption offset, x Volts below absorption voltage battery will start the absorption timer, eg 55.2-0.05 = 52.15v
+  absorption_offset_v: "0.05"
 # Rebulk offset, x Volts below absorption voltage battery will request rebulk, eg 55.2-2.0 = 53.2v, roughly 90% SOC.
   rebulk_offset_v: "2.0"
-# --------------------------------------
-# Battery Discharge setting:
+# +--------------------------------------+
+# | Battery Discharge Settings           |
+# +--------------------------------------+
 # Max discharge amps eg 100, should be at least 10A less than BMS over discharge current protection, 0.5C max
   discharge_a: "150"
 # Minimum discharge voltage eg 48v/16 = 3V per cell
   min_discharge_v: "48"
-# --------------------------------------
-# Battery State of Health (SOH) setting:
-# Maximum charging cycles is used to calculate the battey SOH, LF280K=6000.0 LF280=3000.0 (decimal is required)
+# +--------------------------------------+
+# | Battery State of Health (SOH)        |
+# +--------------------------------------+
+# Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
   max_cycles: "6000.0"
-# --------------------------------------
-# ESP32 CAN/Serail port pins:
-# GPIO pins your CAN bus transceiver(TJA1050) is connected to the ESP, note! TX->TX and RX->RX. 
+# +--------------------------------------+
+# | ESP32 CAN/serial port pins           |
+# +--------------------------------------+
+# GPIO pins your CAN bus transceiver(TJA1050 or TJA1051T) is connected to the ESP, note! TX->TX and RX->RX. 
   can_tx_pin: GPIO23
   can_rx_pin: GPIO22
 # GPIO pins your JK-BMS RS485(TTL) is connected to the ESP TX->RX and RX->TX. 
   tx_pin: GPIO17
   rx_pin: GPIO16
-# --------------------------------------
-#### Don't make changes below this ####
+# +--------------------------------------+
+# | ** Don't make changes below this **  |
+# +--------------------------------------+
   external_components_source: github://syssi/esphome-jk-bms@main
   # components
   # github://syssi/esphome-jk-bms@main
