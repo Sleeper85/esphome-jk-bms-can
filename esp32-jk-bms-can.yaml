@@ -36,7 +36,7 @@ substitutions:
 # Absorption offset, x Volts below absorption voltage battery will start the absorption timer, eg 55.2-0.05 = 52.15v
   absorption_offset_v: "0.05"
 # Rebulk offset, x Volts below absorption voltage battery will request rebulk, eg 55.2-2.0 = 53.2v, roughly 90% SOC.
-  rebulk_offset_v: "2.0"
+  rebulk_offset_v: "2.5"
 # +--------------------------------------+
 # | Battery Discharge Settings           |
 # +--------------------------------------+
