@@ -6,8 +6,6 @@
 
 **ESPHome component to monitor a Jikong Battery Management System (JK-BMS) and communicate with inverters supporting CAN bus protocol compatible with Pylontech V1.3 and Goodwe V1.5.**
 
-**This project should work with inverters that support the Pylontech CAN bus protocol but I'm only testing it with the Deye inverter for the moment!**
-
 **Note: Pylontech uses 15s/48v and many others uses 16s/51.2v @3.2v/cell nominal.**
 Other battery profiles that utilise the **PYLON** protocol with different cell counts may also work, eg Alpha Ess Smile, BYD Battery-Box LV Flex Lite.
 Select the correct battery profile in the inverter to match your battery pack!
@@ -15,7 +13,7 @@ Select the correct battery profile in the inverter to match your battery pack!
 The ESP32 communicates with the JK-BMS using the RS485 port (GPS) which is in fact not RS485 but 3.3V UART-TTL, so it can be directly connected to the ESP32.
 The ESP32 then sends the required CAN bus data to the inverter via a TJA1050 or TJA1051T CAN bus transceiver.
 
-Sends over CAN bus to inverter:
+**Sends over CAN bus to inverter:**
   - Battery Voltage
   - Battery Current (+charge, -discharge)
   - State of Charge (SOC)
@@ -28,13 +26,13 @@ Sends over CAN bus to inverter:
   - Alarms: Cell over/under voltage, Charge/discharge over current, High/low Temp, BMS fault
   - Charging logic: Bulk charge with absorption timer followed or not by a float charge. Everything is easily configurable in Home Assistant.
   
-**Note: This code support only one BMS connection per inverter.**
+**Note: This code support only one BMS connection per inverter and should work with inverters that support the Pylontech 1.3 CAN bus protocol.
+I'm only testing it with my Deye SUN-6K-SG03-LP1-EU inverter.<br>
+The CAN bus support is still in development and testing...<br>**
 
 Tested with Deye inverter using the battery mode 'Lithium 00'.<br>
 Tested with Goodwe inverter using the Goodwe LX U5.4-L battery profile.<br>
 Each LX U5.4-L battery has 5.4kWh of storage, so select the number that is the closest match to your battery's total capacity.<br>
-
-**Note: I'm using this with my Deye SUN-6K-SG03-LP1-EU inverter however CAN bus support is still in development and testing...**
 
 ## Home Assistant integration
 
