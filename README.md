@@ -40,7 +40,7 @@ Each LX U5.4-L battery has 5.4kWh of storage, so select the number that is the c
 
 
 ## Tips for Deye inverter
-Add 0.1v to the settings below because the Deye charging voltage is always 0.1v lower than requested.
+Add 0.1v to the voltage settings because the Deye charging voltage is always 0.1v lower than requested.
 * Float V. : 53.7v (3.35v/cell - Natural voltage of a fully charged cell at rest, I advise you not to go higher.)
 * Absorption V : 55.3v (3.45v/cell - It's not necessary to use a charging voltage higher than 55.2V for a full charge.)
 * Absorption Offset V. : 0.15v (The absorption phase will start at 55.15v (BMS voltage). Warning: the BMS voltage must be correctly calibrated.)
