@@ -1,4 +1,4 @@
-# esphome-jk-bms-can
+# JK-BMS-CAN
 
 ![GitHub stars](https://img.shields.io/github/stars/Sleeper85/esphome-jk-bms-can)
 ![GitHub forks](https://img.shields.io/github/forks/Sleeper85/esphome-jk-bms-can)
@@ -25,6 +25,7 @@ The ESP32 then sends the required CAN bus data to the inverter via a TJA1050 or 
   - Battery name 'PYLON'
   - Alarms: Cell over/under voltage, Charge/discharge over current, High/low Temp, BMS fault
   - Charging logic: Bulk charge with absorption timer followed or not by a float charge. Everything is easily configurable in Home Assistant.
+  - Since version 1.15.1 CANBUS is monitored.
   
 **Note: This code support only one BMS connection per inverter and should work with inverters that support the Pylontech 1.3 CAN bus protocol.
 I'm only testing it with my Deye SUN-6K-SG03-LP1-EU inverter.<br>
@@ -48,6 +49,7 @@ Add 0.1v to the voltage settings because the Deye charging voltage is always 0.1
 
 ## Changelog
 
+* V1.15.1 Sleeper85 : New CANBUS script with CANBUS Status in HA, stop sending CAN messages if the inverter is not responding (fix WDT reboot issues).
 * V1.14.3 Sleeper85 : Improved documentation + Charging Voltage tips for Deye
 * V1.14.2 Sleeper85 : Improve 'Charging Voltage' behavior
 * V1.14.1 Sleeper85 : Add 'Float charge function'
@@ -217,8 +219,8 @@ esphome logs esp32-jk-bms-can.yaml
 
 ## Known issues
 
-* ESP32 has a bug that causes WDT reboot if no other devices on CAN bus to ACK the packets. If you try to run without inverter it will not work as it will constantly WDT reboot!
-* Probably daily reboots if the ESP32 is not connected to Home Assistant.
+* Fixed in version 1.15.1 - ~~ESP32 has a bug that causes WDT reboot if no other devices on CAN bus to ACK the packets. If you try to run without inverter it will not work as it will constantly WDT reboot!~~
+* Probably daily reboots if the ESP32 is not connected to Home Assistant (to be tested).
 * The battery type sensor is pretty useless because the BMS reports always the same value (`Ternary Lithium`). Regardless of which battery type was set / parameter set was loaded via the android app. ([#9][i9])
 * ESP32: Adding all supported sensors can lead to a stack overflow / boot loop. This can be solved by increasing the stack size. ([#63][i63])
 
