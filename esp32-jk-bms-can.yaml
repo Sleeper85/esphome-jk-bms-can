@@ -1,5 +1,6 @@
 # JK-BMS-CAN ( PYLON protocol )
 
+# V1.15.1 Sleeper85 : New CANBUS script with CANBUS Status in HA, stop sending CAN messages if the inverter is not responding (fix WDT reboot issues).
 # V1.14.3 Sleeper85 : Improved documentation + Charging Voltage tips for Deye
 # V1.14.2 Sleeper85 : Improve 'Charging Voltage' behavior
 # V1.14.1 Sleeper85 : Add 'Float charge function'
@@ -35,7 +36,7 @@ substitutions:
   absorption_time: "30"
 # Absorption offset, x Volts below absorption voltage battery will start the absorption timer, eg 55.2-0.05 = 52.15v
   absorption_offset_v: "0.05"
-# Rebulk offset, x Volts below absorption voltage battery will request rebulk, eg 55.2-2.0 = 53.2v, roughly 90% SOC.
+# Rebulk offset, x Volts below absorption voltage battery will request rebulk, eg 55.2-2.5 = 52.7v
   rebulk_offset_v: "2.5"
 # +--------------------------------------+
 # | Battery Discharge Settings           |
@@ -84,18 +85,26 @@ external_components:
     refresh: 0s
 
 globals:
-  - id: can_305_rx
+  - id: can_ack_counter
     type: int
     restore_value: no
     initial_value: '0'
+  - id: charge_status
+    type: std::string
+    restore_value: no
+    initial_value: '"Disabled"'
   - id: charging_voltage
     type: float
     restore_value: no
     initial_value: '0.0'
-  - id: charge_status
+  - id: can_status
     type: std::string
     restore_value: no
     initial_value: '"init"'
+  - id: can_msg_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
 
 button:
   - platform: restart
@@ -162,265 +171,332 @@ canbus:
     can_id: 4
     bit_rate: 500kbps
     on_frame:
-    - can_id: 0x305 # SMA/LG/Pylon/Goodwe reply
+    - can_id: 0x305 # Inverter ACK - SMA/LG/Pylon/Goodwe reply
       then:
         - light.toggle:
             id: led_buitin
         - lambda: |-
-            // ESP_LOGI("main", "received can id: 0x305 ACK");
-            id(can_305_rx) = 0;
-
+            id(can_ack_counter) = 0;					// Reset ACK counter
+            id(can_status) = "ON";					// Set CANBUS Status to ON
+            id(canbus_status).publish_state(id(can_status));		// Publish text sensor
+            ESP_LOGI("main", "received can id: 0x305 ACK");
 
 interval:
-  - interval: 1000ms
+  - interval: 60s
     then:
-      - canbus.send: # Warning, Alarms
-          can_id: 0x359
-          data: !lambda |-
-            uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-            uint16_t jk_errormask = id(errors_bitmask).state;
-            int batt_mods = ${batt_modules};
-            // Alarms
-            if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {	// Hight.Voltage.Alarm JK bit 2,7,10 
-               can_mesg[0] = 0x02;								// byte0_bit1 (0x02 = bin 10)
-            }
-            if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {				// Low.Voltage.Alarm JK bit 3,11 
-               can_mesg[0] = can_mesg[0] | 0x04;						// byte0_bit2 (0x04 = bin 100)
-            }
-            if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {	// Hight.Temp.Alarm JK bit 1,4,8
-               can_mesg[0] = can_mesg[0] | 0x08;						// byte0_bit3 (0x08 = bin 1000)
-            }
-            if (jk_errormask & 0x200) {								// Low.Temp.Alarm JK bit 9
-               can_mesg[0] = can_mesg[0] | 0x10;						// byte0_bit4 (0x10 = bin 10000)
-            }
-            if (jk_errormask & 0x40) {								// Discharge.Over.Current JK bit 6
-               can_mesg[0] = can_mesg[0] | 0x80;						// byte0_bit7 (0x80 = bin 10000000)
-            }
-            if (jk_errormask & 0x20) {								// Charge.Over.Current JK bit 5
-               can_mesg[1] = 0x01;								// byte1_bit0 (0x01 = bin 1)
-            }
-            if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {				// BMS Internal JK bit 12,13
-               can_mesg[1] = can_mesg[1] | 0x08;						// byte1_bit3 (0x08 = bin 1000)
-            }
-            if (jk_errormask & 0x80) {								// Cell Imbalance JK bit 7
-               can_mesg[1] = can_mesg[1] | 0x10;						// byte1_bit4 (0x10 = bin 10000)
-            }
-            /// Warnings
-            can_mesg[2] = 0x00;		// byte2
-            can_mesg[3] = 0x00;		// byte3
-            /// Flags
-            can_mesg[4] = batt_mods;	// byte4 - Module in parallel
-            can_mesg[5] = 0x00;		// byte5
-            can_mesg[6] = 0x00;		// byte6
-            can_mesg[7] = 0x00;		// byte7 - DIP switches 1,3 10000100 0x84
-            
-            ESP_LOGI("main", "send can id: 0x359 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
-            return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
-      - delay: 10ms
+      - lambda: |-
+          id(can_ack_counter) = 0;					// Reset ACK counter for test inverter ACK
+          
+  - interval: 50ms
+    then:
+      # Start CAN Handling
+      - if:
+          condition:
+            lambda: |-
+              
+              if (id(can_ack_counter) < 10) {				// Inverter ACK ? => CANBUS ON
+                
+                id(can_ack_counter)++;					// CANBUS ACK counter ++
+                id(can_msg_counter)++;					// CANBUS MSG counter ++
+                return true;						// Condition OK
+                
+              }
+              else if (id(can_status) == "OFF") {			// CANBUS already OFF ?
+                
+              return false;						// Nothing to do
+                
+              }
+              else {
+              
+                id(can_status) = "OFF";					// Set CANBUS Status to OFF
+                id(canbus_status).publish_state(id(can_status));	// Publish text sensor
+                ESP_LOGI("main", "No rx can 0x305 reply, Inverter not connected/responding...");
+                return false;						// Condition NOK
+                
+              }
 
-      - canbus.send: # BMS instructs inverter: Charge Volts, Charge Amps, Discharge Amps, Min voltage
-          can_id: 0x351
-          data: !lambda |-
-            
-            // +---------------+
-            // | Charge Status |
-            // +---------------+
+          then:
+            - if:
+                condition:
+                  lambda: |-
+                    return id(can_msg_counter) == 1;
+                then:
+                  canbus.send: # Warning, Alarms
+                    can_id: 0x359 # Protection & Alarm flags
+                    data: !lambda |-
+                      uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
+                      uint16_t jk_errormask = id(errors_bitmask).state;
+                      int batt_mods = ${batt_modules};
+                      // Alarms
+                      if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {	// Hight.Voltage.Alarm JK bit 2,7,10 
+                         can_mesg[0] = 0x02;								// byte0_bit1 (0x02 = bin 10)
+                      }
+                      if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {				// Low.Voltage.Alarm JK bit 3,11 
+                         can_mesg[0] = can_mesg[0] | 0x04;						// byte0_bit2 (0x04 = bin 100)
+                      }
+                      if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {	// Hight.Temp.Alarm JK bit 1,4,8
+                         can_mesg[0] = can_mesg[0] | 0x08;						// byte0_bit3 (0x08 = bin 1000)
+                      }
+                      if (jk_errormask & 0x200) {							// Low.Temp.Alarm JK bit 9
+                         can_mesg[0] = can_mesg[0] | 0x10;						// byte0_bit4 (0x10 = bin 10000)
+                      }
+                      if (jk_errormask & 0x40) {							// Discharge.Over.Current JK bit 6
+                         can_mesg[0] = can_mesg[0] | 0x80;						// byte0_bit7 (0x80 = bin 10000000)
+                      }
+                      if (jk_errormask & 0x20) {							// Charge.Over.Current JK bit 5
+                         can_mesg[1] = 0x01;								// byte1_bit0 (0x01 = bin 1)
+                      }
+                      if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {				// BMS Internal JK bit 12,13
+                         can_mesg[1] = can_mesg[1] | 0x08;						// byte1_bit3 (0x08 = bin 1000)
+                      }
+                      if (jk_errormask & 0x80) {							// Cell Imbalance JK bit 7
+                         can_mesg[1] = can_mesg[1] | 0x10;						// byte1_bit4 (0x10 = bin 10000)
+                      }
+                      /// Warnings
+                      can_mesg[2] = 0x00;		// byte2
+                      can_mesg[3] = 0x00;		// byte3
+                      /// Flags
+                      can_mesg[4] = batt_mods;	// byte4 - Module in parallel
+                      can_mesg[5] = 0x00;		// byte5
+                      can_mesg[6] = 0x00;		// byte6
+                      can_mesg[7] = 0x00;		// byte7 - DIP switches 1,3 10000100 0x84
+                      
+                      ESP_LOGI("main", "send can id: 0x359 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                      return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
+                      
+            - if:
+                condition:
+                  lambda: |-
+                    return id(can_msg_counter) == 2;
+                then:
+                  canbus.send: # BMS instructs inverter: Charge Volts, Charge Amps, Discharge Amps, Min voltage
+                    can_id: 0x351 # Battery voltage + current limits
+                    data: !lambda |-
+                      
+                      // +---------------+
+                      // | Charge Status |
+                      // +---------------+
+                                            
+                      // Information from JK BMS is not available immediately after boot
+                      // Corresponds to the first status after the boot ( Disabled => Wait => Bulk / Absorption / Float )
+                      // Disabled : charging disabled if BMS or HA switch is OFF
+                      if ((!id(charging_switch).state) | (!id(switch_charging).state)) {
+                           id(charge_status) = "Disabled";
+                      }
+                      // Wait : all charging swith (BMS and HA) are ON but charge status is 'Disabled'
+                      else if ((id(charging_switch).state) & (id(switch_charging).state) & (id(charge_status) == "Disabled")) {
+                           id(charge_status) = "Wait";
+                      }
+                      // Bulk Manually : forced battery charging via HA 'Charging manually (top bal)' switch
+                      else if (id(switch_chg_bulk).state) {
+                           id(charge_status) = "Bulk Manually";
+                      }
+                      // Wait : after switch OFF 'Charging manually (top bal)' HA switch
+                      else if ((!id(switch_chg_bulk).state) & (id(charge_status) == "Bulk Manually")) {
+                           id(charge_status) = "Wait";
+                      }
+                      // Wait : after switch OFF 'Float charge' HA switch
+                      else if ((!id(switch_chg_float).state) & (id(charge_status) == "Float")) {
+                           id(charge_status) = "Wait";
+                      }
+                      // Bulk : if Batt. V. <= ( Absorption V. - Rebulk Offset V. )					( Bulk : <= 55.2-2.5 = 52.7V by default )
+                      else if (id(total_voltage).state <= (id(bulk_voltage).state - id(rebulk_offset).state)) {
+                           id(charge_status) = "Bulk";
+                           if (id(absorption_script).is_running()) id(absorption_script).stop();
+                      }
+                      // Absorption : if Batt. V >= ( Absorption V. - Absorption Offset V. )				( Absorption : >= 55.2-0.05 = 55.15V by default )
+                      else if ((id(charge_status) == "Bulk") & (id(total_voltage).state >= (id(bulk_voltage).state - id(absorption_offset).state))) {
+                           id(charge_status) = "Absorption";
+                           if (!id(absorption_script).is_running()) id(absorption_script).execute();			// 10 % from top start absorption timer
+                      }
+                      // Float : if Batt. V. > ( Absorption V. - Rebulk Offset V. ) and Float switch is ON		( Float : after Absorption and > 55.2-2.5 = 52.7V by default )
+                      else if ((id(switch_chg_float).state) & (id(charge_status) == "Wait")) {
+                           id(charge_status) = "Float";
+                      }
+                      
+                      // +------------------+
+                      // | Charging Voltage |
+                      // +------------------+
+                      
+                      if ((id(charge_status) == "Bulk") | (id(charge_status) == "Bulk Manually") | (id(charge_status) == "Absorption")) {
+                           id(charging_voltage) = id(bulk_voltage).state;
+                      }
+                      else if (id(charge_status) == "Float") {
+                           id(charging_voltage) = id(float_voltage).state;
+                      }
+                      // Charge OFF : Wait or Disabled
+                      else {
+                           id(charging_voltage) = ${min_discharge_v};
+                           // id(charging_voltage) = (id(bulk_voltage).state - id(rebulk_offset).state)
+                      }
+                      
+                      // +--------------+
+                      // | CAN messages |
+                      // +--------------+
+                      
+                      // can_mesg[0] = byte0 = CVL : Charge Limit Voltage
+                      // can_mesg[1] = byte1 = CVL : Charge Limit Voltage
+                      // can_mesg[2] = byte2 = CCL : Charge Limit Current
+                      // can_mesg[3] = byte3 = CCL : Charge Limit Current
+                      
+                      // can_mesg[4] = byte4 = DCL : Discharge Limit Current
+                      // can_mesg[5] = byte5 = DCL : Discharge Limit Current
+                      // can_mesg[6] = byte6 = DVL : Discharge Limit Voltage
+                      // can_mesg[7] = byte7 = DVL : Discharge Limit Voltage
+                      
+                      uint8_t can_mesg[7];
+                      
+                      // Charge Limit Voltage and Charge Limit Current
+                      // Charge ON : Bulk, Bulk Manually, Absorption or Float
+                      if ((id(charge_status) == "Bulk") | (id(charge_status) == "Bulk Manually") | (id(charge_status) == "Absorption") | (id(charge_status) == "Float")) {
+                         can_mesg[0] = uint16_t(id(charging_voltage) * 10) & 0xff;
+                         can_mesg[1] = uint16_t(id(charging_voltage) * 10) >> 8 & 0xff;
+                         can_mesg[2] = uint16_t(id(charging_current).state * 10) & 0xff;
+                         can_mesg[3] = uint16_t(id(charging_current).state * 10) >> 8 & 0xff;
+                      // Charge OFF : Wait or Disabled
+                      } else {
+                         can_mesg[0] = uint16_t(id(charging_voltage) * 10) & 0xff;
+                         can_mesg[1] = uint16_t(id(charging_voltage) * 10) >> 8 & 0xff;
+                         can_mesg[2] = 0;
+                         can_mesg[3] = 0;
+                      }
+                                            
+                      // Discharge Limit Current
+                      if ((id(discharging_switch).state) & (id(switch_discharging).state)) {
+                        can_mesg[4] = uint16_t(${discharge_a} * 10) & 0xff;
+                        can_mesg[5] = uint16_t(${discharge_a} * 10) >> 8 & 0xff;
+                      } else {
+                         can_mesg[4] = 0x00;
+                         can_mesg[5] = 0x00;
+                      }
+                      
+                      // Discharge Limit Voltage
+                      can_mesg[6] = uint16_t(${min_discharge_v} * 10) & 0xff;
+                      can_mesg[7] = uint16_t(${min_discharge_v} * 10) >> 8 & 0xff;
+                      
+                      // Publish text sensor
+                      id(charging_status).publish_state(id(charge_status));
+                      
+                      // Logs
+                      ESP_LOGI("main", "send can id: 0x351 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                      ESP_LOGI("main", "send can id: Charge Status %s", id(charge_status).c_str());
+                      return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
+                      
+            - if:
+                condition:
+                  lambda: |-
+                    return id(can_msg_counter) == 3;
+                then:
+                  canbus.send: # Actual SOC, SOH
+                    can_id: 0x355 # State of Health (SOH) / State of Charge (SOC)
+                    data: !lambda |-
+                      int soh = round(((id(charging_cycles).state/${max_cycles})-1)*-100);
+                      uint8_t can_mesg[3];
+                      can_mesg[0] = uint16_t(id(capacity_remaining).state) & 0xff;
+                      can_mesg[1] = uint16_t(id(capacity_remaining).state) >> 8 & 0xff;
+                      can_mesg[2] = soh & 0xff;
+                      can_mesg[3] = soh >> 8 & 0xff;
+                      ESP_LOGI("main", "send can id: 0x355 hex: %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3]);
+                      return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3]};
+                      
+            - if:
+                condition:
+                  lambda: |-
+                    return id(can_msg_counter) == 4;
+                then:
+                  canbus.send: # Actual Volts, Amps, Temp
+                    can_id: 0x356 # Voltage / Current / Temperature (Deye 0x305 ACK)
+                    data: !lambda |-
+                      uint8_t can_mesg[5];
+                      can_mesg[0] = uint16_t(id(total_voltage).state * 100) & 0xff;
+                      can_mesg[1] = uint16_t(id(total_voltage).state * 100) >> 8 & 0xff;
+                      can_mesg[2] = int16_t(id(current).state * 10) & 0xff;
+                      can_mesg[3] = int16_t(id(current).state * 10) >> 8 & 0xff;
+                      can_mesg[4] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) & 0xff;
+                      can_mesg[5] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) >> 8 & 0xff;
+                      ESP_LOGI("main", "send can id: 0x356 hex: %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5]);
+                      return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5]};
+                      
+            - if:
+                condition:
+                  lambda: |-
+                    return id(can_msg_counter) == 5;
+                then:
+                  canbus.send: # Request flag to Enable/Disable: Charge, Discharge
+                    can_id: 0x35C   # Battery charge request flags
+                    data: !lambda |-
+                      uint8_t can_mesg[1];
+                      if ((id(charging_switch).state) & (id(switch_charging).state)) {
+                         can_mesg[0] = 0x80;
+                      } else {
+                         can_mesg[0] = 0x00;
+                      }
+                      if ((id(discharging_switch).state) & (id(switch_discharging).state)) {
+                         can_mesg[0] = can_mesg[0] | 0x40;
+                      }
+                      can_mesg[1] = 0x00;
+                      ESP_LOGI("main", "send can id: 0x35C hex: %x %x", can_mesg[0], can_mesg[1]);
+                      return {can_mesg[0], can_mesg[1]};
+                      
+            - if:
+                condition:
+                  lambda: |-
+                    return id(can_msg_counter) == 6;
+                then:
+                  canbus.send: # Actual Max Cell Temp, Min Cell Temp, Max Cell V, Min Cell V
+                    can_id: 0x70
+                    data: !lambda |-
+                      int max_cell_voltage_i = id(max_cell_voltage).state * 100.0;
+                      int min_cell_voltage_i = id(min_cell_voltage).state * 100.0;
+                      uint8_t can_mesg[7];
+                      can_mesg[0] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) & 0xff;
+                      can_mesg[1] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) >> 8 & 0xff;
+                      can_mesg[2] = int16_t(min(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) & 0xff;
+                      can_mesg[3] = int16_t(min(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) >> 8 & 0xff;
+                      can_mesg[4] = max_cell_voltage_i & 0xff;
+                      can_mesg[5] = max_cell_voltage_i >> 8 & 0xff;
+                      can_mesg[6] = min_cell_voltage_i & 0xff;
+                      can_mesg[7] = min_cell_voltage_i >> 8 & 0xff;
+                      ESP_LOGI("main", "send can id: 0x70 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                      return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
+                      
+            - if:
+                condition:
+                  lambda: |-
+                    return id(can_msg_counter) == 7;
+                then:
+                  - canbus.send: # Actual Max Cell Temp ID, Min Cell Temp ID, Max Cell V ID, Min Cell ID
+                      can_id: 0x371
+                      data: !lambda |-
+                        uint8_t can_mesg[7];
+                        can_mesg[0] = 0x01;
+                        can_mesg[1] = 0x00;
+                        can_mesg[2] = 0x02;
+                        can_mesg[3] = 0x00;
+                        can_mesg[4] = uint16_t(id(max_voltage_cell).state) & 0xff;
+                        can_mesg[5] = uint16_t(id(max_voltage_cell).state) >> 8 & 0xff;
+                        can_mesg[6] = uint16_t(id(min_voltage_cell).state) & 0xff;
+                        can_mesg[7] = uint16_t(id(min_voltage_cell).state) >> 8 & 0xff;
+                        ESP_LOGI("main", "send can id: 0x371 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                        return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                         
-            // Information from JK BMS is not available immediately after boot
-            // Corresponds to the first status after the boot ( Disabled => Wait => Bulk / Absorption / Float )
-            // Disabled : charging disabled if BMS or HA switch is OFF
-            if ((!id(charging_switch).state) | (!id(switch_charging).state)) {
-                 id(charge_status) = "Disabled";
-            }
-            // Wait : all charging swith (BMS and HA) are ON but charge status is 'Disabled'
-            else if ((id(charging_switch).state) & (id(switch_charging).state) & (id(charge_status) == "Disabled")) {
-                 id(charge_status) = "Wait";
-            }
-            // Bulk Manually : forced battery charging via HA 'Charging manually (top bal)' switch
-            else if (id(switch_chg_bulk).state) {
-                 id(charge_status) = "Bulk Manually";
-            }
-            // Wait : after switch OFF 'Charging manually (top bal)' HA switch
-            else if ((!id(switch_chg_bulk).state) & (id(charge_status) == "Bulk Manually")) {
-                 id(charge_status) = "Wait";
-            }
-            // Wait : after switch OFF 'Float charge' HA switch
-            else if ((!id(switch_chg_float).state) & (id(charge_status) == "Float")) {
-                 id(charge_status) = "Wait";
-            }
-            // Bulk : if Batt. V. <= ( Absorption V. - Rebulk Offset V. )					( Bulk : <= 55.2-2.0 = 53.2V by default )
-            else if (id(total_voltage).state <= (id(bulk_voltage).state - id(rebulk_offset).state)) {
-                 id(charge_status) = "Bulk";
-                 if (id(absorption_script).is_running()) id(absorption_script).stop();
-            }
-            // Absorption : if Batt. V >= ( Absorption V. - Absorption Offset V. )				( Absorption : >= 55.2-0.1 = 55.10V by default )
-            else if ((id(charge_status) == "Bulk") & (id(total_voltage).state >= (id(bulk_voltage).state - id(absorption_offset).state))) {
-                 id(charge_status) = "Absorption";
-                 if (!id(absorption_script).is_running()) id(absorption_script).execute();			// 10 % from top start absorption timer
-            }
-            // Float : if Batt. V. > ( Absorption V. - Rebulk Offset V. ) and Float switch is ON		( Float : after Absorption and > 55.2-2.0 = 53.2V by default )
-            else if ((id(switch_chg_float).state) & (id(charge_status) == "Wait")) {
-                 id(charge_status) = "Float";
-            }
-            
-            // +------------------+
-            // | Charging Voltage |
-            // +------------------+
-            
-            if ((id(charge_status) == "Bulk") | (id(charge_status) == "Bulk Manually") | (id(charge_status) == "Absorption")) {
-                 id(charging_voltage) = id(bulk_voltage).state;
-            }
-            else if (id(charge_status) == "Float") {
-                 id(charging_voltage) = id(float_voltage).state;
-            }
-            
-            // +--------------+
-            // | CAN messages |
-            // +--------------+
-            
-            // can_mesg[0] = byte0 = CVL : Charge Limit Voltage
-            // can_mesg[1] = byte1 = CVL : Charge Limit Voltage
-            // can_mesg[2] = byte2 = CCL : Charge Limit Current
-            // can_mesg[3] = byte3 = CCL : Charge Limit Current
-            
-            // can_mesg[4] = byte4 = DCL : Discharge Limit Current
-            // can_mesg[5] = byte5 = DCL : Discharge Limit Current
-            // can_mesg[6] = byte6 = DVL : Discharge Limit Voltage
-            // can_mesg[7] = byte7 = DVL : Discharge Limit Voltage
-            
-            uint8_t can_mesg[7];
-            
-            // Bulk, Bulk Manually, Absorption or Float
-            if ((id(charge_status) == "Bulk") | (id(charge_status) == "Bulk Manually") | (id(charge_status) == "Absorption") | (id(charge_status) == "Float")) {
-               can_mesg[0] = uint16_t(id(charging_voltage) * 10) & 0xff;
-               can_mesg[1] = uint16_t(id(charging_voltage) * 10) >> 8 & 0xff;
-               can_mesg[2] = uint16_t(id(charging_current).state * 10) & 0xff;
-               can_mesg[3] = uint16_t(id(charging_current).state * 10) >> 8 & 0xff;
-            // Wait
-            } else {
-               can_mesg[0] = uint16_t((id(charging_voltage) - id(rebulk_offset).state) * 10) & 0xff;
-               can_mesg[1] = uint16_t((id(charging_voltage) - id(rebulk_offset).state) * 10) >> 8 & 0xff;
-               can_mesg[2] = 0;
-               can_mesg[3] = 0;
-            }
-            
-            // Overides to disable charging
-            if ((!id(charging_switch).state) | (!id(switch_charging).state)) {
-               can_mesg[0] = uint16_t((id(charging_voltage) - id(rebulk_offset).state) * 10) & 0xff;
-               can_mesg[1] = uint16_t((id(charging_voltage) - id(rebulk_offset).state) * 10) >> 8 & 0xff;
-               can_mesg[2] = 0;
-               can_mesg[3] = 0;
-            }
-            
-            if ((id(discharging_switch).state) & (id(switch_discharging).state)) {
-              can_mesg[4] = uint16_t(${discharge_a} * 10) & 0xff;
-              can_mesg[5] = uint16_t(${discharge_a} * 10) >> 8 & 0xff;
-            } else {
-               can_mesg[4] = 0x00;
-               can_mesg[5] = 0x00;
-            }
-            can_mesg[6] = uint16_t(${min_discharge_v} * 10) & 0xff;
-            can_mesg[7] = uint16_t(${min_discharge_v} * 10) >> 8 & 0xff;
-            id(charging_status).publish_state(id(charge_status));
-            ESP_LOGI("main", "send can id: 0x351 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
-            ESP_LOGI("main", "send can id: Charge Status %s", id(charge_status).c_str());
-            return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
-      - delay: 10ms
+            - if:
+                condition:
+                  lambda: |-
+                    return id(can_msg_counter) == 8;
+                then:
+                  - canbus.send:
+                      can_id: 0x35E # Manufacturer name ("GOODWE")
+                      data: [0x50, 0x59, 0x4C, 0x4F, 0x4E, 0x20, 0x20, 0x20]
+                      # PYLON  : 0x50, 0x59, 0x4C, 0x4F, 0x4E, 0x20, 0x20, 0x20	( recognized by Deye, display PYLON name and SOH )
+                      # GOODWE : 0x47, 0x4F, 0x4F, 0x44, 0x57, 0x45, 0x20, 0x20
+                      # GoodWe : 0x47, 0x6F, 0x6F, 0x64, 0x57, 0x65, 0x20, 0x20
+                      # Energy : 0x45, 0x6E, 0x65, 0x72, 0x67, 0x79, 0x20, 0x20	( SEPLOS V1.0 )
 
-      - canbus.send: # Actual SOC, SOH
-          can_id: 0x355
-          data: !lambda |-
-            int soh = round(((id(charging_cycles).state/${max_cycles})-1)*-100);
-            uint8_t can_mesg[3];
-            can_mesg[0] = uint16_t(id(capacity_remaining).state) & 0xff;
-            can_mesg[1] = uint16_t(id(capacity_remaining).state) >> 8 & 0xff;
-            can_mesg[2] = soh & 0xff;
-            can_mesg[3] = soh >> 8 & 0xff;
-            ESP_LOGI("main", "send can id: 0x355 hex: %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3]);
-            return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3]};
-      - delay: 10ms
-
-      - canbus.send: # Actual Volts, Amps, Temp
-          can_id: 0x356
-          data: !lambda |-
-            uint8_t can_mesg[5];
-            can_mesg[0] = uint16_t(id(total_voltage).state * 100) & 0xff;
-            can_mesg[1] = uint16_t(id(total_voltage).state * 100) >> 8 & 0xff;
-            can_mesg[2] = int16_t(id(current).state * 10) & 0xff;
-            can_mesg[3] = int16_t(id(current).state * 10) >> 8 & 0xff;
-            can_mesg[4] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) & 0xff;
-            can_mesg[5] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) >> 8 & 0xff;
-            ESP_LOGI("main", "send can id: 0x356 hex: %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5]);
-            return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5]};
-      - delay: 10ms
-
-      - canbus.send: # Request flag to Enable/Disable: Charge, Discharge
-          can_id: 0x35C
-          data: !lambda |-
-            uint8_t can_mesg[1];
-            if ((id(charging_switch).state) & (id(switch_charging).state)) {
-               can_mesg[0] = 0x80;
-            } else {
-               can_mesg[0] = 0x00;
-            }
-            if ((id(discharging_switch).state) & (id(switch_discharging).state)) {
-               can_mesg[0] = can_mesg[0] | 0x40;
-            }
-            can_mesg[1] = 0x00;
-            ESP_LOGI("main", "send can id: 0x35C hex: %x %x", can_mesg[0], can_mesg[1]);
-            return {can_mesg[0], can_mesg[1]};
-      - delay: 10ms
-
-      - canbus.send: # Actual Max Cell Temp, Min Cell Temp, Max Cell V, Min Cell V	( see Seplos protocol )
-          can_id: 0x70
-          data: !lambda |-
-            int max_cell_voltage_i = id(max_cell_voltage).state * 100.0;
-            int min_cell_voltage_i = id(min_cell_voltage).state * 100.0;
-            uint8_t can_mesg[7];
-            can_mesg[0] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) & 0xff;
-            can_mesg[1] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) >> 8 & 0xff;
-            can_mesg[2] = int16_t(min(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) & 0xff;
-            can_mesg[3] = int16_t(min(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) >> 8 & 0xff;
-            can_mesg[4] = max_cell_voltage_i & 0xff;
-            can_mesg[5] = max_cell_voltage_i >> 8 & 0xff;
-            can_mesg[6] = min_cell_voltage_i & 0xff;
-            can_mesg[7] = min_cell_voltage_i >> 8 & 0xff;
-            ESP_LOGI("main", "send can id: 0x70 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
-            return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
-      - delay: 10ms
-
-      - canbus.send: # Actual Max Cell Temp ID, Min Cell Temp ID, Max Cell V ID, Min Cell ID
-          can_id: 0x371
-          data: !lambda |-
-            uint8_t can_mesg[7];
-            can_mesg[0] = 0x01;
-            can_mesg[1] = 0x00;
-            can_mesg[2] = 0x02;
-            can_mesg[3] = 0x00;
-            can_mesg[4] = uint16_t(id(max_voltage_cell).state) & 0xff;
-            can_mesg[5] = uint16_t(id(max_voltage_cell).state) >> 8 & 0xff;
-            can_mesg[6] = uint16_t(id(min_voltage_cell).state) & 0xff;
-            can_mesg[7] = uint16_t(id(min_voltage_cell).state) >> 8 & 0xff;
-            ESP_LOGI("main", "send can id: 0x371 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
-            return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
-      - delay: 10ms
-
-      - canbus.send: # Manufacturer Name (ASCII : PYLON)
-          can_id: 0x35E
-          data: [0x50, 0x59, 0x4C, 0x4F, 0x4E, 0x20, 0x20, 0x20]
-          # DEYE   : 0x44, 0x45, 0x59, 0x45, 0x20, 0x20, 0x20, 0x20
-          # PYLON  : 0x50, 0x59, 0x4C, 0x4F, 0x4E, 0x20, 0x20, 0x20	( recognized by Deye, display PYLON name and SOH )
-          # GOODWE : 0x47, 0x4F, 0x4F, 0x44, 0x57, 0x45, 0x20, 0x20
-      - delay: 10ms
-
-      - lambda: |- # Detect no CAN reply
-           if (id(can_305_rx) > 30) {
-             ESP_LOGI("main", "No rx can 0x305 reply, Inverter not connected/responding, Rebooting...");
-             id(restart_button).press();
-           } else {
-             id(can_305_rx) ++;
-           }
-
+                  - lambda: |- # Reset counter
+                      ESP_LOGI("main", "send can id: 0x35E ASCII : PYLON");
+                      id(can_msg_counter) = 0;
+                      
 binary_sensor:
   - platform: jk_bms
     balancing:
@@ -654,8 +730,8 @@ text_sensor:
       name: "${name} operation mode"
     battery_type:
       name: "${name} battery type"
-    password:
-      name: "${name} password"
+#    password:
+#      name: "${name} password"
     device_type:
       name: "${name} device type"
     software_version:
@@ -672,6 +748,9 @@ text_sensor:
   - platform: template
     name: "${name} Charging Status"
     id: charging_status
+  - platform: template
+    name: "${name} CANBUS Status"
+    id: canbus_status
 
 # Slider
 number:
@@ -701,7 +780,7 @@ number:
     name: "${name} Charging current max"
     id: "charging_current"
     step: 1
-    min_value: 1
+    min_value: 0
     max_value: 150
     mode: slider
     initial_value: "${charge_a}"
