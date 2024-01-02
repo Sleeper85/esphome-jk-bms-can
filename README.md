@@ -36,6 +36,8 @@ The CAN bus support is still in development and testing...<br>**
 
 ![Image](images/CAN_Protocol_Table.png "CAN Protocol Table")
 
+Note: the following IDs are not implemented: 0x35B, 0x360, 0x372, 0x374, 0x375, 0x376, 0x377, 0x378, 0x380, 0x381 and 0x382.
+
 ## CAN Protocol Settings
 
 This can be configured in the YAML file. It is configured by default for PYLON 1.2 protocol IDs (the most common protocol).
@@ -54,20 +56,72 @@ This can be configured in the YAML file. It is configured by default for PYLON 1
   can_battery_info: "0"
 ```
 
-## Home Assistant integration
+## Home Assistant and API
 
 ![Image](images/HA_Dashboard.png "HA Dashboard")
 
+If your ESP32 is not connected with Home Assistant it will reboot every 15 minutes.
+This is the normal behavior of ESPHome if HA is not connected to the ESP32 API.
+This is not a bug to be resolved but a mechanism put in place by the ESPHome team to correct a possible problem with the API connection.
+
+If you don't want to use Home Assistant, add the **"reboot_timeout: 0s"** option below the **"api:"** section of your YAML file.<br>
+This option will disable the reboot every 15min.
+
+```YAML
+# +------------------------------------------------------------------+
+# | ** The settings below can be modified according to your needs ** |
+# +------------------------------------------------------------------+
+
+api:
+  reboot_timeout: 0s
+```
+
+## Web Server
+
+If you don't use Home Assistant, you can activate the web server and have access to information coming from JK-BMS and also interact with the application.
+
+![Image](images/ESPHome_Web_Server.png "Web Server")
+
+The web server is not enabled by default.<br>
+To enable this feature, uncomment the lines below in your YAML file.
+
+```ỲAML
+# +------------------------------------------------------------------+
+# | ** The settings below can be modified according to your needs ** |
+# +------------------------------------------------------------------+
+
+web_server:
+  port: 80
+  log: false
+  ota: false
+```
+
+## WiFi
+
+By default, if the ESP32 is disconnected from the WiFi network it will reboot every 15 minutes to try to resolve the problem.<br>
+If you don't want to connect the ESP32 to the WiFi network please remove the lines below in your YAML file.
+
+```YAML
+# +------------------------------------------------------------------+
+# | ** The settings below can be modified according to your needs ** |
+# +------------------------------------------------------------------+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  domain: !secret domain
+```
 
 ## Tips for Deye inverter
+
 Add 0.1v to the voltage settings because the Deye charging voltage is always 0.1v lower than requested.
 * Float V. : 53.7v (3.35v/cell - Natural voltage of a fully charged cell at rest, I advise you not to go higher.)
 * Absorption V : 55.3v (3.45v/cell - It's not necessary to use a charging voltage higher than 55.2V for a full charge.)
 * Absorption Offset V. : 0.15v (The absorption phase will start at 55.15v (BMS voltage). Warning: the BMS voltage must be correctly calibrated.)
 
-
 ## Changelog
 
+* V1.15.4 Sleeper85 : Improved documentation for API, Web Server and WiFi settings
 * V1.15.3 Sleeper85 : Add 'CAN Protocol Settings' and new CAN ID based on the SMA and Victron protocol (alpha)
 * V1.15.2 Sleeper85 : Improved Alarm handling, all alarms will set charge/discharge current to 0A and set 'Charging Status' to Alarm
 * V1.15.1 Sleeper85 : New CANBUS script with CANBUS Status in HA, stop sending CAN messages if the inverter is not responding (fix WDT reboot issues).
@@ -91,9 +145,11 @@ The following are confirmed and known to work:
 * Deye SUN-12K-SG04LP3-EU (reported by [@lucize](https://github.com/Uksa007/esphome-jk-bms-can/discussions/25#discussioncomment-5890844))
 * Goodwe 3648-ES (GW5048-ES) (reported by [@jirdol](https://github.com/Uksa007/esphome-jk-bms-can/discussions/1#discussioncomment-5498743))
 * Goodwe GW5000S-BP (reported by [@Uksa007](https://github.com/Uksa007/esphome-jk-bms-can/discussions/2#discussion-4469605) using the "Goodwe LX U5.4-L * 3" battery profile)
-* Sofar solar me3000sp (reported by [@starman](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-755539))
-* Turbo energy (reported by [@ibikku](https://github.com/Uksa007/esphome-jk-bms-can/discussions/13#discussion-4823950))
+* Goodwe GW5000S-BP & GW3600S-BP (reported by [@OselDusan7](https://github.com/Sleeper85/esphome-jk-bms-can/discussions/4#discussion-6022729))
+* Sofar ME 3000-SP (reported by [@starman](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-755539))
+* Turbo Energy (reported by [@ibikku](https://github.com/Uksa007/esphome-jk-bms-can/discussions/13#discussion-4823950))
 * Growatt SPF 5000ES (reported by [@Paulfrench35](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/page-21#post-965233) using L52 CAN protocol)
+
 
 <br>All JK-BMS models with software version `>=6.0` are using the implemented protocol and should be supported.
 
@@ -153,28 +209,6 @@ Optional below, as seen in pic above: RS485 between JK-BMS GPS port and ESP32, u
 
 The UART-TTL (labeled as `RS485`) socket of the BMS can be attached to any UART pins of the ESP. A hardware UART should be preferred because of the high baudrate (115200 baud). The connector is called 4 Pin JST with 1.25mm pitch.
 
-## WiFi and Home Assistant API connection
-
-If your ESP32 is not connected with Home Assistant it will reboot every 15 minutes.
-This is the normal behavior of ESPHome if HA is not connected to the ESP32 API.
-This is not a bug to be resolved but a mechanism put in place by the ESPHome team to correct a possible problem with the API connection.
-
-So if you don't want to use Home Assistant, just comment out the "api:" line in the YAML file before flashing the ESP32.
-
-```YAML
-api:
-```
-
-The same goes for the WiFi connection, if the ESP32 is not connected it will reboot every 15 minutes.
-If you do not want to connect the ESP32 to the WiFi network you can comment on all the lines below.
-
-```YAML
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  domain: !secret domain
-```
-
 ## Installation
 
 This YAML file is based on the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/syssi/esphome-jk-bms) repository.
@@ -216,8 +250,8 @@ esphome config esp32-jk-bms-can.yaml
 # install the config in ESP32
 esphome run esp32-jk-bms-can.yaml
 
-# check the logs	
-esphome logs esp32-jk-bms-can.yaml
+# check the logs (the --device option is not required)
+esphome logs esp32-jk-bms-can.yaml --device 192.168.x.x
 ```
 
 ## Known issues
