@@ -125,7 +125,7 @@ ota:
 # If there is no HA server connected to this API, the ESP32 reboots every 15 minutes to try to resolve the problem.
 # If you don't use Home Assistant please uncomment the "reboot_timeout: 0s" option.
 api:
-#  reboot_timeout: 0s
+  reboot_timeout: 0s
 
 # If you don't want to use ESPHome's native API you can use MQQT instead.
 # In this case don't forget to remove the 'api:' section.
