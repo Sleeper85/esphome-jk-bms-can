@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
+# V1.15.5 Sleeper85 : Improved code and api "reboot_timout" to "0s" by default (no reboot without HA)
 # V1.15.4 Sleeper85 : Improved documentation for API, Web Server and WiFi settings
 # V1.15.3 Sleeper85 : Add 'CAN Protocol Settings' and new CAN ID based on the SMA and Victron protocol (alpha)
 # V1.15.2 Sleeper85 : Improved Alarm handling, all alarms will set charge/discharge current to 0A and set 'Charging Status' to Alarm
@@ -38,9 +39,9 @@ substitutions:
 # | Battery Charge Settings              |
 # +--------------------------------------+
 # Tips for Deye inverter : Add 0.1v to the settings below because the Deye charging voltage is always 0.1v lower than requested.
-# Float V. : 53.7v		(3.35v/cell - Natural voltage of a fully charged cell at rest, I advise you not to go higher.)
-# Absorption V : 55.3v		(3.45v/cell - It's not necessary to use a charging voltage higher than 55.2V for a full charge.)
-# Absorption Offset V. : 0.15v	(The absorption phase will start at 55.15v (BMS voltage). Warning: the BMS voltage must be correctly calibrated.)
+# Float V. : 53.7v              (3.35v/cell - Natural voltage of a fully charged cell at rest, I advise you not to go higher.)
+# Absorption V : 55.3v          (3.45v/cell - It's not necessary to use a charging voltage higher than 55.2V for a full charge.)
+# Absorption Offset V. : 0.15v  (The absorption phase will start at 55.15v (BMS voltage). Warning: the BMS voltage must be correctly calibrated.)
 # +--------------------------------------+
 # This is max charging amps eg 50A, for Bulk - Constant Current charging(CC), should be at least 10A less than BMS change current protection, 0.5C max 
   charge_a: "100"
@@ -125,7 +126,7 @@ ota:
 # If there is no HA server connected to this API, the ESP32 reboots every 15 minutes to try to resolve the problem.
 # If you don't use Home Assistant please uncomment the "reboot_timeout: 0s" option.
 api:
-#  reboot_timeout: 0s
+  reboot_timeout: 0s
 
 # If you don't want to use ESPHome's native API you can use MQQT instead.
 # In this case don't forget to remove the 'api:' section.
@@ -216,16 +217,16 @@ canbus:
         - light.toggle:
             id: led_buitin
         - lambda: |-
-            id(can_ack_counter) = 0;					// Reset ACK counter
-            id(can_status) = "ON";					// Set CANBUS Status to ON
-            id(canbus_status).publish_state(id(can_status));		// Publish text sensor
+            id(can_ack_counter) = 0;                              // Reset ACK counter
+            id(can_status) = "ON";                                // Set CANBUS Status to ON
+            id(canbus_status).publish_state(id(can_status));      // Publish text sensor
             ESP_LOGI("main", "received can id: 0x305 ACK");
 
 interval:
   - interval: 120s
     then:
       - lambda: |-
-          id(can_ack_counter) = 0;					// Reset ACK counter for test inverter ACK
+          id(can_ack_counter) = 0;                                // Reset ACK counter for test inverter ACK
           
   - interval: 50ms
     then:
@@ -234,24 +235,24 @@ interval:
           condition:
             lambda: |-
               
-              if (id(can_ack_counter) < 20) {				// Inverter ACK ? => CANBUS ON
+              if (id(can_ack_counter) < 20) {                     // Inverter ACK ? => CANBUS ON
                 
-                id(can_ack_counter)++;					// CANBUS ACK counter ++
-                id(can_msg_counter)++;					// CANBUS MSG counter ++
-                return true;						// Condition OK
+                id(can_ack_counter)++;                            // CANBUS ACK counter ++
+                id(can_msg_counter)++;                            // CANBUS MSG counter ++
+                return true;                                      // Condition OK
                 
               }
-              else if (id(can_status) == "OFF") {			// CANBUS already OFF ?
+              else if (id(can_status) == "OFF") {                 // CANBUS already OFF ?
                 
-              return false;						// Nothing to do
+                return false;                                     // Nothing to do
                 
               }
               else {
               
-                id(can_status) = "OFF";					// Set CANBUS Status to OFF
-                id(canbus_status).publish_state(id(can_status));	// Publish text sensor
+                id(can_status) = "OFF";                           // Set CANBUS Status to OFF
+                id(canbus_status).publish_state(id(can_status));  // Publish text sensor
                 ESP_LOGI("main", "No rx can 0x305 reply, Inverter not connected/responding...");
-                return false;						// Condition NOK
+                return false;                                     // Condition NOK
                 
               }
 
@@ -269,7 +270,7 @@ interval:
                       // | JK-BMS errors bitmask     |
                       // +---------------------------+
                       
-                      // 0x8B 0x00 0x00: Battery warning message                     0000 0000 0000 0000
+                      // 0x8B 0x00 0x00: Battery warning message              0000 0000 0000 0000
                       //
                       // Bit 0    Low capacity                                1 (alarm), 0 (normal)    warning
                       // Bit 1    Power tube overtemperature                  1 (alarm), 0 (normal)    alarm
@@ -300,36 +301,36 @@ interval:
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                       uint16_t jk_errormask = id(errors_bitmask).state;
                       
-                      if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {	// Hight.Voltage.Alarm JK bit 2,7,10 
-                         can_mesg[0] = 0x02;								// byte0_bit1 (0x02 = bin 10)
+                      if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {               // Hight.Voltage.Alarm JK bit 2,7,10 
+                         can_mesg[0] = 0x02;                                                                      // byte0_bit1 (0x02 = bin 10)
                          ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
                       }
-                      if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {				// Low.Voltage.Alarm JK bit 3,11 
-                         can_mesg[0] = can_mesg[0] | 0x04;						// byte0_bit2 (0x04 = bin 100)
+                      if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {                                       // Low.Voltage.Alarm JK bit 3,11 
+                         can_mesg[0] = can_mesg[0] | 0x04;                                                        // byte0_bit2 (0x04 = bin 100)
                          ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
                       }
-                      if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {	// Hight.Temp.Alarm JK bit 1,4,8
-                         can_mesg[0] = can_mesg[0] | 0x08;						// byte0_bit3 (0x08 = bin 1000)
+                      if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {               // Hight.Temp.Alarm JK bit 1,4,8
+                         can_mesg[0] = can_mesg[0] | 0x08;                                                        // byte0_bit3 (0x08 = bin 1000)
                          ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
                       }
-                      if (jk_errormask & 0x200) {							// Low.Temp.Alarm JK bit 9
-                         can_mesg[0] = can_mesg[0] | 0x10;						// byte0_bit4 (0x10 = bin 10000)
+                      if (jk_errormask & 0x200) {                                                                 // Low.Temp.Alarm JK bit 9
+                         can_mesg[0] = can_mesg[0] | 0x10;                                                        // byte0_bit4 (0x10 = bin 10000)
                          ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[0] : %x", can_mesg[0]);
                       }
-                      if (jk_errormask & 0x40) {							// Discharge.Over.Current JK bit 6
-                         can_mesg[0] = can_mesg[0] | 0x80;						// byte0_bit7 (0x80 = bin 10000000)
+                      if (jk_errormask & 0x40) {                                                                  // Discharge.Over.Current JK bit 6
+                         can_mesg[0] = can_mesg[0] | 0x80;                                                        // byte0_bit7 (0x80 = bin 10000000)
                          ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[0] : %x", can_mesg[0]);
-                      }                      
-                      if (jk_errormask & 0x20) {							// Charge.Over.Current JK bit 5
-                         can_mesg[1] = 0x01;								// byte1_bit0 (0x01 = bin 1)
+                      }
+                      if (jk_errormask & 0x20) {                                                                  // Charge.Over.Current JK bit 5
+                         can_mesg[1] = 0x01;                                                                      // byte1_bit0 (0x01 = bin 1)
                          ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[1] : %x", can_mesg[1]);
                       }
-                      if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {				// BMS internal error JK bit 12,13
-                         can_mesg[1] = can_mesg[1] | 0x08;						// byte1_bit3 (0x08 = bin 1000)
+                      if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {                                    // BMS internal error JK bit 12,13
+                         can_mesg[1] = can_mesg[1] | 0x08;                                                        // byte1_bit3 (0x08 = bin 1000)
                          ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[1] : %x", can_mesg[1]);
                       }
-                      if (jk_errormask & 0x80) {							// Cell Imbalance JK bit 7
-                         can_mesg[1] = can_mesg[1] | 0x10;						// byte1_bit4 (0x10 = bin 10000)
+                      if (jk_errormask & 0x80) {                                                                  // Cell Imbalance JK bit 7
+                         can_mesg[1] = can_mesg[1] | 0x10;                                                        // byte1_bit4 (0x10 = bin 10000)
                          ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[1] : %x", can_mesg[1]);
                       }
                       
@@ -337,8 +338,8 @@ interval:
                       // | Warning : byte 2 and 3    |
                       // +---------------------------+
                       
-                      can_mesg[2] = 0x00;		// byte2 (JK-BMS infos not available)
-                      can_mesg[3] = 0x00;		// byte3 (JK-BMS infos not available)
+                      can_mesg[2] = 0x00;               // byte2 (JK-BMS infos not available)
+                      can_mesg[3] = 0x00;               // byte3 (JK-BMS infos not available)
                       
                       // +---------------------------+
                       // | Flags : byte 4 to 7       |
@@ -346,10 +347,10 @@ interval:
                       
                       int batt_mods = ${batt_modules};
                       
-                      can_mesg[4] = batt_mods;		// byte4 - Module in parallel
-                      can_mesg[5] = 0x00;		// byte5
-                      can_mesg[6] = 0x00;		// byte6
-                      can_mesg[7] = 0x00;		// byte7 - DIP switches 1,3 10000100 0x84                      
+                      can_mesg[4] = batt_mods;          // byte4 - Module in parallel
+                      can_mesg[5] = 0x00;               // byte5
+                      can_mesg[6] = 0x00;               // byte6
+                      can_mesg[7] = 0x00;               // byte7 - DIP switches 1,3 10000100 0x84                      
                                             
                       ESP_LOGI("main", "send can id: 0x359 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
@@ -370,36 +371,36 @@ interval:
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                       uint16_t jk_errormask = id(errors_bitmask).state;
                       
-                      if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {	// Hight.Voltage.Alarm JK bit 2,7,10 
-                         can_mesg[0] = 0x04;								// byte0_bit2 (0x04 = bin 100)
+                      if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {               // Hight.Voltage.Alarm JK bit 2,7,10 
+                         can_mesg[0] = 0x04;                                                                      // byte0_bit2 (0x04 = bin 100)
                          ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
                       }
-                      if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {				// Low.Voltage.Alarm JK bit 3,11 
-                         can_mesg[0] = can_mesg[0] | 0x10;						// byte0_bit4 (0x10 = bin 10000)
+                      if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {                                       // Low.Voltage.Alarm JK bit 3,11 
+                         can_mesg[0] = can_mesg[0] | 0x10;                                                        // byte0_bit4 (0x10 = bin 10000)
                          ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
                       }
-                      if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {	// Hight.Temp.Alarm JK bit 1,4,8
-                         can_mesg[0] = can_mesg[0] | 0x40;						// byte0_bit6 (0x40 = bin 1000000)
+                      if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {               // Hight.Temp.Alarm JK bit 1,4,8
+                         can_mesg[0] = can_mesg[0] | 0x40;                                                        // byte0_bit6 (0x40 = bin 1000000)
                          ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
                       }
-                      if (jk_errormask & 0x200) {							// Low.Temp.Alarm JK bit 9
-                         can_mesg[1] = 0x01;								// byte1_bit0 (0x01 = bin 1)
+                      if (jk_errormask & 0x200) {                                                                 // Low.Temp.Alarm JK bit 9
+                         can_mesg[1] = 0x01;                                                                      // byte1_bit0 (0x01 = bin 1)
                          ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[1] : %x", can_mesg[1]);
                       }
-                      if (jk_errormask & 0x40) {							// Discharge.Over.Current JK bit 6
-                         can_mesg[1] = can_mesg[1] | 0x40;						// byte1_bit6 (0x40 = bin 1000000)
+                      if (jk_errormask & 0x40) {                                                                  // Discharge.Over.Current JK bit 6
+                         can_mesg[1] = can_mesg[1] | 0x40;                                                        // byte1_bit6 (0x40 = bin 1000000)
                          ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[1] : %x", can_mesg[1]);
                       }                      
-                      if (jk_errormask & 0x20) {							// Charge.Over.Current JK bit 5
-                         can_mesg[2] = 0x01;								// byte2_bit0 (0x01 = bin 1)
+                      if (jk_errormask & 0x20) {                                                                  // Charge.Over.Current JK bit 5
+                         can_mesg[2] = 0x01;                                                                      // byte2_bit0 (0x01 = bin 1)
                          ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[2] : %x", can_mesg[2]);
                       }
-                      if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {				// BMS internal error JK bit 12,13
-                         can_mesg[2] = can_mesg[2] | 0x40;						// byte2_bit6 (0x40 = bin 1000000)
+                      if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {                                    // BMS internal error JK bit 12,13
+                         can_mesg[2] = can_mesg[2] | 0x40;                                                        // byte2_bit6 (0x40 = bin 1000000)
                          ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[2] : %x", can_mesg[2]);
                       }
-                      if (jk_errormask & 0x80) {							// Cell Imbalance JK bit 7
-                         can_mesg[3] = 0x01;								// byte3_bit0 (0x01 = bin 1)
+                      if (jk_errormask & 0x80) {                                                                  // Cell Imbalance JK bit 7
+                         can_mesg[3] = 0x01;                                                                      // byte3_bit0 (0x01 = bin 1)
                          ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[3] : %x", can_mesg[3]);
                       }
                                                                
@@ -429,7 +430,7 @@ interval:
                       else if ((id(errors_bitmask).state < 2) & (id(charge_status) == "Alarm")) {
                            id(charge_status) = "Wait";
                       }
-                      // Disabled : charging disabled if BMS or HA switch is OFF
+                      // Disabled : charging disabled if BMS or ESP switch is OFF
                       else if ((!id(charging_switch).state) | (!id(switch_charging).state)) {
                            id(charge_status) = "Disabled";
                       }
@@ -445,17 +446,17 @@ interval:
                       else if ((!id(switch_chg_bulk).state) & (id(charge_status) == "Bulk Manually")) {
                            id(charge_status) = "Wait";
                       }
-                      // Bulk : if Batt. V. <= ( Absorption V. - Rebulk Offset V. )					( Bulk : <= 55.2-2.5 = 52.7V by default )
+                      // Bulk : if Batt. V. <= ( Absorption V. - Rebulk Offset V. )                                   ( Bulk : <= 55.2-2.5 = 52.7V by default )
                       else if (id(total_voltage).state <= (id(bulk_voltage).state - id(rebulk_offset).state)) {
                            id(charge_status) = "Bulk";
                            if (id(absorption_script).is_running()) id(absorption_script).stop();
                       }
-                      // Absorption : if Batt. V >= ( Absorption V. - Absorption Offset V. )				( Absorption : >= 55.2-0.05 = 55.15V by default )
+                      // Absorption : if Batt. V >= ( Absorption V. - Absorption Offset V. )                          ( Absorption : >= 55.2-0.05 = 55.15V by default )
                       else if ((id(charge_status) == "Bulk") & (id(total_voltage).state >= (id(bulk_voltage).state - id(absorption_offset).state))) {
                            id(charge_status) = "Absorption";
-                           if (!id(absorption_script).is_running()) id(absorption_script).execute();			// 10 % from top start absorption timer
+                           if (!id(absorption_script).is_running()) id(absorption_script).execute();                  // 10 % from top start absorption timer
                       }
-                      // Float : if Batt. V. > ( Absorption V. - Rebulk Offset V. ) and Float switch is ON		( Float : after Absorption and > 55.2-2.5 = 52.7V by default )
+                      // Float : if Batt. V. > ( Absorption V. - Rebulk Offset V. ) and Float switch is ON            ( Float : after Absorption or > 55.2-2.5 = 52.7V by default )
                       else if ((id(switch_chg_float).state) & (id(charge_status) == "Wait")) {
                            id(charge_status) = "Float";
                       }
@@ -476,7 +477,7 @@ interval:
                       }
                       // Charge OFF : Alarm, Disabled or Wait
                       else {
-                           id(charging_voltage) = round(id(total_voltage).state * 10)/10;				// Actual battery voltage
+                           id(charging_voltage) = round(id(total_voltage).state * 10)/10;     // Actual battery voltage
                       }
                       
                       // +--------------+
@@ -702,15 +703,15 @@ interval:
                       data: !lambda |-
                         if (${can_bms_name} == 1){
                            ESP_LOGI("main", "send can id: 0x35E ASCII : PYLON");
-                           return {0x50, 0x59, 0x4C, 0x4F, 0x4E, 0x20, 0x20, 0x20};	// PYLON ( recognized by Deye, display PYLON name and SOH )
+                           return {0x50, 0x59, 0x4C, 0x4F, 0x4E, 0x20, 0x20, 0x20}; // PYLON ( recognized by Deye, display PYLON name and SOH )
                         }
                         else if (${can_bms_name} == 2){
                            ESP_LOGI("main", "send can id: 0x35E ASCII : GOODWE");
-                           return {0x47, 0x4F, 0x4F, 0x44, 0x57, 0x45, 0x20, 0x20};	// GOODWE
+                           return {0x47, 0x4F, 0x4F, 0x44, 0x57, 0x45, 0x20, 0x20}; // GOODWE
                         }
                         else if (${can_bms_name} == 3){
                            ESP_LOGI("main", "send can id: 0x35E ASCII : SHEnergy");
-                           return {0x53, 0x48, 0x45, 0x6E, 0x65, 0x72, 0x67, 0x79};	// SHEnergy (SEPLOS)
+                           return {0x53, 0x48, 0x45, 0x6E, 0x65, 0x72, 0x67, 0x79}; // SHEnergy (SEPLOS)
                         }
                            
                   - lambda: |- # Reset counter
