@@ -13,7 +13,9 @@ Other battery profiles that utilise the **PYLON** protocol with different cell c
 Select the correct battery profile in the inverter to match your battery pack!
 
 The ESP32 communicates with the JK-BMS using the RS485 port (GPS) which is in fact not RS485 but 3.3V UART-TTL, so it can be directly connected to the ESP32.
-The ESP32 then sends the required CAN bus data to the inverter via a TJA1050 or TJA1051T CAN bus transceiver.
+The ESP32 then sends the required CAN bus data to the inverter via a TJA1050, TJA1051T or SN65HVD230 CAN bus transceiver.
+
+**Note: more and more inverters only accept a CAN bus at 3.3V in this case please choose the SN65HVD230 chip.**
 
 **Sends over CAN bus to inverter:**
   - Battery Voltage
@@ -158,8 +160,10 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 ## Requirements
 
 * [ESPHome 2022.11.0 or higher](https://github.com/esphome/esphome/releases).
-* Generic ESP32, I use an ESP32 DevKit-v1 30 pin board ( NOTE: ESP32-S2 currently has issues with CAN BUS and does not work! )
-* TJA1050 or TJA1051T CAN controller interface module and 4.7K resistor for 5v to 3.3v level shifing.
+* Generic ESP32 DevKit-v1 30 pin board ( NOTE: ESP32-S2 currently has issues with CAN BUS and does not work! )
+* For 5V CAN bus : TJA1050 or TJA1051T CAN controller interface module and 4.7K resistor for 5v to 3.3v level shifing.
+* For 3.3V CAN bus : SN65HVD230 CAN controller interface module without 4.7K resistor
+* Optional: 48V to 5V DC-DC converter to power the ESP32 from the JK-BMS VBAT pin (URB4805YMD-10WR3 or VRB4805S-6WR3)
 * Optional: JK RS485 Adaptor and RS484 to TTL3.3v Adaptor (see optional schematic below)
 
 ## Schematics
@@ -172,24 +176,36 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 
 
 ```
-                RS485-TTL                   RS232-TTL                CAN BUS
-┌──────────┐            ┌─────────┐             ┌─────────┐              ┌──────────┐
-│          │<TX------RX>│16     23│<TX-------TX>|         |              |          |
-│  JK-BMS  │<RX------TX>│17     22│<RX--4K7--RX>| TJA1050 |<---CAN H --->| Inverter |
-│          │<----GND--->│         │<----GND---->|   CAN   |<---CAN L --->|          |
-│          │  3.3V ---->│  ESP32  │<----5V----->|         |              |          |
-└──────────┘            └─────────┘             └─────────┘              └──────────┘
+3.3V CAN BUS
 
+              RS485-TTL               RS232-TTL                CAN BUS (3V3)
+┌──────────┐            ┌──────────┐             ┌────────────┐              ┌──────────┐
+│          │<TX------RX>│16      23│<TX-------TX>|            |              |          |
+│  JK-BMS  │<RX------TX>│17      22│<RX-------RX>| SN65HVD230 |<---CAN H --->| Inverter |
+│          │<----GND--->│   ESP32  │<----GND---->|    CAN     |<---CAN L --->|          |
+│          │     5V---->│VIN    3V3│<---3.3V---->|            |              |          |
+└──────────┘            └──────────┘             └────────────┘              └──────────┘
+
+
+5V CAN BUS
+
+              RS485-TTL               RS232-TTL                CAN BUS (5V)
+┌──────────┐            ┌──────────┐             ┌────────────┐              ┌──────────┐
+│          │<TX------RX>│16      23│<TX-------TX>|            |              |          |
+│  JK-BMS  │<RX------TX>│17      22│<RX--4K7--RX>|  TJA1050   |<---CAN H --->| Inverter |
+│          │<----GND--->│   ESP32  │<----GND---->|    CAN     |<---CAN L --->|          |
+│          │     5V---->│VIN    VIN│<----5V----->|            |              |          |
+└──────────┘            └──────────┘             └────────────┘              └──────────┘
 
 
 Optional below, as seen in pic above: RS485 between JK-BMS GPS port and ESP32, uses JK RS485 adaptor and RS485 to TTL3.3v adaptor.
 
               RS485-TTL                  RS485             RS485-TTL               RS232-TTL                CAN BUS
 ┌──────────┐            ┌───────────┐           ┌────────┐           ┌─────────┐             ┌─────────┐              ┌──────────┐
-│          │<--- TX --->│Y    JK   Y│<A------A+>│        │<TX-----RX>│16     23│<TX-------TX>|         |              |          |
-│  JK-BMS  │<--- RX --->│W  RS485  W│<B------B->│ RS485  │<RX-----TX>│17     22│<RX--4K7--RX>| TJA1050 |<---CAN H --->| Inverter |
-│          │<--- GND -->│B Adaptor B│<---GND--->│To 3.3V │<---GND--->|         |<----GND---->|   CAN   |<---CAN L --->|          |
-│          │<--Bat V -->│R          │           │        │<---3.3V-->|  ESP32  |<----5V----->|         |              |          |
+│          │<----TX---->│Y    JK   Y│<A------A+>│        │<TX-----RX>│16     23│<TX-------TX>|         |              |          |
+│  JK-BMS  │<----RX---->│W  RS485  W│<B------B->│ RS485  │<RX-----TX>│17     22│<RX--4K7--RX>| TJA1050 |<---CAN H --->| Inverter |
+│          │<----GND--->│B Adaptor B│<---GND--->│To 3.3V │<---GND--->|         |<----GND---->|   CAN   |<---CAN L --->|          |
+│          │<----VBAT-->│R          │           │        │<---3.3V-->|  ESP32  |<----5V----->|         |              |          |
 └──────────┘            └───────────┘           └────────┘           └─────────┘             └─────────┘              └──────────┘
 
 
