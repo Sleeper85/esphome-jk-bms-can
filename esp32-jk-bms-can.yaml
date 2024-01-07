@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
-# V1.15.5 Sleeper85 : Improved code and api "reboot_timout" to "0s" by default (no reboot without HA)
+# V1.15.5 Sleeper85 : Improved code and set api "reboot_timout" to "0s" by default (no reboot without HA)
 # V1.15.4 Sleeper85 : Improved documentation for API, Web Server and WiFi settings
 # V1.15.3 Sleeper85 : Add 'CAN Protocol Settings' and new CAN ID based on the SMA and Victron protocol (alpha)
 # V1.15.2 Sleeper85 : Improved Alarm handling, all alarms will set charge/discharge current to 0A and set 'Charging Status' to Alarm
@@ -43,7 +43,8 @@ substitutions:
 # Absorption V : 55.3v          (3.45v/cell - It's not necessary to use a charging voltage higher than 55.2V for a full charge.)
 # Absorption Offset V. : 0.15v  (The absorption phase will start at 55.15v (BMS voltage). Warning: the BMS voltage must be correctly calibrated.)
 # +--------------------------------------+
-# This is max charging amps eg 50A, for Bulk - Constant Current charging(CC), should be at least 10A less than BMS change current protection, 0.5C max 
+# This is max charging amps eg 100A, for Bulk - Constant Current charging(CC), should be at least 10A less than BMS change current protection, 0.5C max
+# 100A * 50V = 5000W
   charge_a: "100"
 # Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6v eg 3.35v/cell for 16 cells 48V battery)
   float_v: "53.6"
@@ -58,8 +59,9 @@ substitutions:
 # +--------------------------------------+
 # | Battery Discharge Settings           |
 # +--------------------------------------+
-# Max discharge amps eg 100, should be at least 10A less than BMS over discharge current protection, 0.5C max
-  discharge_a: "150"
+# Max discharge amps eg 120, should be at least 10A less than BMS over discharge current protection, 0.5C max
+# 120A * 50V = 6000W
+  discharge_a: "120"
 # Minimum discharge voltage eg 48v/16 = 3V per cell
   min_discharge_v: "48"
 # +--------------------------------------+
