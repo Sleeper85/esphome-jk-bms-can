@@ -28,11 +28,16 @@ The ESP32 then sends the required CAN bus data to the inverter via a TJA1050, TJ
   - Discharge min Voltage
   - Battery name
   - Alarms: Cell over/under voltage, Charge/discharge over current, High/low Temp, BMS fault
-  - Charging logic: Bulk charge with absorption timer followed or not by a float charge. Everything is easily configurable in Home Assistant.
   
 **Note: This code support only one BMS connection per inverter and should work with inverters that support the CAN bus protocol shown in the table below.
 I'm only testing it with my Deye SUN-6K-SG03-LP1-EU inverter.<br>
 The CAN bus support is still in development and testing...<br>**
+
+## Charging Logic Diagram
+
+The charging voltage and current correspond to the default values in the YAML script and can be modified.
+
+![Image](images/JK-BMS-CAN_Charging_Logic_Diagram.png "JK-BMS-CAN Charging Logic")
 
 ## CAN Protocol Table
 
