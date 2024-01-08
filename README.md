@@ -15,7 +15,7 @@ Select the correct battery profile in the inverter to match your battery pack!
 The ESP32 communicates with the JK-BMS using the RS485 port (GPS) which is in fact not RS485 but 3.3V UART-TTL, so it can be directly connected to the ESP32.
 The ESP32 then sends the required CAN bus data to the inverter via a TJA1050, TJA1051T or SN65HVD230 CAN bus transceiver.
 
-**Note: more and more inverters only accept a CAN bus at 3.3V in this case please choose the SN65HVD230 chip.**
+**Note: some inverters only accept a CAN bus at 3.3V in this case please choose the SN65HVD230 chip.**
 
 **Sends over CAN bus to inverter:**
   - Battery Voltage
