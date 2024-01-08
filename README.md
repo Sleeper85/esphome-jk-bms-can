@@ -156,6 +156,7 @@ The following are confirmed and known to work:
 * Sofar ME 3000-SP (reported by [@starman](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-755539))
 * Turbo Energy (reported by [@ibikku](https://github.com/Uksa007/esphome-jk-bms-can/discussions/13#discussion-4823950))
 * Growatt SPF 5000ES (reported by [@Paulfrench35](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/page-21#post-965233) using L52 CAN protocol)
+* Solis RHI-3.6K-48ES-5G with **3.3V CAN transceiver SN65HVD230** (reported by [@cjdell](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-967308) using "Pylon LV" setting on inverter)
 
 
 <br>All JK-BMS models with software version `>=6.0` are using the implemented protocol and should be supported.
