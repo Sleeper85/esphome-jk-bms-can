@@ -128,6 +128,7 @@ Add 0.1v to the voltage settings because the Deye charging voltage is always 0.1
 
 ## Changelog
 
+* V1.15.5 Sleeper85 : Improved code and set api "reboot_timout" to "0s" by default (no reboot without HA)
 * V1.15.4 Sleeper85 : Improved documentation for API, Web Server and WiFi settings
 * V1.15.3 Sleeper85 : Add 'CAN Protocol Settings' and new CAN ID based on the SMA and Victron protocol (alpha)
 * V1.15.2 Sleeper85 : Improved Alarm handling, all alarms will set charge/discharge current to 0A and set 'Charging Status' to Alarm
