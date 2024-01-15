@@ -43,11 +43,11 @@ The charging voltage and current correspond to the default values in the YAML sc
 
 ![Image](images/CAN_Protocol_Table.png "CAN Protocol Table")
 
-Note: the following IDs are not implemented: 0x35B, 0x360, 0x372, 0x374, 0x375, 0x376, 0x377, 0x378, 0x380, 0x381 and 0x382.
+Note: the following IDs are not implemented: 0x35B, 0x360, 0x378, 0x380 and 0x381.
 
 ## CAN Protocol Settings
 
-This can be configured in the YAML file. It is configured by default for PYLON 1.2 protocol IDs (the most common protocol).
+This can be configured in the YAML file. It is configured by default for PYLON 1.2 (the most common protocol).
 
 ```YAML
 # +--------------------------------------+
@@ -55,12 +55,12 @@ This can be configured in the YAML file. It is configured by default for PYLON 1
 # +--------------------------------------+
 # CAN BMS Name (0x35E) : 0 NoSent / 1 PYLON / 2 GOODWE / 3 SEPLOS
   can_bms_name: "1"
-# CAN alarm : 0 NoSent / 1 CanId 0x359 / 2 CanId 0x35A
-  can_alarm: "1"
-# CAN cell info : 0 NoSent / 1 CanId 0x70 / 2 CanId 0x373
-  can_cell_info: "0"
-# CAN battery info : 0 NoSent / 1 CanId 0x35F / 2 CanId 0x379
-  can_battery_info: "0"
+# CAN Protocol
+# 1 : PYLON 1.2 (Deye)
+# 2 : SEPLOS 1.0, PYLON 1.3, GOODWE 1.5
+# 3 : SMA (Sunny Island)
+# 4 : VICTRON
+  can_protocol: "1"
 ```
 
 ## Home Assistant and API
@@ -71,8 +71,7 @@ If your ESP32 is not connected with Home Assistant it will reboot every 15 minut
 This is the normal behavior of ESPHome if HA is not connected to the ESP32 API.
 This is not a bug to be resolved but a mechanism put in place by the ESPHome team to correct a possible problem with the API connection.
 
-If you don't want to use Home Assistant, add the **"reboot_timeout: 0s"** option below the **"api:"** section of your YAML file.<br>
-This option will disable the reboot every 15min.
+The **"api:"** section is therefore configured by default not to reboot every 15 minutes if Home Assistant is not connected.
 
 ```YAML
 # +------------------------------------------------------------------+
@@ -128,6 +127,7 @@ Add 0.1v to the voltage settings because the Deye charging voltage is always 0.1
 
 ## Changelog
 
+* V1.16.1 Sleeper85 : Slider charging_current max value = ${charge_a}, Improved Alarm/Charging/Discharging Logic, Improved CAN protocol and Victron support
 * V1.15.5 Sleeper85 : Improved code and set api "reboot_timout" to "0s" by default (no reboot without HA)
 * V1.15.4 Sleeper85 : Improved documentation for API, Web Server and WiFi settings
 * V1.15.3 Sleeper85 : Add 'CAN Protocol Settings' and new CAN ID based on the SMA and Victron protocol (alpha)
