@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
+# V1.16.1 Sleeper85 : Slider charging_current max value = ${charge_a}, Improved Alarm/Charging/Discharging Logic, Improved CAN protocol and Victron support
 # V1.15.5 Sleeper85 : Improved code and set api "reboot_timout" to "0s" by default (no reboot without HA)
 # V1.15.4 Sleeper85 : Improved documentation for API, Web Server and WiFi settings
 # V1.15.3 Sleeper85 : Add 'CAN Protocol Settings' and new CAN ID based on the SMA and Victron protocol (alpha)
@@ -72,17 +73,14 @@ substitutions:
 # +--------------------------------------+
 # | CAN Protocol Settings                |
 # +--------------------------------------+
-# | The default settings correspond to   |
-# | the most common protocol: PYLON 1.2  |
-# +--------------------------------------+
 # CAN BMS Name (0x35E) : 0 NoSent / 1 PYLON / 2 GOODWE / 3 SEPLOS
   can_bms_name: "1"
-# CAN alarm : 0 NoSent / 1 CanId 0x359 / 2 CanId 0x35A
-  can_alarm: "1"
-# CAN cell info : 0 NoSent / 1 CanId 0x70 / 2 CanId 0x373
-  can_cell_info: "0"
-# CAN battery info : 0 NoSent / 1 CanId 0x35F / 2 CanId 0x379
-  can_battery_info: "0"
+# CAN Protocol
+# 1 : PYLON 1.2 (Deye)
+# 2 : SEPLOS 1.0, PYLON 1.3, GOODWE 1.5
+# 3 : SMA (Sunny Island)
+# 4 : VICTRON
+  can_protocol: "1"
 # +--------------------------------------+
 # | ESP32 CAN/serial port pins           |
 # +--------------------------------------+
@@ -163,14 +161,26 @@ globals:
     type: std::string
     restore_value: no
     initial_value: '"Alarm"'
-  - id: charging_voltage
-    type: float
-    restore_value: no
-    initial_value: '0.0'
   - id: can_status
     type: std::string
     restore_value: no
-    initial_value: '"init"'
+    initial_value: '"OFF"'
+  - id: alarm_status
+    type: std::string
+    restore_value: no
+    initial_value: '"NoAlarm"'
+  - id: charging_v
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: charging_a
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: discharging_a
+    type: int
+    restore_value: no
+    initial_value: '0'
   - id: can_msg_counter
     type: int
     restore_value: no
@@ -205,7 +215,7 @@ jk_modbus:
 jk_bms:
   id: bms0
   jk_modbus_id: modbus0
-#  enable_fake_traffic: true
+  # enable_fake_traffic: true
 
 canbus:
   - platform: esp32_can
@@ -227,8 +237,7 @@ canbus:
 interval:
   - interval: 120s
     then:
-      - lambda: |-
-          id(can_ack_counter) = 0;                                // Reset ACK counter for test inverter ACK
+      - lambda: id(can_ack_counter) = 0;                          // Reset ACK counter for test inverter ACK
           
   - interval: 50ms
     then:
@@ -261,13 +270,12 @@ interval:
           then:
             - if:
                 condition:
-                  lambda: |-
-                    return ((id(can_msg_counter) == 1) & (${can_alarm} == 1));
+                  lambda: return ((id(can_msg_counter) == 1) & (${can_protocol} == 1 | ${can_protocol} == 2));
                 then:
                   canbus.send: # Protection Alarms, Warning and Flags ( Pylontech / Goodwe / Seplos )
                     can_id: 0x359
                     data: !lambda |-
-                    
+                      
                       // +---------------------------+
                       // | JK-BMS errors bitmask     |
                       // +---------------------------+
@@ -295,47 +303,59 @@ interval:
                       // 0x0001 = 00000000 00000001: Low capacity alarm
                       // 0x0002 = 00000000 00000010: MOS tube over-temperature alarm
                       // 0x0003 = 00000000 00000011: Low capacity alarm AND power tube over-temperature alarm
-                                            
+                      
                       // +---------------------------+
                       // | Protection : byte 0 and 1 |
                       // +---------------------------+
                       
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-                      uint16_t jk_errormask = id(errors_bitmask).state;
-                      
-                      if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {               // Hight.Voltage.Alarm JK bit 2,7,10 
-                         can_mesg[0] = 0x02;                                                                      // byte0_bit1 (0x02 = bin 10)
-                         ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
+
+                      // JK-BMS alarm ?
+                      if (id(errors_bitmask).state > 1) {
+                         uint16_t jk_errormask = id(errors_bitmask).state;
+
+                         if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {                 // Hight.Voltage.Alarm JK bit 2,7,10
+                            can_mesg[0] = 0x02;                                                                        // byte0_bit1 (0x02 = bin 10)
+                            id(alarm_status) = "OVP";
+                            ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
+                         }
+                         if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {                                         // Low.Voltage.Alarm JK bit 3,11 
+                            can_mesg[0] = can_mesg[0] | 0x04;                                                          // byte0_bit2 (0x04 = bin 100)
+                            id(alarm_status) = "UVP";
+                            ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
+                         }
+                         if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {                 // Hight.Temp.Alarm JK bit 1,4,8
+                            can_mesg[0] = can_mesg[0] | 0x08;                                                          // byte0_bit3 (0x08 = bin 1000)
+                            id(alarm_status) = "OTP";
+                            ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
+                         }
+                         if ((jk_errormask & 0x200)) {                                                                 // Low.Temp.Alarm JK bit 9
+                            can_mesg[0] = can_mesg[0] | 0x10;                                                          // byte0_bit4 (0x10 = bin 10000)
+                            id(alarm_status) = "UTP";
+                            ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[0] : %x", can_mesg[0]);
+                         }
+                         if ((jk_errormask & 0x40)) {                                                                  // Discharge.Over.Current JK bit 6
+                            can_mesg[0] = can_mesg[0] | 0x80;                                                          // byte0_bit7 (0x80 = bin 10000000)
+                            id(alarm_status) = "DOCP";
+                            ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[0] : %x", can_mesg[0]);
+                         }
+                         if ((jk_errormask & 0x20)) {                                                                  // Charge.Over.Current JK bit 5
+                            can_mesg[1] = 0x01;                                                                        // byte1_bit0 (0x01 = bin 1)
+                            id(alarm_status) = "COCP";
+                            ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[1] : %x", can_mesg[1]);
+                         }
+                         if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {                                      // BMS internal error JK bit 12,13
+                            can_mesg[1] = can_mesg[1] | 0x08;                                                          // byte1_bit3 (0x08 = bin 1000)
+                            ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[1] : %x", can_mesg[1]);
+                         }
+                         if ((jk_errormask & 0x80)) {                                                                  // Cell Imbalance JK bit 7
+                            can_mesg[1] = can_mesg[1] | 0x10;                                                          // byte1_bit4 (0x10 = bin 10000)
+                            ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[1] : %x", can_mesg[1]);
+                         }
                       }
-                      if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {                                       // Low.Voltage.Alarm JK bit 3,11 
-                         can_mesg[0] = can_mesg[0] | 0x04;                                                        // byte0_bit2 (0x04 = bin 100)
-                         ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
-                      }
-                      if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {               // Hight.Temp.Alarm JK bit 1,4,8
-                         can_mesg[0] = can_mesg[0] | 0x08;                                                        // byte0_bit3 (0x08 = bin 1000)
-                         ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
-                      }
-                      if (jk_errormask & 0x200) {                                                                 // Low.Temp.Alarm JK bit 9
-                         can_mesg[0] = can_mesg[0] | 0x10;                                                        // byte0_bit4 (0x10 = bin 10000)
-                         ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[0] : %x", can_mesg[0]);
-                      }
-                      if (jk_errormask & 0x40) {                                                                  // Discharge.Over.Current JK bit 6
-                         can_mesg[0] = can_mesg[0] | 0x80;                                                        // byte0_bit7 (0x80 = bin 10000000)
-                         ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[0] : %x", can_mesg[0]);
-                      }
-                      if (jk_errormask & 0x20) {                                                                  // Charge.Over.Current JK bit 5
-                         can_mesg[1] = 0x01;                                                                      // byte1_bit0 (0x01 = bin 1)
-                         ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[1] : %x", can_mesg[1]);
-                      }
-                      if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {                                    // BMS internal error JK bit 12,13
-                         can_mesg[1] = can_mesg[1] | 0x08;                                                        // byte1_bit3 (0x08 = bin 1000)
-                         ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[1] : %x", can_mesg[1]);
-                      }
-                      if (jk_errormask & 0x80) {                                                                  // Cell Imbalance JK bit 7
-                         can_mesg[1] = can_mesg[1] | 0x10;                                                        // byte1_bit4 (0x10 = bin 10000)
-                         ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[1] : %x", can_mesg[1]);
-                      }
-                      
+                      // No Alarm
+                      else id(alarm_status) = "NoAlarm";
+
                       // +---------------------------+
                       // | Warning : byte 2 and 3    |
                       // +---------------------------+
@@ -353,14 +373,13 @@ interval:
                       can_mesg[5] = 0x00;               // byte5
                       can_mesg[6] = 0x00;               // byte6
                       can_mesg[7] = 0x00;               // byte7 - DIP switches 1,3 10000100 0x84                      
-                                            
+                      
                       ESP_LOGI("main", "send can id: 0x359 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                       
             - if:
                 condition:
-                  lambda: |-
-                    return ((id(can_msg_counter) == 1) & (${can_alarm} == 2));
+                  lambda: return ((id(can_msg_counter) == 1) & (${can_protocol} == 3 | ${can_protocol} == 4));
                 then:
                   canbus.send: # Protection Alarms and Warning ( SMA / Victron )
                     can_id: 0x35A
@@ -371,56 +390,67 @@ interval:
                       // +---------------------------+
                       
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-                      uint16_t jk_errormask = id(errors_bitmask).state;
+
+                      // JK-BMS alarm ?
+                      if (id(errors_bitmask).state > 1) {
+                         uint16_t jk_errormask = id(errors_bitmask).state;
+
+                         if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {                 // Hight.Voltage.Alarm JK bit 2,7,10
+                            can_mesg[0] = 0x04;                                                                        // byte0_bit2 (0x04 = bin 100)
+                            id(alarm_status) = "OVP";
+                            ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
+                         }
+                         if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {                                         // Low.Voltage.Alarm JK bit 3,11
+                            can_mesg[0] = can_mesg[0] | 0x10;                                                          // byte0_bit4 (0x10 = bin 10000)
+                            id(alarm_status) = "UVP";
+                            ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
+                         }
+                         if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {                 // Hight.Temp.Alarm JK bit 1,4,8
+                            can_mesg[0] = can_mesg[0] | 0x40;                                                          // byte0_bit6 (0x40 = bin 1000000)
+                            id(alarm_status) = "OTP";
+                            ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
+                         }
+                         if ((jk_errormask & 0x200)) {                                                                 // Low.Temp.Alarm JK bit 9
+                            can_mesg[1] = 0x01;                                                                        // byte1_bit0 (0x01 = bin 1)
+                            id(alarm_status) = "UTP";
+                            ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[1] : %x", can_mesg[1]);
+                         }
+                         if ((jk_errormask & 0x40)) {                                                                  // Discharge.Over.Current JK bit 6
+                            can_mesg[1] = can_mesg[1] | 0x40;                                                          // byte1_bit6 (0x40 = bin 1000000)
+                            id(alarm_status) = "DOCP";
+                            ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[1] : %x", can_mesg[1]);
+                         }
+                         if ((jk_errormask & 0x20)) {                                                                  // Charge.Over.Current JK bit 5
+                            can_mesg[2] = 0x01;                                                                        // byte2_bit0 (0x01 = bin 1)
+                            id(alarm_status) = "COCP";
+                            ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[2] : %x", can_mesg[2]);
+                         }
+                         if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {                                      // BMS.Internal.Error JK bit 12,13
+                            can_mesg[2] = can_mesg[2] | 0x40;                                                          // byte2_bit6 (0x40 = bin 1000000)
+                            ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[2] : %x", can_mesg[2]);
+                         }
+                         if ((jk_errormask & 0x80)) {                                                                  // Cell.Imbalance JK bit 7
+                            can_mesg[3] = 0x01;                                                                        // byte3_bit0 (0x01 = bin 1)
+                            ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[3] : %x", can_mesg[3]);
+                         }
+                      }
+                      // No Alarm
+                      else id(alarm_status) = "NoAlarm";
                       
-                      if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {               // Hight.Voltage.Alarm JK bit 2,7,10 
-                         can_mesg[0] = 0x04;                                                                      // byte0_bit2 (0x04 = bin 100)
-                         ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
-                      }
-                      if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {                                       // Low.Voltage.Alarm JK bit 3,11 
-                         can_mesg[0] = can_mesg[0] | 0x10;                                                        // byte0_bit4 (0x10 = bin 10000)
-                         ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
-                      }
-                      if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {               // Hight.Temp.Alarm JK bit 1,4,8
-                         can_mesg[0] = can_mesg[0] | 0x40;                                                        // byte0_bit6 (0x40 = bin 1000000)
-                         ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
-                      }
-                      if (jk_errormask & 0x200) {                                                                 // Low.Temp.Alarm JK bit 9
-                         can_mesg[1] = 0x01;                                                                      // byte1_bit0 (0x01 = bin 1)
-                         ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[1] : %x", can_mesg[1]);
-                      }
-                      if (jk_errormask & 0x40) {                                                                  // Discharge.Over.Current JK bit 6
-                         can_mesg[1] = can_mesg[1] | 0x40;                                                        // byte1_bit6 (0x40 = bin 1000000)
-                         ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[1] : %x", can_mesg[1]);
-                      }                      
-                      if (jk_errormask & 0x20) {                                                                  // Charge.Over.Current JK bit 5
-                         can_mesg[2] = 0x01;                                                                      // byte2_bit0 (0x01 = bin 1)
-                         ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[2] : %x", can_mesg[2]);
-                      }
-                      if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {                                    // BMS internal error JK bit 12,13
-                         can_mesg[2] = can_mesg[2] | 0x40;                                                        // byte2_bit6 (0x40 = bin 1000000)
-                         ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[2] : %x", can_mesg[2]);
-                      }
-                      if (jk_errormask & 0x80) {                                                                  // Cell Imbalance JK bit 7
-                         can_mesg[3] = 0x01;                                                                      // byte3_bit0 (0x01 = bin 1)
-                         ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[3] : %x", can_mesg[3]);
-                      }
-                                                               
                       ESP_LOGI("main", "send can id: 0x35A hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                       
             - if:
                 condition:
-                  lambda: |-
-                    return id(can_msg_counter) == 2;
+                  lambda: return id(can_msg_counter) == 2;
                 then:
                   canbus.send: # BMS instruction : Charge Volts, Charge Amps, Discharge Amps, Min voltage
                     can_id: 0x351
                     data: !lambda |-
                       
-                      // +---------------+
-                      // | Charge Status |
-                      // +---------------+
+                      // +----------------+
+                      // | Charging Logic |
+                      // +----------------+
                       
                       // Warning : information from JK BMS is not available immediately after boot
                       
@@ -467,67 +497,66 @@ interval:
                            id(charge_status) = "Wait";
                       }
                       
-                      // +------------------+
-                      // | Charging Voltage |
-                      // +------------------+
+                      // +-------------------------------+
+                      // | Charging / Discharging values |
+                      // +-------------------------------+
+
+                      ESP_LOGI("main", "Alarm Status : %s", id(alarm_status).c_str());
                       
-                      if ((id(charge_status) == "Bulk") | (id(charge_status) == "Bulk Manually") | (id(charge_status) == "Absorption")) {
-                           id(charging_voltage) = id(bulk_voltage).state;
+                      // Alarm : Stop Charging and Discharging
+                      if (id(alarm_status) == "OTP"){
+                           id(charging_v) = 51.2;
+                           id(charging_a) = 0;
+                           id(discharging_a) = 0;
                       }
+                      // Alarm : Stop Charging
+                      else if (id(alarm_status) == "OVP" | id(alarm_status) == "UTP" | id(alarm_status) == "COCP"){
+                           id(charging_v) = 51.2;
+                           id(charging_a) = 0;
+                           id(discharging_a) = ${discharge_a};
+                      }
+                      // Alarm : Stop Discharging
+                      else if (id(alarm_status) == "UVP" | id(alarm_status) == "DOCP"){
+                           id(charging_v) = id(bulk_voltage).state;
+                           id(charging_a) = id(charging_current).state;
+                           id(discharging_a) = 0;
+                      }
+                      // Bulk Charge
+                      else if ((id(charge_status) == "Bulk") | (id(charge_status) == "Bulk Manually") | (id(charge_status) == "Absorption")) {
+                           id(charging_v) = id(bulk_voltage).state;
+                           id(charging_a) = id(charging_current).state;
+                           id(discharging_a) = ${discharge_a};
+                      }
+                      // Float Charge
                       else if (id(charge_status) == "Float") {
-                           id(charging_voltage) = id(float_voltage).state;
+                           id(charging_v) = id(float_voltage).state;
+                           id(charging_a) = id(charging_current).state;
+                           id(discharging_a) = ${discharge_a};
                       }
-                      // Charge OFF : Alarm, Disabled or Wait
+                      // Disabled or Wait : Stop Charging
                       else {
-                           id(charging_voltage) = round(id(total_voltage).state * 10)/10;     // Actual battery voltage
+                           id(charging_v) = round(id(total_voltage).state * 10)/10;     // Actual battery voltage
+                           id(charging_a) = 0;
+                           id(discharging_a) = ${discharge_a};
                       }
                       
                       // +--------------+
                       // | CAN messages |
                       // +--------------+
                       
-                      // can_mesg[0] = byte0 = CVL : Charge Limit Voltage
-                      // can_mesg[1] = byte1 = CVL : Charge Limit Voltage
-                      // can_mesg[2] = byte2 = CCL : Charge Limit Current
-                      // can_mesg[3] = byte3 = CCL : Charge Limit Current
+                      // Byte [00:01] = CVL : Charge Limit Voltage
+                      // Byte [02:03] = CCL : Charge Limit Current
+                      // Byte [04:05] = DCL : Discharge Limit Current
+                      // Byte [06:07] = DVL : Discharge Limit Voltage
                       
-                      // can_mesg[4] = byte4 = DCL : Discharge Limit Current
-                      // can_mesg[5] = byte5 = DCL : Discharge Limit Current
-                      // can_mesg[6] = byte6 = DVL : Discharge Limit Voltage
-                      // can_mesg[7] = byte7 = DVL : Discharge Limit Voltage
+                      uint8_t can_mesg[8];
                       
-                      uint8_t can_mesg[7];
-                      
-                      // Charge Limit Voltage and Charge Limit Current
-                      // Charge ON : Bulk, Bulk Manually, Absorption or Float
-                      if ((id(charge_status) == "Bulk") | (id(charge_status) == "Bulk Manually") | (id(charge_status) == "Absorption") | (id(charge_status) == "Float")) {
-                         can_mesg[0] = uint16_t(id(charging_voltage) * 10) & 0xff;
-                         can_mesg[1] = uint16_t(id(charging_voltage) * 10) >> 8 & 0xff;
-                         can_mesg[2] = uint16_t(id(charging_current).state * 10) & 0xff;
-                         can_mesg[3] = uint16_t(id(charging_current).state * 10) >> 8 & 0xff;
-                      // Charge OFF : Alarm, Disabled or Wait
-                      } else {
-                         can_mesg[0] = uint16_t(id(charging_voltage) * 10) & 0xff;
-                         can_mesg[1] = uint16_t(id(charging_voltage) * 10) >> 8 & 0xff;
-                         can_mesg[2] = 0;
-                         can_mesg[3] = 0;
-                      }
-                                            
-                      // Discharge Limit Current
-                      if (id(charge_status) == "Alarm") {
-                         can_mesg[4] = 0x00;
-                         can_mesg[5] = 0x00;
-                      }
-                      else if ((id(discharging_switch).state) & (id(switch_discharging).state)) {
-                         can_mesg[4] = uint16_t(${discharge_a} * 10) & 0xff;
-                         can_mesg[5] = uint16_t(${discharge_a} * 10) >> 8 & 0xff;
-                      }
-                      else {
-                         can_mesg[4] = 0x00;
-                         can_mesg[5] = 0x00;
-                      }
-                      
-                      // Discharge Limit Voltage
+                      can_mesg[0] = uint16_t(id(charging_v) * 10) & 0xff;
+                      can_mesg[1] = uint16_t(id(charging_v) * 10) >> 8 & 0xff;
+                      can_mesg[2] = uint16_t(id(charging_a) * 10) & 0xff;
+                      can_mesg[3] = uint16_t(id(charging_a) * 10) >> 8 & 0xff;
+                      can_mesg[4] = uint16_t(id(discharging_a) * 10) & 0xff;
+                      can_mesg[5] = uint16_t(id(discharging_a) * 10) >> 8 & 0xff;
                       can_mesg[6] = uint16_t(${min_discharge_v} * 10) & 0xff;
                       can_mesg[7] = uint16_t(${min_discharge_v} * 10) >> 8 & 0xff;
                       
@@ -536,19 +565,18 @@ interval:
                       
                       // Logs
                       ESP_LOGI("main", "send can id: 0x351 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
-                      ESP_LOGI("main", "send can id: Charge Status %s", id(charge_status).c_str());
+                      ESP_LOGI("main", "Charge Status : %s", id(charge_status).c_str());
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                       
             - if:
                 condition:
-                  lambda: |-
-                    return id(can_msg_counter) == 3;
+                  lambda: return id(can_msg_counter) == 3;
                 then:
                   canbus.send: # Actual State of Charge (SOC) / State of Health (SOH)
                     can_id: 0x355
                     data: !lambda |-
                       int soh = round(((id(charging_cycles).state/${max_cycles})-1)*-100);
-                      uint8_t can_mesg[3];
+                      uint8_t can_mesg[4];
                       can_mesg[0] = uint16_t(id(capacity_remaining).state) & 0xff;
                       can_mesg[1] = uint16_t(id(capacity_remaining).state) >> 8 & 0xff;
                       can_mesg[2] = soh & 0xff;
@@ -558,13 +586,12 @@ interval:
                       
             - if:
                 condition:
-                  lambda: |-
-                    return id(can_msg_counter) == 4;
+                  lambda: return id(can_msg_counter) == 4;
                 then:
                   canbus.send: # Actual Voltage / Current / Temperature (Deye 0x305 ACK)
                     can_id: 0x356
                     data: !lambda |-
-                      uint8_t can_mesg[5];
+                      uint8_t can_mesg[6];
                       can_mesg[0] = uint16_t(id(total_voltage).state * 100) & 0xff;
                       can_mesg[1] = uint16_t(id(total_voltage).state * 100) >> 8 & 0xff;
                       can_mesg[2] = int16_t(id(current).state * 10) & 0xff;
@@ -576,13 +603,12 @@ interval:
                       
             - if:
                 condition:
-                  lambda: |-
-                    return id(can_msg_counter) == 5;
+                  lambda: return ((id(can_msg_counter) == 5) & (${can_protocol} == 1 | ${can_protocol} == 2));
                 then:
                   canbus.send: # Request flag to Enable/Disable: Charge, Discharge ( Pylontech / Goodwe / Seplos )
                     can_id: 0x35C
                     data: !lambda |-
-                      uint8_t can_mesg[1];
+                      uint8_t can_mesg[2];
                       can_mesg[0] = 0x00;
                       can_mesg[1] = 0x00;
                       
@@ -599,15 +625,20 @@ interval:
                       
             - if:
                 condition:
-                  lambda: |-
-                    return ((id(can_msg_counter) == 6) & (${can_cell_info} == 1));
+                  lambda: return ((id(can_msg_counter) == 6) & (${can_protocol} == 2));
                 then:
                   canbus.send: # Actual Max Cell Temp, Min Cell Temp, Max Cell V, Min Cell V ( Pylontech / Goodwe / Seplos )
                     can_id: 0x70
                     data: !lambda |-
+                      
+                      // Byte [00:01] : Max cell temperature
+                      // Byte [02:03] : Min cell temperature
+                      // Byte [04:05] : Max cell voltage
+                      // Byte [06:07] : Min cell voltage
+                      
                       int max_cell_voltage_i = id(max_cell_voltage).state * 100.0;
                       int min_cell_voltage_i = id(min_cell_voltage).state * 100.0;
-                      uint8_t can_mesg[7];
+                      uint8_t can_mesg[8];
                       can_mesg[0] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) & 0xff;
                       can_mesg[1] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) >> 8 & 0xff;
                       can_mesg[2] = int16_t(min(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) & 0xff;
@@ -621,16 +652,30 @@ interval:
                       
             - if:
                 condition:
-                  lambda: |-
-                    return ((id(can_msg_counter) == 6) & (${can_cell_info} == 1));
+                  lambda: return ((id(can_msg_counter) == 6) & (${can_protocol} == 2));
                 then:
                   - canbus.send: # Actual Max Cell Temp ID, Min Cell Temp ID, Max Cell V ID, Min Cell ID ( Pylontech / Goodwe / Seplos )
                       can_id: 0x371
                       data: !lambda |-
-                        uint8_t can_mesg[7];
-                        can_mesg[0] = 0x01;
+                        
+                        // Byte [00:01] : Max cell temperature ID
+                        // Byte [02:03] : Min cell temperature ID
+                        // Byte [04:05] : Max cell voltage ID
+                        // Byte [06:07] : Min cell voltage ID
+                        
+                        uint8_t can_mesg[8];
+
+                        // Min-Max Temp. Sensor ID ?
+                        if (id(temperature_sensor_1).state >= id(temperature_sensor_2).state){
+                          can_mesg[0] = 0x01;
+                          can_mesg[2] = 0x02;
+                        }
+                        else {
+                          can_mesg[0] = 0x02;
+                          can_mesg[2] = 0x01;
+                        }
+                        
                         can_mesg[1] = 0x00;
-                        can_mesg[2] = 0x02;
                         can_mesg[3] = 0x00;
                         can_mesg[4] = uint16_t(id(max_voltage_cell).state) & 0xff;
                         can_mesg[5] = uint16_t(id(max_voltage_cell).state) >> 8 & 0xff;
@@ -641,18 +686,42 @@ interval:
                         
             - if:
                 condition:
-                  lambda: |-
-                    return ((id(can_msg_counter) == 7) & (${can_cell_info} == 2));
+                  lambda: return ((id(can_msg_counter) == 7) & (${can_protocol} == 4));
                 then:
-                  canbus.send: # Actual Min Cell V, Max Cell V, Min Cell Temp (Kelvin), Max Cell Temp (Kelvin) ( SMA, Victron )
+                  - canbus.send: # Battery modules information ( Victron )
+                      can_id: 0x372
+                      data: !lambda |-
+                        
+                        // Byte [00:01] : Nbr. of battery modules online
+                        // Byte [02:03] : Nbr. of modules blocking charge
+                        // Byte [04:05] : Nbr. of modules blocking discharge
+                        // Byte [06:07] : Nbr. of battery modules offline
+                        
+                        uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
+                        can_mesg[0] = 0x01;
+
+                        ESP_LOGI("main", "send can id: 0x372 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                        return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
+
+            - if:
+                condition:
+                  lambda: return ((id(can_msg_counter) == 8) & (${can_protocol} == 4));
+                then:
+                  canbus.send: # Actual Min Cell V, Max Cell V, Min Cell Temp (Kelvin), Max Cell Temp (Kelvin) ( Victron )
                     can_id: 0x373
                     data: !lambda |-
+                      
+                      // Byte [00:01] : Min cell voltage
+                      // Byte [02:03] : Max cell voltage
+                      // Byte [04:05] : Min cell temperature
+                      // Byte [06:07] : Max cell temperature
+                      
                       int min_cell_voltage_i = id(min_cell_voltage).state * 1000.0;
                       int max_cell_voltage_i = id(max_cell_voltage).state * 1000.0;
                       int min_temp_kelvin = min(id(temperature_sensor_1).state, id(temperature_sensor_2).state) + 273.15;
                       int max_temp_kelvin = max(id(temperature_sensor_1).state, id(temperature_sensor_2).state) + 273.15;
                       
-                      uint8_t can_mesg[7];
+                      uint8_t can_mesg[8];
                       can_mesg[0] = min_cell_voltage_i & 0xff;
                       can_mesg[1] = min_cell_voltage_i >> 8 & 0xff;
                       can_mesg[2] = max_cell_voltage_i & 0xff;
@@ -667,25 +736,105 @@ interval:
                       
             - if:
                 condition:
-                  lambda: |-
-                    return ((id(can_msg_counter) == 8) & (${can_battery_info} == 1));
+                  lambda: return ((id(can_msg_counter) == 8) & (${can_protocol} == 4));
                 then:
-                  - canbus.send: # Bat. Type, BMS software version, Bat. Capacity Ah, BMS product id ( SMA, Victron )
-                      can_id: 0x35F
+                  - canbus.send: # Min cell voltage ID [ASCII] ( Victron )
+                      can_id: 0x374
                       data: !lambda |-
-                        uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-                        can_mesg[4] = uint16_t(id(total_battery_capacity_setting).state) & 0xff;
-                        can_mesg[5] = uint16_t(id(total_battery_capacity_setting).state) >> 8 & 0xff;
                         
-                        ESP_LOGI("main", "send can id: 0x35F hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
-                        return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
-                   
+                        int cell_id = id(min_voltage_cell).state;
+
+                        ESP_LOGI("main", "send can id: 0x374 [ASCII] Min cell voltage ID : %i", cell_id);
+
+                        if (cell_id == 1) return {0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 2) return {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 3) return {0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 4) return {0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 5) return {0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 6) return {0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 7) return {0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 8) return {0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 9) return {0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 10) return {0x31, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 11) return {0x31, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 12) return {0x31, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 13) return {0x31, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 14) return {0x31, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 15) return {0x31, 0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 16) return {0x31, 0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else return {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
             - if:
                 condition:
-                  lambda: |-
-                    return ((id(can_msg_counter) == 9) & (${can_battery_info} == 2));
+                  lambda: return ((id(can_msg_counter) == 8) & (${can_protocol} == 4));
                 then:
-                  - canbus.send: # Battery Capacity Ah ( Sol-Ark, Victron, Luxpower )
+                  - canbus.send: # Max cell voltage ID [ASCII] ( Victron )
+                      can_id: 0x375
+                      data: !lambda |-
+                        
+                        int cell_id = id(max_voltage_cell).state;
+
+                        ESP_LOGI("main", "send can id: 0x375 [ASCII] Max cell voltage ID : %i", cell_id);
+
+                        if (cell_id == 1) return {0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 2) return {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 3) return {0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 4) return {0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 5) return {0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 6) return {0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 7) return {0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 8) return {0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 9) return {0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 10) return {0x31, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 11) return {0x31, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 12) return {0x31, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 13) return {0x31, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 14) return {0x31, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 15) return {0x31, 0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else if (cell_id == 16) return {0x31, 0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        else return {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+            - if:
+                condition:
+                  lambda: return ((id(can_msg_counter) == 8) & (${can_protocol} == 4));
+                then:
+                  - canbus.send: # Min cell temperature ID [ASCII] ( Victron )
+                      can_id: 0x376
+                      data: !lambda |-
+                        
+                        // Min Temp. Sensor ID ?
+                        if (id(temperature_sensor_1).state >= id(temperature_sensor_2).state){
+                          ESP_LOGI("main", "send can id: 0x376 [ASCII] Min Temp. Sensor ID : 2");
+                          return {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        }
+                        else {
+                          ESP_LOGI("main", "send can id: 0x376 [ASCII] Min Temp. Sensor ID : 1");
+                          return {0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        }
+
+            - if:
+                condition:
+                  lambda: return ((id(can_msg_counter) == 8) & (${can_protocol} == 4));
+                then:
+                  - canbus.send: # Max cell temperature ID [ASCII] ( Victron )
+                      can_id: 0x377
+                      data: !lambda |-
+                        
+                        // Max Temp. Sensor ID ?
+                        if (id(temperature_sensor_1).state >= id(temperature_sensor_2).state){
+                          ESP_LOGI("main", "send can id: 0x377 [ASCII] Max Temp. Sensor ID : 1");
+                          return {0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        }
+                        else {
+                          ESP_LOGI("main", "send can id: 0x377 [ASCII] Max Temp. Sensor ID : 2");
+                          return {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        }
+
+            - if:
+                condition:
+                  lambda: return ((id(can_msg_counter) == 9) & (${can_protocol} == 4));
+                then:
+                  - canbus.send: # Battery Installed Capacity Ah ( Victron, Sol-Ark, Luxpower )
                       can_id: 0x379
                       data: !lambda |-
                         uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -694,11 +843,43 @@ interval:
                         
                         ESP_LOGI("main", "send can id: 0x379 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                         return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
-                   
+                        
             - if:
                 condition:
-                  lambda: |-
-                    return id(can_msg_counter) == 10;
+                  lambda: return ((id(can_msg_counter) == 10) & (${can_protocol} == 4));
+                then:
+                  - canbus.send: # Product identification [ASCII] ( Victron )
+                      can_id: 0x382
+                      data: !lambda |-
+                        ESP_LOGI("main", "send can id: 0x382 [ASCII] Product : JK-BMS");
+                        return {0x4A, 0x4B, 0x2D, 0x42, 0x4D, 0x53, 0x00, 0x00}; // JK-BMS
+
+            - if:
+                condition:
+                  lambda: return ((id(can_msg_counter) == 11) & (${can_protocol} == 3 | ${can_protocol} == 4));
+                then:
+                  - canbus.send: # Battery information ( SMA, Victron )
+                      can_id: 0x35F
+                      data: !lambda |-
+                        
+                        //                SMA                 Victron
+                        // Byte [00:01] : Bat-Type            Product ID
+                        // Byte [02:03] : BMS Version         Firmware version (1.16 => HEX [01:10])
+                        // Byte [04:05] : Bat-Capacity        Available Capacity Ah
+                        // Byte [06:07] : Manufacturer ID     Hardware version
+                        
+                        uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
+                        can_mesg[2] = 0x01;
+                        can_mesg[3] = 0x10;
+                        can_mesg[4] = uint16_t(id(total_battery_capacity_setting).state) & 0xff;
+                        can_mesg[5] = uint16_t(id(total_battery_capacity_setting).state) >> 8 & 0xff;
+                        
+                        ESP_LOGI("main", "send can id: 0x35F hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                        return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
+                        
+            - if:
+                condition:
+                  lambda: return id(can_msg_counter) == 12;
                 then:
                   - canbus.send:
                       can_id: 0x35E # Manufacturer name
@@ -715,9 +896,8 @@ interval:
                            ESP_LOGI("main", "send can id: 0x35E ASCII : SHEnergy");
                            return {0x53, 0x48, 0x45, 0x6E, 0x65, 0x72, 0x67, 0x79}; // SHEnergy (SEPLOS)
                         }
-                           
-                  - lambda: |- # Reset counter
-                      id(can_msg_counter) = 0;
+                    # Reset counter
+                  - lambda: id(can_msg_counter) = 0;
                       
 binary_sensor:
   - platform: jk_bms
@@ -1004,7 +1184,7 @@ number:
     id: "charging_current"
     step: 1
     min_value: 0
-    max_value: 150
+    max_value: "${charge_a}"
     mode: slider
     initial_value: "${charge_a}"
     unit_of_measurement: A
