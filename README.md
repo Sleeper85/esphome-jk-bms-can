@@ -173,7 +173,14 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 * Optional: 48V to 5V DC-DC converter to power the ESP32 from the JK-BMS VBAT pin (URB4805YMD-10WR3 or VRB4805S-6WR3)
 * Optional: JK RS485 Adaptor and RS484 to TTL3.3v Adaptor (see optional schematic below)
 
-## Schematics
+## Buy the M5Stack Atom CAN Kit (the Plug & Play solution)
+
+If soldering or creating your own board seems complicated to you, know that it is possible to use the Atom CAN Kit from M5Stack.<br>
+I will communicate more information on this subject in the coming days.
+
+![Image](images/Atom_CAN_Kit.png "M5Stack Atom CAN Kit")
+
+## Build your own board
 
 ![Image](images/PCB_ESP32_JK-BMS-CAN_powered_by_JK-BMS.png "PCB ESP32 JK-BMS-CAN powered by JK-BMS")
 
