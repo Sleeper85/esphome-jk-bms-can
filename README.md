@@ -127,6 +127,7 @@ Add 0.1v to the voltage settings because the Deye charging voltage is always 0.1
 
 ## Changelog
 
+* V1.16.2 Sleeper85 : Split the "Charge/Discharge values" section and added instructions for "Stop Discharging" + Change framework to "esp-idf" (BLE version)
 * V1.16.1 Sleeper85 : Slider charging_current max value = ${charge_a}, Improved Alarm/Charging/Discharging Logic, Improved CAN protocol and Victron support
 * V1.15.5 Sleeper85 : Improved code and set api "reboot_timout" to "0s" by default (no reboot without HA)
 * V1.15.4 Sleeper85 : Improved documentation for API, Web Server and WiFi settings
@@ -167,20 +168,27 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 ## Requirements
 
 * [ESPHome 2022.11.0 or higher](https://github.com/esphome/esphome/releases).
-* Generic ESP32 DevKit-v1 30 pin board ( NOTE: ESP32-S2 currently has issues with CAN BUS and does not work! )
+* Generic ESP32 DevKit v1 30 pin board or M5Stack Atom Lite (ESP32-PICO)
+* NOTE: ESP32-S2 currently has issues with CAN BUS and does not work!
 * For 5V CAN bus : TJA1050 or TJA1051T CAN controller interface module and 4.7K resistor for 5v to 3.3v level shifing.
 * For 3.3V CAN bus : SN65HVD230 CAN controller interface module without 4.7K resistor
+* For Atom CAN bus : M5Stack ATOMIC CANBus Base (CA-IS3050G)
 * Optional: 48V to 5V DC-DC converter to power the ESP32 from the JK-BMS VBAT pin (URB4805YMD-10WR3 or VRB4805S-6WR3)
 * Optional: JK RS485 Adaptor and RS484 to TTL3.3v Adaptor (see optional schematic below)
 
 ## Buy the M5Stack Atom CAN Kit (the Plug & Play solution)
 
 If soldering or creating your own board seems complicated to you, know that it is possible to use the Atom CAN Kit from M5Stack.<br>
-I will communicate more information on this subject in the coming days.
 
 ![Image](images/Atom_CAN_Kit.png "M5Stack Atom CAN Kit")
 
+**Atom Lite pin**
+
+![Image](images/Atom_Lite_ESP32-PICO_pin.png "M5Stack Lite ESP32-PICO pin")
+
 ## Build your own board
+
+This is an example of an ESP32 DevKit v1 30 pin board powered by the BMS.
 
 ![Image](images/PCB_ESP32_JK-BMS-CAN_powered_by_JK-BMS.png "PCB ESP32 JK-BMS-CAN powered by JK-BMS")
 
@@ -189,10 +197,35 @@ I will communicate more information on this subject in the coming days.
 ![Image](images/JK-BMS_24S_GPS_port.png "PCB ESP32 JK-BMS-CAN powered by JK-BMS")
 
 
+## Schematic and setup instructions
+
+If you don't want to connect a wire between the BMS and the ESP32 choose the **Bluetooth** version => **esp32_ble_jk-bms-can.yaml**<br>
+If you prefer to use a wired connection between the BMS and the ESP32 choose the **Wire** version => **esp32_wire_jk-bms-can.yaml**
+
+**Atom Lite (ESP32-PICO)**
+
+Note: Follow the configuration instructions in the **config_atom-lite-esp32-pico.yaml** file (config folder).
+
+```
+
+              UART-TTL               RS232-TTL                   CAN BUS
+┌──────────┐            ┌──────────┐             ┌────────────┐              ┌──────────┐
+│          │<TX------RX>│26      22│<TX-------TX>|            |              |          |
+│  JK-BMS  │<RX------TX>│32      19│<RX-------RX>| CA-IS3050G |<---CAN H --->| Inverter |
+│          │<----GND--->│   ESP32  │             |    CAN     |<---CAN L --->|          |
+│          │     5V---->│5V     3V3|             |            |              |          |
+└──────────┘            └──────────┘             └────────────┘              └──────────┘
+
+```
+
+**Generic ESP32 DevKit v1 30 pin**
+
+Note: Follow the configuration instructions in the **config_generic-esp32-devkit-v1.yaml** file (config folder).
+
 ```
 3.3V CAN BUS
 
-              RS485-TTL               RS232-TTL                CAN BUS (3V3)
+              UART-TTL               RS232-TTL                 CAN BUS (3V3)
 ┌──────────┐            ┌──────────┐             ┌────────────┐              ┌──────────┐
 │          │<TX------RX>│16      23│<TX-------TX>|            |              |          |
 │  JK-BMS  │<RX------TX>│17      22│<RX-------RX>| SN65HVD230 |<---CAN H --->| Inverter |
@@ -203,7 +236,7 @@ I will communicate more information on this subject in the coming days.
 
 5V CAN BUS
 
-              RS485-TTL               RS232-TTL                CAN BUS (5V)
+              UART-TTL               RS232-TTL                 CAN BUS (5V)
 ┌──────────┐            ┌──────────┐             ┌────────────┐              ┌──────────┐
 │          │<TX------RX>│16      23│<TX-------TX>|            |              |          |
 │  JK-BMS  │<RX------TX>│17      22│<RX--4K7--RX>|  TJA1050   |<---CAN H --->| Inverter |
@@ -211,10 +244,13 @@ I will communicate more information on this subject in the coming days.
 │          │     5V---->│VIN    VIN│<----5V----->|            |              |          |
 └──────────┘            └──────────┘             └────────────┘              └──────────┘
 
+```
 
-Optional below, as seen in pic above: RS485 between JK-BMS GPS port and ESP32, uses JK RS485 adaptor and RS485 to TTL3.3v adaptor.
+**Schématic with addition of the UART-TTL to RS485 adapter sold by JK-BMS**
 
-              RS485-TTL                  RS485             RS485-TTL               RS232-TTL                CAN BUS
+```
+
+              UART-TTL                  RS485              RS485-TTL              RS232-TTL                CAN BUS
 ┌──────────┐            ┌───────────┐           ┌────────┐           ┌─────────┐             ┌─────────┐              ┌──────────┐
 │          │<----TX---->│Y    JK   Y│<A------A+>│        │<TX-----RX>│16     23│<TX-------TX>|         |              |          |
 │  JK-BMS  │<----RX---->│W  RS485  W│<B------B->│ RS485  │<RX-----TX>│17     22│<RX--4K7--RX>| TJA1050 |<---CAN H --->| Inverter |
@@ -222,22 +258,27 @@ Optional below, as seen in pic above: RS485 between JK-BMS GPS port and ESP32, u
 │          │<----VBAT-->│R          │           │        │<---3.3V-->|  ESP32  |<----5V----->|         |              |          |
 └──────────┘            └───────────┘           └────────┘           └─────────┘             └─────────┘              └──────────┘
 
+```
 
+**JK-BMS UART-TTL GPS port**
 
-# RS485-TTL jack on JK-BMS (4 Pin, JST 1.25mm pitch)
+```
+# UART-TTL GPS port on JK-BMS (4 pin, JST 1.25mm pitch)
 ┌─── ─────── ────┐
 │                │
 │ O   O   O   O  │
 │GND  RX  TX VBAT│ 
 └────────────────┘
   │   │   │   | VBAT is full battery volatge eg 51.2V (No connect)
-  │   │   └──── ESP32 GPIO16 (`rx_pin`)
-  │   └──────── ESP32 GPIO17 (`tx_pin`)
+  │   │   └──── ESP32 (`rx_pin`)
+  │   └──────── ESP32 (`tx_pin`)
   └──────────── GND
 ```
 
 
-The UART-TTL (labeled as `RS485`) socket of the BMS can be attached to any UART pins of the ESP. A hardware UART should be preferred because of the high baudrate (115200 baud). The connector is called 4 Pin JST with 1.25mm pitch.
+The UART-TTL (labeled as `RS485`) socket of the BMS can be attached to any UART pins of the ESP.<br>
+A hardware UART should be preferred because of the high baudrate (115200 baud).<br>
+The connector is called 4 pin JST with 1.25mm pitch.
 
 ## Installation
 
@@ -250,10 +291,10 @@ external_components:
 
 **Installation procedure:**
 
-```bash
-# Install esphome
-pip3 install esphome
+Before you can flash the YAML file you need to install the esphome application (command line).<br>
+[Follow these instructions for installation on Windows, Mac or Linux.](https://esphome.io/guides/installing_esphome)
 
+```bash
 # Clone this external component
 git clone https://github.com/Sleeper85/esphome-jk-bms-can.git
 cd esphome-jk-bms-can
@@ -264,11 +305,13 @@ wifi_ssid: MY_WIFI_SSID
 wifi_password: MY_WIFI_PASSWORD
 
 # Validate the configuration, create a binary, upload it, and start logs
-esphome run esp32-jk-bms-can.yaml
+# To install the Wire version
+esphome run esp32_wire_jk-bms-can.yaml
+# To install the Bluetooth version
+esphome run esp32_ble_jk-bms-can.yaml
 
 # Optional add to Home Assistant
-In Home Assistant under settings->Intergration "Add Intergration" select ESPHome add device jk-bms-can if found or supply ip address of ESP32
-
+# In Home Assistant under settings->Intergration "Add Intergration" select ESPHome add device jk-bms-can if found or supply ip address of ESP32
 ```
 
 ## ESPHome bash command
