@@ -292,40 +292,52 @@ external_components:
 
 **Installation procedure:**
 
+1. **Install ESPHome on your computer**<br>
 Before you can flash the YAML file you need to install the esphome application (command line).<br>
 [Follow these instructions for installation on Windows, Mac or Linux.](https://esphome.io/guides/installing_esphome)
+
+2. **Download YAML files to your computer**<br>
+You can do this from the command line or in your preferred method.
 
 ```bash
 # Clone this external component
 git clone https://github.com/Sleeper85/esphome-jk-bms-can.git
 cd esphome-jk-bms-can
+```
 
-# Create a secrets.yaml containing some setup specific secrets
-cat > secrets.yaml <<EOF
-wifi_ssid: MY_WIFI_SSID
-wifi_password: MY_WIFI_PASSWORD
+3. **Enter your WiFi credentials in the secrets.yaml files**
 
-# Validate the configuration, create a binary, upload it, and start logs
+```yaml
+wifi_ssid: YourSSID
+wifi_password: YourPassword
+domain : .local
+```
+
+4. **Install the application in the ESP32**<br>
+Validate the configuration, create a binary, upload it, and start logs
+
+```bash
 # To install the Wire version
 esphome run esp32_wire_jk-bms-can.yaml
+
 # To install the Bluetooth version
 esphome run esp32_ble_jk-bms-can.yaml
-
-# Optional add to Home Assistant
-# In Home Assistant under settings->Intergration "Add Intergration" select ESPHome add device jk-bms-can if found or supply ip address of ESP32
 ```
+
+5. **Optional: add the ESP32 in Home Assistant**<br>
+In Home Assistant under **" Settings > Devices and services > Add Intergration "** select ESPHome add device jk-bms-can if found or supply ip address of ESP32.
 
 ## ESPHome bash command
 
 ```bash
 # test the config
-esphome config esp32-jk-bms-can.yaml
+esphome config esp32_wire_jk-bms-can.yaml
 
 # install the config in ESP32
-esphome run esp32-jk-bms-can.yaml
+esphome run esp32_wire_jk-bms-can.yaml
 
 # check the logs (the --device option is not required)
-esphome logs esp32-jk-bms-can.yaml --device 192.168.x.x
+esphome logs esp32_wire_jk-bms-can.yaml --device 192.168.x.x
 ```
 
 ## Known issues
