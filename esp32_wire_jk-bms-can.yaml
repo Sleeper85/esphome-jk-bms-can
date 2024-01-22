@@ -200,8 +200,8 @@ output:
 light:
   - platform: binary
     output: led
-    id: led_buitin
-    name: "Builtin LED"
+    id: blue_led
+    name: "Blue LED"
     internal: true
 
 # +--------------------------------------+
@@ -594,7 +594,7 @@ canbus:
     - can_id: 0x305 # Inverter ACK - SMA/LG/Pylon/Goodwe reply
       then:
         - light.toggle:
-            id: led_buitin
+            id: blue_led
         - lambda: |-
             id(can_ack_counter) = 0;                              // Reset ACK counter
             id(can_status) = "ON";                                // Set CANBUS Status to ON
