@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
+# V1.16.4 Sleeper85 : Improved Charging Logic for ESP32 startup/reboot and Float charge, Add CAN ID 0x356 bytes [06:07] cycles for Sofar, Change switch name
 # V1.16.3 Sleeper85 : ID 0x379 will be sent when choosing protocol 2 or 4 (Battery Capacity for Victron, Sol-Ark and Luxpower)
 # V1.16.2 Sleeper85 : Split the "Charge/Discharge values" section and added instructions for "Stop Discharging" + Set "esp-idf" framework by default
 # V1.16.1 Sleeper85 : Slider charging_current max value = ${charge_a}, Improved Alarm/Charging/Discharging Logic, Improved CAN protocol and Victron support
@@ -80,7 +81,7 @@ substitutions:
 # CAN Protocol
 # 1 : PYLON 1.2 (Deye)
 # 2 : SEPLOS 1.0, PYLON 1.3, GOODWE 1.5 (GoodWe, Sol-Ark, Luxpower)
-# 3 : SMA (Sunny Island)
+# 3 : SMA (Sunny Island, Sofar)
 # 4 : VICTRON
   can_protocol: "1"
 # +--------------------------------------+
@@ -165,7 +166,7 @@ globals:
   - id: charge_status
     type: std::string
     restore_value: no
-    initial_value: '"Alarm"'
+    initial_value: '"Wait"'
   - id: can_status
     type: std::string
     restore_value: no
@@ -561,25 +562,26 @@ script:
       - lambda: id(charge_status) = "Absorption";
       # delay value in ms
       - delay: !lambda "return id(absorption_time).state * 60 * 1000;"
-      - lambda: id(charge_status) = "Wait";
+      - lambda: id(charge_status) = "EOC";
 
 switch:
   - platform: template
-    name: ${name} Charging enabled
+    name: "${name} CAN Charge enabled"
     id: switch_charging
     optimistic: true
   - platform: template
-    name: ${name} Discharge enabled
+    name: "${name} CAN Discharge enabled"
     id: switch_discharging
     optimistic: true
   - platform: template
-    name: ${name} Charging manually (top bal)
+    name: "${name} CAN Force bulk (top bal)"
     id: switch_chg_bulk
     optimistic: true
   - platform: template
-    name: ${name} Float charge
+    name: "${name} CAN Float charge enabled"
     id: switch_chg_float
     optimistic: true
+
 
 # +--------------------------------------+
 # | CAN bus script                       |
@@ -825,65 +827,73 @@ interval:
                       
                       // Alarm : if JK-BMS alarm !
                       if (id(errors_bitmask).state > 1) {
-                           id(charge_status) = "Alarm";
+                          id(charge_status) = "Alarm";
                       }
                       // No Alarm => Wait
                       else if ((id(errors_bitmask).state < 2) & (id(charge_status) == "Alarm")) {
-                           id(charge_status) = "Wait";
+                          id(charge_status) = "Wait";
                       }
-                      // Disabled : charging disabled if BMS or ESP32 switch is OFF
-                      else if ((!id(charging_switch).state) | (!id(switch_charging).state)) {
-                           id(charge_status) = "Disabled";
-                      }
-                      // No Disabled => Wait
-                      else if ((id(charging_switch).state) & (id(switch_charging).state) & (id(charge_status) == "Disabled")) {
-                           id(charge_status) = "Wait";
-                      }
-                      // Bulk Manually : after switch ON 'Charging manually (top bal)'
-                      else if (id(switch_chg_bulk).state) {
-                           id(charge_status) = "Bulk Manually";
-                      }
-                      // No Bulk Manually => Wait
-                      else if ((!id(switch_chg_bulk).state) & (id(charge_status) == "Bulk Manually")) {
-                           id(charge_status) = "Wait";
-                      }
-                      // Bulk : if Batt. V. <= ( Absorption V. - Rebulk Offset V. )                                   ( Bulk : <= 55.2-2.5 = 52.7V by default )
-                      else if (id(total_voltage).state <= (id(bulk_voltage).state - id(rebulk_offset).state)) {
-                           id(charge_status) = "Bulk";
-                           if (id(absorption_script).is_running()) id(absorption_script).stop();
-                      }
-                      // Absorption : if Batt. V >= ( Absorption V. - Absorption Offset V. )                          ( Absorption : >= 55.2-0.05 = 55.15V by default )
-                      else if ((id(charge_status) == "Bulk") & (id(total_voltage).state >= (id(bulk_voltage).state - id(absorption_offset).state))) {
-                           id(charge_status) = "Absorption";
-                           if (!id(absorption_script).is_running()) id(absorption_script).execute();                  // 10 % from top start absorption timer
-                      }
-                      // Float : if Batt. V. > ( Absorption V. - Rebulk Offset V. ) and Float switch is ON            ( Float : after Absorption or > 55.2-2.5 = 52.7V by default )
-                      else if ((id(switch_chg_float).state) & (id(charge_status) == "Wait")) {
-                           id(charge_status) = "Float";
-                      }
-                      // No Float => Wait
-                      else if ((!id(switch_chg_float).state) & (id(charge_status) == "Float")) {
-                           id(charge_status) = "Wait";
-                      }
+                      // Charge ON : BMS and ESP32 charging switch is ON
+                      else if ((id(charging_switch).state) & (id(switch_charging).state)) {
                       
-                      // +--------------------------------------+
+                        // Force Bulk : 'Charging manually (top bal)' switch is ON
+                        if (id(switch_chg_bulk).state) {
+                            id(charge_status) = "Force Bulk";
+                        }
+                        // No Force Bulk => Wait
+                        else if ((!id(switch_chg_bulk).state) & (id(charge_status) == "Force Bulk")) {
+                            id(charge_status) = "Wait";
+                        }
+                        // Bulk : Bat. V. <= Rebulk V. ( Absorption V. - Rebulk Offset V. )                             ( Bulk : Rebulk V. = 55.2-2.5 = 52.7V by default )
+                        else if (id(total_voltage).state <= (id(bulk_voltage).state - id(rebulk_offset).state)) {
+                            id(charge_status) = "Bulk";
+                            if (id(absorption_script).is_running()) id(absorption_script).stop();
+                        }
+                        // Absorption : Bat. V >= ( Absorption V. - Absorption Offset V. )                              ( Absorption V. = 55.2-0.05 = 55.15V by default )
+                        else if ((id(charge_status) == "Bulk") & (id(total_voltage).state >= (id(bulk_voltage).state - id(absorption_offset).state))) {
+                            id(charge_status) = "Absorption";
+                            if (!id(absorption_script).is_running()) id(absorption_script).execute();                  // 10 % from top start absorption timer
+                        }
+                        // Bulk : (Bat. V. > Rebulk V.) + Wait / ESP32 startup                                          ( Bulk : when starting the ESP32 )
+                        else if ((id(charge_status) == "Wait")) {
+                            id(charge_status) = "Bulk";
+                            if (id(absorption_script).is_running()) id(absorption_script).stop();
+                        }
+                        // Float : (Bat. V. > Rebulk V.) + Float switch ON and End Of Charge                            ( Float : after Absorption )
+                        else if ((id(switch_chg_float).state) & (id(charge_status) == "EOC")) {
+                            id(charge_status) = "Float";
+                        }
+                        // No Float => Wait
+                        else if ((!id(switch_chg_float).state) & (id(charge_status) == "Float")) {
+                            id(charge_status) = "Wait";
+                        }
+                      }
+                      // Charge OFF
+                      else id(charge_status) = "Wait";
+                      
+                       // +--------------------------------------+
                       // | Charge values                        |
                       // +--------------------------------------+
 
                       // Bulk Charge
-                      if ((id(charge_status) == "Bulk") | (id(charge_status) == "Bulk Manually") | (id(charge_status) == "Absorption")) {
-                           id(charging_v) = id(bulk_voltage).state;
-                           id(charging_a) = id(charging_current).state;
+                      if ((id(charge_status) == "Bulk") | (id(charge_status) == "Force Bulk") | (id(charge_status) == "Absorption")) {
+                        id(charging_v) = id(bulk_voltage).state;
+                        id(charging_a) = id(charging_current).state;
                       }
                       // Float Charge
                       else if (id(charge_status) == "Float") {
-                           id(charging_v) = id(float_voltage).state;
-                           id(charging_a) = id(charging_current).state;
+                        if (id(total_voltage).state > id(float_voltage).state){
+                          id(charging_v) = round(id(total_voltage).state * 10)/10;                  // Actual battery voltage
+                          id(charging_a) = 0;
+                        } else {
+                          id(charging_v) = id(float_voltage).state;
+                          id(charging_a) = id(charging_current).state;
+                        }
                       }
-                      // Disabled or Wait : Stop Charging
-                      else if ((id(charge_status) == "Disabled") | (id(charge_status) == "Wait")) {
-                           id(charging_v) = round(id(total_voltage).state * 10)/10;     // Actual battery voltage
-                           id(charging_a) = 0;
+                      // End Of Charge (EOC) or Wait : Stop Charging
+                      else if ((id(charge_status) == "EOC") | (id(charge_status) == "Wait")) {
+                        id(charging_v) = round(id(total_voltage).state * 10)/10;                    // Actual battery voltage
+                        id(charging_a) = 0;
                       }
                       
                       // +--------------------------------------+
@@ -905,18 +915,18 @@ interval:
                       
                       // Alarm : Stop Charging and Discharging
                       if ((id(alarm_status) == "OTP") | (id(alarm_status) == "BMS")){
-                           id(charging_v) = 51.2;
-                           id(charging_a) = 0;
-                           id(discharging_a) = 0;
+                          id(charging_v) = 51.2;
+                          id(charging_a) = 0;
+                          id(discharging_a) = 0;
                       }
                       // Alarm : Stop Charging
                       else if ((id(alarm_status) == "OVP") | (id(alarm_status) == "UTP") | (id(alarm_status) == "COCP")){
-                           id(charging_v) = 51.2;
-                           id(charging_a) = 0;
+                          id(charging_v) = 51.2;
+                          id(charging_a) = 0;
                       }
                       // Alarm : Stop Discharging
                       else if ((id(alarm_status) == "UVP") | (id(alarm_status) == "DOCP")){
-                           id(discharging_a) = 0;
+                          id(discharging_a) = 0;
                       }
                       
                       // +--------------------------------------+
@@ -967,18 +977,26 @@ interval:
                 condition:
                   lambda: return id(can_msg_counter) == 4;
                 then:
-                  canbus.send: # Actual Voltage / Current / Temperature (Deye 0x305 ACK)
+                  canbus.send: # Actual Voltage / Current / Temperature / Cycles (Deye 0x305 ACK)
                     can_id: 0x356
                     data: !lambda |-
-                      uint8_t can_mesg[6];
+                      
+                      // Byte [00:01] : Actual Voltage
+                      // Byte [02:03] : Actual Current
+                      // Byte [04:05] : Actual Temperature
+                      // Byte [06:07] : Actual Cycles number (Sofar)
+
+                      uint8_t can_mesg[8];
                       can_mesg[0] = uint16_t(id(total_voltage).state * 100) & 0xff;
                       can_mesg[1] = uint16_t(id(total_voltage).state * 100) >> 8 & 0xff;
                       can_mesg[2] = int16_t(id(current).state * 10) & 0xff;
                       can_mesg[3] = int16_t(id(current).state * 10) >> 8 & 0xff;
                       can_mesg[4] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) & 0xff;
                       can_mesg[5] = int16_t(max(id(temperature_sensor_1).state, id(temperature_sensor_2).state)* 10) >> 8 & 0xff;
-                      ESP_LOGI("main", "send can id: 0x356 hex: %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5]);
-                      return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5]};
+                      can_mesg[6] = uint16_t(id(charging_cycles).state) & 0xff;
+                      can_mesg[7] = uint16_t(id(charging_cycles).state) >> 8 & 0xff;    
+                      ESP_LOGI("main", "send can id: 0x356 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                      return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                       
             - if:
                 condition:
