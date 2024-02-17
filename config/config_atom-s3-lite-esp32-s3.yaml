@@ -1,5 +1,5 @@
 
-# *** These are the specific settings you need to change in the YAML if you use the Atom Lite ESP32-PICO board ***
+# *** These are the specific settings you need to change in the YAML if you use the Atom S3 Lite ESP32-S3 board ***
 
 # 1) Choose the configuration file you want to use:
 #    - esp32_ble_jk-bms-can.yaml :  If you don't want to connect a wire between the BMS and the ESP32 choose the Bluetooth version.
@@ -11,17 +11,19 @@
 # | ESP32 CAN/serial port pins           |
 # +--------------------------------------+
 # GPIO pins your CAN bus transceiver ATOMIC CANBus Base (CA-IS3050G)
-  can_tx_pin: GPIO22
-  can_rx_pin: GPIO19
+  can_tx_pin: GPIO5
+  can_rx_pin: GPIO6
 # GPIO pins your JK-BMS UART-TTL is connected to the grove port of Atom Lite
-  tx_pin: GPIO32
-  rx_pin: GPIO26
+  tx_pin: GPIO1
+  rx_pin: GPIO2
 
 # +--------------------------------------+
 # | ESP32 settings                       |
 # +--------------------------------------+
-# Atom Lite is not stable with the Bluetooth version
 esp32:
-  board: m5stack-atom
+  board: esp32-s3-devkitc-1
   framework:
     type: arduino
+    version: 2.0.14
+    platform_version: 6.5.0
+  variant: esp32s3 
