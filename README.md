@@ -45,24 +45,6 @@ The charging voltage and current correspond to the default values in the YAML sc
 
 Note: the following IDs are not implemented: 0x35B, 0x360, 0x378, 0x380 and 0x381.
 
-## CAN Protocol Settings
-
-This can be configured in the YAML file. It is configured by default for PYLON 1.2 (the most common protocol).
-
-```YAML
-# +--------------------------------------+
-# | CAN Protocol Settings                |
-# +--------------------------------------+
-# CAN BMS Name (0x35E) : 0 NoSent / 1 PYLON / 2 GOODWE / 3 SEPLOS
-  can_bms_name: "1"
-# CAN Protocol
-# 1 : PYLON 1.2 (Deye)
-# 2 : SEPLOS 1.0, PYLON 1.3, GOODWE 1.5
-# 3 : SMA (Sunny Island)
-# 4 : VICTRON
-  can_protocol: "1"
-```
-
 ## Home Assistant and API
 
 ![Image](images/HA_Dashboard.png "HA Dashboard")
@@ -118,15 +100,14 @@ wifi:
   domain: !secret domain
 ```
 
-## Tips for Deye inverter
-
-Add 0.1v to the voltage settings because the Deye charging voltage is always 0.1v lower than requested.
-* Float V. : 53.7v (3.35v/cell - Natural voltage of a fully charged cell at rest, I advise you not to go higher.)
-* Absorption V : 55.3v (3.45v/cell - It's not necessary to use a charging voltage higher than 55.2V for a full charge.)
-* Absorption Offset V. : 0.15v (The absorption phase will start at 55.15v (BMS voltage). Warning: the BMS voltage must be correctly calibrated.)
-
 ## Changelog
 
+
+* V1.17.3 Sleeper85 : Renumbering cells, adding switch charging and discharging, improvement of comments
+* V1.17.2 MrPablo   : Added function "Auto Charge/Discharge Current Control" to avoid OVP/UVP alarms
+* V1.17.1 Sleeper85 : New Cut-Off Current/Voltage Charging Logic for LFP with the participation of @shvmm
+* V1.16.6 Sleeper85 : Selectable CAN settings + Adding inverter_offset_v + Improved CAN ID 0x355, sending 100% only at the end of the absorption phase, adding bytes [04:05] and [06:07] + Automatic calculation of the number of battery modules + Save and Restore slider values
+* V1.16.5 Sleeper85 : Add Preventive Alarms Logic, CAN ID 0x356: send average temperature of T1/T2, new "Discharging current max" slider
 * V1.16.4 Sleeper85 : Improved Charging Logic for ESP32 startup/reboot and Float charge, Add CAN ID 0x356 bytes [06:07] cycles for Sofar, Change switch name
 * V1.16.3 Sleeper85 : ID 0x379 will be sent when choosing protocol 2 or 4 (Battery Capacity for Victron, Sol-Ark and Luxpower)
 * V1.16.2 Sleeper85 : Split the "Charge/Discharge values" section and added instructions for "Stop Discharging" + Change framework to "esp-idf" (BLE version)
@@ -158,10 +139,12 @@ The following are confirmed and known to work:
 * Goodwe GW5000S-BP (reported by [@Uksa007](https://github.com/Uksa007/esphome-jk-bms-can/discussions/2#discussion-4469605) using the "Goodwe LX U5.4-L * 3" battery profile)
 * Goodwe GW5000S-BP & GW3600S-BP (reported by [@OselDusan7](https://github.com/Sleeper85/esphome-jk-bms-can/discussions/4#discussion-6022729))
 * Sofar ME 3000-SP (reported by [@starman](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-755539))
+* Sofar HYD 5000-ES (reported by [@Paulfrench35](https://diysolarforum.com/members/paulfrench35.78523/))
+* Sofar HYD 5000-EP (reported by [@tonystrullu](https://diysolarforum.com/members/tonystrullu.91283/))
 * Turbo Energy (reported by [@ibikku](https://github.com/Uksa007/esphome-jk-bms-can/discussions/13#discussion-4823950))
 * Growatt SPF 5000ES (reported by [@Paulfrench35](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/page-21#post-965233) using L52 CAN protocol)
 * Solis RHI-3.6K-48ES-5G with **3.3V CAN transceiver SN65HVD230** (reported by [@cjdell](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-967308) using "Pylon LV" setting on inverter)
-* LuxPower SNA 5k (reported by [@shvm](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-984782) using CAN protocol 2 and battery brand 0 in the inverter settings)
+* LuxPower SNA 5k (reported by [@shvm](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-984782) using CAN protocol "PYLON +" and battery brand 0 in the inverter settings)
 
 
 <br>All JK-BMS models with software@ version `>=6.0` are using the implemented protocol and should be supported.
@@ -183,11 +166,14 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 
 If soldering or creating your own board seems complicated to you, know that it is possible to use the Atom CAN Kit from M5Stack.<br>
 
-![Image](images/Atom_CAN_Kit.png "M5Stack Atom CAN Kit")
+**Recommended: Atom S3 Lite + Atomic CANbus Base**
 
-**Atom Lite pin**
+* [Atom S3 Lite (recommanded)](https://shop.m5stack.com/products/atoms3-lite-esp32s3-dev-kit)
+* [Atom Lite (not stable with BLE version)](https://shop.m5stack.com/products/atom-lite-esp32-development-kit)
+* [Atomic CANBus Base](https://shop.m5stack.com/products/atomic-canbus-base-ca-is3050g)
 
-![Image](images/Atom_Lite_ESP32-PICO_pin.png "M5Stack Lite ESP32-PICO pin")
+![Image](images/Atom_S3_Lite.png "M5Stack Atom S3 Lite")
+![Image](images/Atomic_CANBus_Base_CA-IS3050G.png "M5Stack Atomic CANBus Base CA-IS3050G")
 
 ## Build your own board
 
@@ -204,6 +190,23 @@ This is an example of an ESP32 DevKit v1 30 pin board powered by the BMS.
 
 If you don't want to connect a wire between the BMS and the ESP32 choose the **Bluetooth** version => **esp32_ble_jk-bms-can.yaml**<br>
 If you prefer to use a wired connection between the BMS and the ESP32 choose the **Wire** version => **esp32_wire_jk-bms-can.yaml**
+
+
+**Atom S3 Lite (ESP32-S3)**
+
+Note: Follow the configuration instructions in the **config_atom-s3-lite-esp32-s3.yaml** file (config folder).
+
+```
+
+              UART-TTL               RS232-TTL                   CAN BUS
+┌──────────┐            ┌──────────┐             ┌────────────┐              ┌──────────┐
+│          │<TX------RX>│2        5│<TX-------TX>|            |              |          |
+│  JK-BMS  │<RX------TX>│1        6│<RX-------RX>| CA-IS3050G |<---CAN H --->| Inverter |
+│          │<----GND--->│   ESP32  │             |    CAN     |<---CAN L --->|          |
+│          │     5V---->│5V     3V3|             |            |              |          |
+└──────────┘            └──────────┘             └────────────┘              └──────────┘
+
+```
 
 **Atom Lite (ESP32-PICO)**
 
