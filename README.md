@@ -37,6 +37,8 @@ The CAN bus support is still in development and testing...<br>**
 
 The charging voltage and current correspond to the default values in the YAML script and can be modified.
 
+[Cut-Off Charging Logic (what's happening in the yellow diamond)](documents/README/Cut-Off_Charging_Logic.md)
+
 ![Image](images/JK-BMS-CAN_Charging_Logic_Diagram.png "JK-BMS-CAN Charging Logic")
 
 ## CAN Protocol Table
@@ -102,8 +104,7 @@ wifi:
 
 ## Changelog
 
-
-* V1.17.3 Sleeper85 : Renumbering cells, adding switch charging and discharging, improvement of comments
+* V1.17.3 Sleeper85 : Renumbering cells, Added “BMS Charging”, “BMS Discharging” and “JK-BMS ESP32 Restart” switches, adding Total Daily Energy sensors, set jk_bms update interval to 3s, set default log level to INFO, improvement of comments
 * V1.17.2 MrPablo   : Added function "Auto Charge/Discharge Current Control" to avoid OVP/UVP alarms
 * V1.17.1 Sleeper85 : New Cut-Off Current/Voltage Charging Logic for LFP with the participation of @shvmm
 * V1.16.6 Sleeper85 : Selectable CAN settings + Adding inverter_offset_v + Improved CAN ID 0x355, sending 100% only at the end of the absorption phase, adding bytes [04:05] and [06:07] + Automatic calculation of the number of battery modules + Save and Restore slider values
@@ -144,7 +145,7 @@ The following are confirmed and known to work:
 * Turbo Energy (reported by [@ibikku](https://github.com/Uksa007/esphome-jk-bms-can/discussions/13#discussion-4823950))
 * Growatt SPF 5000ES (reported by [@Paulfrench35](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/page-21#post-965233) using L52 CAN protocol)
 * Solis RHI-3.6K-48ES-5G with **3.3V CAN transceiver SN65HVD230** (reported by [@cjdell](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-967308) using "Pylon LV" setting on inverter)
-* LuxPower SNA 5k (reported by [@shvm](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-984782) using CAN protocol "PYLON +" and battery brand 0 in the inverter settings)
+* LuxPower SNA 5k (reported by [@shvm](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-984782) using CAN protocol "PYLON +", battery brand 2 (PYLON) in the inverter settings and SN65HVD230 chip)
 
 
 <br>All JK-BMS models with software@ version `>=6.0` are using the implemented protocol and should be supported.
@@ -319,14 +320,15 @@ domain : .local
 ```
 
 4. **Install the application in the ESP32**<br>
-Validate the configuration, create a binary, upload it, and start logs
+This is an installation example of YAML Wire for LFP.<br>
+Validate the configuration, create a binary, upload it, and start logs.
 
 ```bash
 # To install the Wire version
-esphome run esp32_wire_jk-bms-can.yaml
+esphome run ESP32_LFP_Wire_jk-bms-can.yaml
 
 # To install the Bluetooth version
-esphome run esp32_ble_jk-bms-can.yaml
+esphome run ESP32_LFP_Wire_jk-bms-can.yaml
 ```
 
 5. **Optional: add the ESP32 in Home Assistant**<br>
@@ -336,13 +338,13 @@ In Home Assistant under **" Settings > Devices and services > Add Intergration "
 
 ```bash
 # test the config
-esphome config esp32_wire_jk-bms-can.yaml
+esphome config ESP32_LFP_Wire_jk-bms-can.yaml
 
 # install the config in ESP32
-esphome run esp32_wire_jk-bms-can.yaml
+esphome run ESP32_LFP_Wire_jk-bms-can.yaml
 
 # check the logs (the --device option is not required)
-esphome logs esp32_wire_jk-bms-can.yaml --device 192.168.x.x
+esphome logs ESP32_LFP_Wire_jk-bms-can.yaml --device 192.168.x.x
 ```
 
 ## Known issues
