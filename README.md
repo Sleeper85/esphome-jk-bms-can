@@ -33,11 +33,13 @@ The ESP32 then sends the required CAN bus data to the inverter via a TJA1050, TJ
 I'm only testing it with my Deye SUN-6K-SG03-LP1-EU inverter.<br>
 The CAN bus support is still in development and testing...<br>**
 
+[Dedicated topic on DIY Solar Forum](https://diysolarforum.com/threads/jk-bms-can-with-new-cut-off-charging-logic-open-source.79325/)
+
 ## Charging Logic Diagram
 
 The charging voltage and current correspond to the default values in the YAML script and can be modified.
 
-[Cut-Off Charging Logic (what's happening in the yellow diamond)](documents/README/Cut-Off_Charging_Logic.md)
+[Cut-Off Charging Logic](documents/README/Cut-Off_Charging_Logic.md) (what's happening in the yellow diamond)
 
 ![Image](images/JK-BMS-CAN_Charging_Logic_Diagram.png "JK-BMS-CAN Charging Logic")
 
