@@ -1112,8 +1112,8 @@ interval:
                           // Charging
                           if (id(current).state >= 0) {
 
-                            float cv_min = 3.37;
-                            float cv_max = 3.65;
+                            float cv_min = 3.90;
+                            float cv_max = 4.20;
                             float cutoff_current = (id(battery_capacity).state * 0.05 * (cell_bulk_v - cv_min) / (cv_max - cv_min));
                             float cutoff_voltage = (cv_min + (cv_max - cv_min)/(0.05 + cell_absorption_offset_v) * (id(current).state / id(battery_capacity).state));
                             
