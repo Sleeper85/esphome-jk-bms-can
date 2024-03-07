@@ -1317,10 +1317,13 @@ interval:
                       // | Discharge values                     |
                       // +--------------------------------------+
 
+                      // Variables
+                      float total_uvpr = id(cell_uvr).state * id(cell_count).state;
+
                       // Stop Discharging if BMS or ESP32 switch is OFF
                       if ((!id(bms_switch_discharging).state) | (!id(can_switch_discharging).state)) id(discharging_a) = 0;
                       // Stop Discharging if battery voltage is low
-                      else if (id(total_voltage).state <= id(total_uvp).state) id(discharging_a) = 0;
+                      else if (id(total_voltage).state <= total_uvpr) id(discharging_a) = 0;
                       // Allow Discharging
                       else id(discharging_a) = id(auto_discharge_current_final).state;
 
@@ -1376,8 +1379,8 @@ interval:
                       can_mesg[3] = uint16_t(id(charging_a) * 10) >> 8 & 0xff;
                       can_mesg[4] = uint16_t(id(discharging_a) * 10) & 0xff;
                       can_mesg[5] = uint16_t(id(discharging_a) * 10) >> 8 & 0xff;
-                      can_mesg[6] = uint16_t(id(total_uvp).state * 10) & 0xff;
-                      can_mesg[7] = uint16_t(id(total_uvp).state * 10) >> 8 & 0xff;
+                      can_mesg[6] = uint16_t(total_uvpr * 10) & 0xff;
+                      can_mesg[7] = uint16_t(total_uvpr * 10) >> 8 & 0xff;
 
                       // +--------------------------------------+
                       // | Publish sensor state                 |
