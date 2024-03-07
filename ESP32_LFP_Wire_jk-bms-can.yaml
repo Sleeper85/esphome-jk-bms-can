@@ -668,7 +668,7 @@ sensor:
     unit_of_measurement: V
     device_class: voltage
   - platform: template
-    name: "Last Complete Charge"
+    name: "${name} Last Complete Charge"
     device_class: timestamp
     id: eoc_timestamp_template
     lambda: return id(eoc_timestamp);
