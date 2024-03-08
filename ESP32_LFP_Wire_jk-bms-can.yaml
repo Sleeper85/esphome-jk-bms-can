@@ -672,6 +672,14 @@ sensor:
     device_class: timestamp
     id: eoc_timestamp_template
     lambda: return id(eoc_timestamp);
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: eoc_timestamp_human
+            state: !lambda |-
+              char str[19];
+              strftime(str, sizeof(str), " %H:%M %d %b %Y", localtime(&id(eoc_timestamp)));
+              return  {str};
     entity_category: diagnostic
   # +--------------------------------------+
   # | Auto Charge Current Control          |
@@ -865,6 +873,11 @@ text_sensor:
   - platform: template
     name: ${name} Uptime Human Readable
     id: uptime_human
+    icon: mdi:clock-start
+    entity_category: diagnostic
+  - platform: template
+    name: ${name} Last Complete Charge Human Readable
+    id: eoc_timestamp_human
     icon: mdi:clock-start
     entity_category: diagnostic
   - platform: template
