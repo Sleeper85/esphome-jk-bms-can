@@ -203,18 +203,6 @@ globals:
     type: std::string
     restore_value: no
     initial_value: '"NoAlarm"'
-  - id: charging_v
-    type: float
-    restore_value: no
-    initial_value: '0.0'
-  - id: charging_a
-    type: int
-    restore_value: no
-    initial_value: '0'
-  - id: discharging_a
-    type: int
-    restore_value: no
-    initial_value: '0'
   - id: can_msg_counter
     type: int
     restore_value: no
@@ -688,7 +676,7 @@ sensor:
   - platform: copy
     source_id: max_cell_voltage
     name: ${name} Initial Charge Current
-    id: auto_charge_current_initial
+    id: auto_ccl_initial
     unit_of_measurement: A
     device_class: current
     internal: true  
@@ -704,9 +692,9 @@ sensor:
               else return id(charging_current).state;
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial charge current values.
   - platform: copy
-    source_id: auto_charge_current_initial
+    source_id: auto_ccl_initial
     name: ${name} Moving Average Charge Current
-    id:  auto_charge_current_moving_average
+    id:  auto_ccl_moving_average
     unit_of_measurement: A
     device_class: current
     internal: true  
@@ -718,16 +706,16 @@ sensor:
   # Third, if the instantaneous initial charge current value is lower than the moving average, use that, otherwise use the moving average.
   # This means that cell voltage spikes will be reacted to quickly, but reduced cell voltages will not, preventing oscillation of requested current.
   - platform: copy
-    source_id: auto_charge_current_initial
+    source_id: auto_ccl_initial
     name: ${name} Requested Charge Current
-    id: auto_charge_current_final
+    id: auto_ccl
     unit_of_measurement: A
     device_class: current
     accuracy_decimals: 1
     internal: false
     filters:
     - lambda: !lambda |-
-              return (round(min(id(auto_charge_current_moving_average).state, x) * 10) / 10);
+              return (round(min(id(auto_ccl_moving_average).state, x) * 10) / 10);
   # +--------------------------------------+
   # | Auto Discharge Current Control       |
   # +--------------------------------------+
@@ -735,7 +723,7 @@ sensor:
   - platform: copy
     source_id: min_cell_voltage
     name: ${name} Initial Discharge Current
-    id: auto_discharge_current_initial
+    id: auto_dcl_initial
     unit_of_measurement: A
     device_class: current
     internal: true  
@@ -749,9 +737,9 @@ sensor:
               else return id(discharging_current).state;
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial discharge current values.
   - platform: copy
-    source_id: auto_discharge_current_initial
+    source_id: auto_dcl_initial
     name: ${name} Moving Average Discharge Current
-    id:  auto_discharge_current_moving_average
+    id:  auto_dcl_moving_average
     unit_of_measurement: A
     device_class: current
     internal: true  
@@ -763,16 +751,16 @@ sensor:
   # Third, if the instantaneous initial discharge current value is lower than the moving average, use that, otherwise use the moving average.
   # This means that cell voltage drops will be reacted to quickly, but increased cell voltages will not, preventing oscillation of requested current.
   - platform: copy
-    source_id: auto_discharge_current_initial
+    source_id: auto_dcl_initial
     name: ${name} Requested Discharge Current
-    id: auto_discharge_current_final
+    id: auto_dcl
     unit_of_measurement: A
     device_class: current
     accuracy_decimals: 1                         
     internal: false
     filters:
     - lambda: !lambda |-
-              return (round(min(id(auto_discharge_current_moving_average).state, x) * 10) / 10);
+              return (round(min(id(auto_dcl_moving_average).state, x) * 10) / 10);
   # +--------------------------------------+
   # | Auto Charge Voltage Control          |
   # +--------------------------------------+
@@ -1302,26 +1290,30 @@ interval:
                       // | Charge values                        |
                       // +--------------------------------------+
 
+                      // Variables
+                      float charging_v = 0;
+                      float charging_a = 0;
+
                       // Bulk Charge
                       if ((id(charge_status) == "Bulk") | (id(charge_status) == "Force Bulk") | (id(charge_status) == "Balancing") | (id(charge_status) == "Absorption")) {
-                        id(charging_v) = (id(auto_cvl).state + ${inverter_offset_v});
-                        id(charging_a) = id(auto_charge_current_final).state;
+                        charging_v = (id(auto_cvl).state + ${inverter_offset_v});
+                        charging_a = id(auto_ccl).state;
                         id(eoc) = false;                                                            // SOC 100% can't be sent
                       }
                       // Float Charge
                       else if (id(charge_status) == "Float") {
-                        id(charging_v) = (id(float_voltage).state + ${inverter_offset_v});
-                        id(charging_a) = id(auto_charge_current_final).state;
+                        charging_v = (id(float_voltage).state + ${inverter_offset_v});
+                        charging_a = id(auto_ccl).state;
                       }
                       // Wait : Stop Charging
                       else if (id(charge_status) == "Wait") {
-                        id(charging_v) = (id(rebulk_voltage).state);                                // Rebulk V.
-                        id(charging_a) = 0;
+                        charging_v = (id(rebulk_voltage).state);                                    // Rebulk V.
+                        charging_a = 0;
                       }
                       // End Of Charge (EOC) : Stop Charging
                       else if (id(charge_status) == "EOC") {
-                        id(charging_v) = (id(rebulk_voltage).state);                                // Rebulk V.
-                        id(charging_a) = 0;
+                        charging_v = (id(rebulk_voltage).state);                                    // Rebulk V.
+                        charging_a = 0;
                         id(eoc) = true;                                                             // SOC 100% can be sent
                         id(eoc_timestamp) = id(sntp_time).utcnow().timestamp;                       // Store charge completion timestamp
                       }
@@ -1331,14 +1323,15 @@ interval:
                       // +--------------------------------------+
 
                       // Variables
-                      float total_uvpr = id(cell_uvr).state * id(cell_count).state;
+                      float discharging_v = id(cell_uvr).state * id(cell_count).state;
+                      float discharging_a = 0;
 
                       // Stop Discharging if BMS or ESP32 switch is OFF
-                      if ((!id(bms_switch_discharging).state) | (!id(can_switch_discharging).state)) id(discharging_a) = 0;
+                      if ((!id(bms_switch_discharging).state) | (!id(can_switch_discharging).state)) discharging_a = 0;
                       // Stop Discharging if battery voltage is low
-                      else if (id(total_voltage).state <= total_uvpr) id(discharging_a) = 0;
+                      else if (id(total_voltage).state <= discharging_v) discharging_a = 0;
                       // Allow Discharging
-                      else id(discharging_a) = id(auto_discharge_current_final).state;
+                      else discharging_a = id(auto_dcl).state;
 
                       // +--------------------------------------+
                       // | Preventive Alarms Logic              |
@@ -1361,18 +1354,18 @@ interval:
                       
                       // Alarm : Stop Charging and Discharging
                       if ((id(alarm_status) == "OTP") | (id(alarm_status) == "BMS")){
-                          id(charging_v) = (3.2 * id(cell_count).state);
-                          id(charging_a) = 0;
-                          id(discharging_a) = 0;
+                          discharging_v = (3.2 * id(cell_count).state);
+                          charging_a = 0;
+                          discharging_a = 0;
                       }
                       // Alarm : Stop Charging
                       else if ((id(alarm_status) == "OVP") | (id(alarm_status) == "UTP") | (id(alarm_status) == "COCP")){
-                          id(charging_v) = (3.2 * id(cell_count).state);
-                          id(charging_a) = 0;
+                          charging_v = (3.2 * id(cell_count).state);
+                          charging_a = 0;
                       }
                       // Alarm : Stop Discharging
                       else if ((id(alarm_status) == "UVP") | (id(alarm_status) == "DOCP")){
-                          id(discharging_a) = 0;
+                          discharging_a = 0;
                       }
 
                       // +--------------------------------------+
@@ -1386,21 +1379,21 @@ interval:
                       
                       uint8_t can_mesg[8];
                       
-                      can_mesg[0] = uint16_t(id(charging_v) * 10) & 0xff;
-                      can_mesg[1] = uint16_t(id(charging_v) * 10) >> 8 & 0xff;
-                      can_mesg[2] = uint16_t(id(charging_a) * 10) & 0xff;
-                      can_mesg[3] = uint16_t(id(charging_a) * 10) >> 8 & 0xff;
-                      can_mesg[4] = uint16_t(id(discharging_a) * 10) & 0xff;
-                      can_mesg[5] = uint16_t(id(discharging_a) * 10) >> 8 & 0xff;
-                      can_mesg[6] = uint16_t(total_uvpr * 10) & 0xff;
-                      can_mesg[7] = uint16_t(total_uvpr * 10) >> 8 & 0xff;
+                      can_mesg[0] = uint16_t(charging_v * 10) & 0xff;
+                      can_mesg[1] = uint16_t(charging_v * 10) >> 8 & 0xff;
+                      can_mesg[2] = uint16_t(charging_a * 10) & 0xff;
+                      can_mesg[3] = uint16_t(charging_a * 10) >> 8 & 0xff;
+                      can_mesg[4] = uint16_t(discharging_a * 10) & 0xff;
+                      can_mesg[5] = uint16_t(discharging_a * 10) >> 8 & 0xff;
+                      can_mesg[6] = uint16_t(discharging_v * 10) & 0xff;
+                      can_mesg[7] = uint16_t(discharging_v * 10) >> 8 & 0xff;
 
                       // +--------------------------------------+
                       // | Publish sensor state                 |
                       // +--------------------------------------+
 
                       id(charging_status).publish_state(id(charge_status));
-                      id(requested_charge_voltage).publish_state(id(charging_v));
+                      id(requested_charge_voltage).publish_state(charging_v);
                       
                       // Logs
                       ESP_LOGI("main", "send can id: 0x351 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
