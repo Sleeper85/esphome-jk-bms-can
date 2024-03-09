@@ -1354,7 +1354,7 @@ interval:
                       
                       // Alarm : Stop Charging and Discharging
                       if ((id(alarm_status) == "OTP") | (id(alarm_status) == "BMS")){
-                          discharging_v = (3.2 * id(cell_count).state);
+                          charging_v = (3.2 * id(cell_count).state);
                           charging_a = 0;
                           discharging_a = 0;
                       }
