@@ -22,8 +22,9 @@
 # +--------------------------------------+
 esp32:
   board: esp32-s3-devkitc-1
+  variant: esp32s3
   framework:
-    type: arduino
-    version: 2.0.14
-    platform_version: 6.5.0
-  variant: esp32s3 
+    type: esp-idf
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
