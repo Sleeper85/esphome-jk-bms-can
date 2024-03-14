@@ -106,6 +106,7 @@ wifi:
 
 ## Changelog
 
+* V1.17.4 MrPablo   : Added "SMA" to CAN BMS names, added function "Auto Charge Voltage Control" to avoid OVP alarms and improve balancing, categorised sensors, set time source to SNTP, min battery voltage based on BMS value, added "Last Complete Charge" timestamp, renamed daily energy sensors and added input number display option
 * V1.17.3 Sleeper85 : Renumbering cells, Added “BMS Charging”, “BMS Discharging” and “JK-BMS ESP32 Restart” switches, adding Total Daily Energy sensors, set jk_bms update interval to 3s, set default log level to INFO, improvement of comments
 * V1.17.2 MrPablo   : Added function "Auto Charge/Discharge Current Control" to avoid OVP/UVP alarms
 * V1.17.1 Sleeper85 : New Cut-Off Current/Voltage Charging Logic for LFP with the participation of @shvmm
