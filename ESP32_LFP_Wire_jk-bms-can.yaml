@@ -779,7 +779,8 @@ sensor:
             float cell_sensitivity = 1.8; // For more aggressive reponse, reduce this number.
             float cell_bulk_v = (id(bulk_voltage).state / id(cell_count).state);
             float cell_charge_knee_v = 3.400;
-            float total_v = 0.0;
+            float initial_total_v = 0.0;
+            float target_total_v = 0.0;
             float dyn_chg_v = 0.0;
             // Create array of cell voltages
             float cell_array[] = {
@@ -790,9 +791,11 @@ sensor:
               id(cell_v_17).state, id(cell_v_18).state, id(cell_v_19).state, id(cell_v_20).state,
               id(cell_v_21).state, id(cell_v_22).state, id(cell_v_23).state, id(cell_v_24).state,
             };
-            // Calculate total voltage
+            // Calculate initial total voltage
             for(int i = 0; i < id(cell_count).state; i++) {
-              total_v += cell_array[i];
+              initial_total_v += cell_array[i];
+            // Set target voltage to initial voltage
+            target_total_v = initial_total_v;
             };
             // Calculate voltage range (R)
             float R = min(
@@ -806,18 +809,18 @@ sensor:
             // Calculate HminusR and MminusH
             float HminusR = id(max_cell_voltage).state - R;
             float MminusH = cell_bulk_v - id(max_cell_voltage).state;
-            // Add cell voltage offset to current total voltage if possible
+            // Add cell voltage offset to target total voltage if possible
             for(int i = 0; i < id(cell_count).state; i++) {
               if (cell_array[i] >= HminusR) {
-                total_v += (MminusH * (cell_array[i] - HminusR) / R);
+                target_total_v += (MminusH * (cell_array[i] - HminusR) / R);
               }
             };
-            // Use minimum of dynamic charge voltage or bulk voltage
-            dyn_chg_v = min(id(bulk_voltage).state, total_v);
-            // Force dynamic charge voltage to current voltage if cell is over target voltage
+            // Force target voltage to current voltage if cell is over target voltage
             if (id(max_cell_voltage).state >= cell_bulk_v) {
-              dyn_chg_v = total_v;
+              dyn_chg_v = initial_total_v;
             };
+            // Use minimum of dynamic charge voltage or bulk voltage
+            dyn_chg_v = min(id(bulk_voltage).state, target_total_v);
             // Return automatic charge voltage if enabled, else static bulk voltage
             if (id(can_switch_auto_charge_voltage).state) {
               return ceil(dyn_chg_v * 10) / 10;
