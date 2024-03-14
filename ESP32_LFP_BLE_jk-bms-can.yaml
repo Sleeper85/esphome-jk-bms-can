@@ -748,7 +748,7 @@ sensor:
             float cell_sensitivity = 1.8; // For more aggressive reponse, reduce this number.
             float cell_bulk_v = (id(bulk_voltage).state / id(cell_count).state);
             float cell_charge_knee_v = 3.400;
-            float initial_total_v = 0.0;
+            float actual_total_v = 0.0;
             float target_total_v = 0.0;
             float dyn_chg_v = 0.0;
             // Create array of cell voltages
@@ -760,11 +760,11 @@ sensor:
               id(cell_v_17).state, id(cell_v_18).state, id(cell_v_19).state, id(cell_v_20).state,
               id(cell_v_21).state, id(cell_v_22).state, id(cell_v_23).state, id(cell_v_24).state,
             };
-            // Calculate initial total voltage
+            // Calculate actual total voltage
             for(int i = 0; i < id(cell_count).state; i++) {
-              initial_total_v += cell_array[i];
-            // Set target voltage to initial voltage
-            target_total_v = initial_total_v;
+              actual_total_v += cell_array[i];
+            // Set target voltage to actual voltage
+            target_total_v = actual_total_v;
             };
             // Calculate voltage range (R)
             float R = min(
@@ -786,7 +786,7 @@ sensor:
             };
             // Force target voltage to current voltage if cell is over target voltage
             if (id(max_cell_voltage).state >= cell_bulk_v) {
-              dyn_chg_v = initial_total_v;
+              dyn_chg_v = actual_total_v;
             };
             // Use minimum of dynamic charge voltage or bulk voltage
             dyn_chg_v = min(id(bulk_voltage).state, target_total_v);
