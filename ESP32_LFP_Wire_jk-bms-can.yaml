@@ -774,6 +774,9 @@ sensor:
     internal: true
     lambda: !lambda |-
             // Based on logic by Matthias U and Stuart Pittaway https://github.com/stuartpittaway/diyBMSv4ESP32/blob/9a0a3ed26f2dc973d3faf3e2799a6688da3ab13e/ESPController/src/Rules.cpp
+            if (!id(can_switch_auto_charge_voltage).state) {
+              return id(bulk_voltage).state;
+            } else {
             // Variables
             float cell_uniformity = 1.0;
             float cell_sensitivity = 1.8; // For more aggressive reponse, reduce this number.
@@ -800,7 +803,7 @@ sensor:
             // Calculate voltage range (R)
             float R = min(
               ((cell_bulk_v - id(max_cell_voltage).state) * cell_uniformity),
-              ((id(cell_ovr).state - cell_charge_knee_v) / cell_sensitivity)
+              ((id(cell_ovpr).state - cell_charge_knee_v) / cell_sensitivity)
             );
             // Force R to 1 if value is Zero
             if (R == 0) {
@@ -821,13 +824,9 @@ sensor:
             };
             // Use minimum of dynamic charge voltage or bulk voltage
             dyn_chg_v = min(id(bulk_voltage).state, target_total_v);
-            // Return automatic charge voltage if enabled, else static bulk voltage
-            if (id(can_switch_auto_charge_voltage).state) {
-              return ceil(dyn_chg_v * 10) / 10;
+            // Return automatic charge voltage
+            return ceil(dyn_chg_v * 10) / 10;
             }
-            else {
-              return id(bulk_voltage).state;
-            };
     update_interval: 1s
     filters:
     - min:
