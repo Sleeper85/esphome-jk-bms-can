@@ -657,8 +657,8 @@ sensor:
               double cell_float_v = (id(float_voltage).state / id(cell_count).state);
               // Auto Charge Current function
               if (id(can_switch_auto_charge_current).state) {
-                if (id(max_cell_voltage).state > id(cell_ovr).state) return 0.0;
-                else return max(0.0,(- pow(${charge_a_factor_curve_end}, pow( max(0.0, ((x - cell_float_v) / (id(cell_ovr).state - cell_float_v))),${charge_a_factor_curve_shape}))+2) * id(charging_current).state);
+                if (id(max_cell_voltage).state > id(cell_ovpr).state) return 0.0;
+                else return max(0.0,(- pow(${charge_a_factor_curve_end}, pow( max(0.0, ((x - cell_float_v) / (id(cell_ovpr).state - cell_float_v))),${charge_a_factor_curve_shape}))+2) * id(charging_current).state);
               }
               else return id(charging_current).state;
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial charge current values.
@@ -702,8 +702,8 @@ sensor:
     - lambda: !lambda |-
               // Auto Discharge Current function
               if (id(can_switch_auto_discharge_current).state) {
-                if (id(min_cell_voltage).state < id(cell_uvr).state) return 0.0;
-                else return max(0.0,(- pow(${discharge_a_factor_curve_end}, pow( max(0.0, ((x - ${discharge_knee_v}) / (id(cell_uvr).state - ${discharge_knee_v}))),${discharge_a_factor_curve_shape}))+2) * id(discharging_current).state);
+                if (id(min_cell_voltage).state < id(cell_uvpr).state) return 0.0;
+                else return max(0.0,(- pow(${discharge_a_factor_curve_end}, pow( max(0.0, ((x - ${discharge_knee_v}) / (id(cell_uvpr).state - ${discharge_knee_v}))),${discharge_a_factor_curve_shape}))+2) * id(discharging_current).state);
               }
               else return id(discharging_current).state;
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial discharge current values.
@@ -844,13 +844,13 @@ number:
       id: cell_ovp
       name: "${name} cell voltage overvoltage protection"
     cell_voltage_overvoltage_recovery:
-      id: cell_ovr
+      id: cell_ovpr
       name: "${name} cell voltage overvoltage recovery"
     cell_voltage_undervoltage_protection:
       id: cell_uvp
       name: "${name} cell voltage undervoltage protection"
     cell_voltage_undervoltage_recovery:
-      id: cell_uvr
+      id: cell_uvpr
       name: "${name} cell voltage undervoltage recovery"
     balance_starting_voltage:
       name: "${name} balance starting voltage"
@@ -1328,7 +1328,7 @@ interval:
                       // +--------------------------------------+
 
                       // Variables
-                      float discharging_v = id(cell_uvr).state * id(cell_count).state;
+                      float discharging_v = id(cell_uvpr).state * id(cell_count).state;
                       float discharging_a = 0;
 
                       // Stop Discharging if BMS or ESP32 switch is OFF
