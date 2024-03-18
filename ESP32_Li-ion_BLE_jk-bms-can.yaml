@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
+# V1.17.4 MrPablo   : Added "SMA" to CAN BMS names, added function "Auto Charge Voltage Control" to avoid OVP alarms and improve balancing, categorised sensors, set time source to SNTP, min battery voltage based on BMS value, added "Last Complete Charge" timestamp, renamed daily energy sensors and added input number display option
 # V1.17.3 Sleeper85 : Renumbering cells, Added “JK-BMS ESP32 Restart” switch, adding Total Daily Energy sensors, set jk_bms update interval to 3s, set default log level to INFO, improvement of comments
 # V1.17.2 MrPablo   : Added function "Auto Charge/Discharge Current Control" to avoid OVP/UVP alarms
 # V1.17.1 Sleeper85 : New Cut-Off Current/Voltage Charging Logic for LFP with the participation of @shvmm
@@ -82,8 +83,6 @@ substitutions:
   # Max discharge amps eg 120, should be at least 10A less than BMS over discharge current protection, 0.5C max
   # 120A * 50V = 6000W
   discharge_a: "120"
-  # Minimum discharge voltage eg 48v/16 = 3V per cell
-  min_discharge_v: "48"
   # +--------------------------------------+
   # | Use the settings below with caution  |
   # +--------------------------------------+
@@ -96,7 +95,7 @@ substitutions:
   # A factor above 1 will reduce current at a fast rate after the float voltage is reached, then slow as a cell reaches the BMS "cell_voltage_undervoltage_recovery".
   discharge_a_factor_curve_shape: "1.8"
   # Discharge knee voltage, the point at which a cell will reduce in voltage more rapidly. For LiFePO4 cells, this is generally considered to be 3.1v.
-  discharge_knee_v: "3.1"
+  discharge_knee_v: "3.5"
 # +--------------------------------------+
 # | Battery State of Health (SOH)        |
 # +--------------------------------------+
@@ -117,6 +116,11 @@ substitutions:
   otp: "45.0"
   # Low Temp Protection  - Temp < UTP : Stop Charging
   utp: "1.0"
+# +--------------------------------------+
+# | Home Assistant Display Settings      |
+# +--------------------------------------+
+  # Input numbers can be displayed as a slider or an input box - options are 'slider' or 'box'
+  input_number_mode: 'slider'
 # +--------------------------------------+
 # | ESP32 CAN port pins                  |
 # +--------------------------------------+
@@ -140,6 +144,7 @@ esphome:
       - switch.turn_on: can_switch_float
       - switch.turn_on: can_switch_auto_charge_current
       - switch.turn_on: can_switch_auto_discharge_current
+      - switch.turn_on: can_switch_auto_charge_voltage
 
 # +--------------------------------------+
 # | ESP32 settings                       |
@@ -170,7 +175,7 @@ ota:
 api:
   reboot_timeout: 0s
 
-# If you don't want to use ESPHome's native API you can use MQQT instead.
+# If you don't want to use ESPHome's native API you can use MQTT instead.
 # In this case don't forget to remove the 'api:' section.
 # mqtt:
 #  broker: !secret mqtt_host
@@ -184,6 +189,8 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   domain: !secret domain
+
+captive_portal:
 
 #web_server:
 #  port: 80
@@ -207,18 +214,6 @@ globals:
     type: std::string
     restore_value: no
     initial_value: '"NoAlarm"'
-  - id: charging_v
-    type: float
-    restore_value: no
-    initial_value: '0.0'
-  - id: charging_a
-    type: int
-    restore_value: no
-    initial_value: '0'
-  - id: discharging_a
-    type: int
-    restore_value: no
-    initial_value: '0'
   - id: can_msg_counter
     type: int
     restore_value: no
@@ -227,6 +222,10 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
+  - id: eoc_timestamp
+    type: time_t
+    restore_value: true
+    initial_value: ''
 
 output:
   - platform: gpio
@@ -273,8 +272,8 @@ jk_bms_ble:
 # +--------------------------------------+
 
 time: # Enable time component to reset energy at midnight
-  - platform: homeassistant
-    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
 
 select:
   - platform: template
@@ -285,9 +284,11 @@ select:
       - "PYLON"
       - "GOODWE"
       - "SEPLOS"
+      - "SMA"
     restore_value: true
     initial_option: "PYLON"
     optimistic: true
+    entity_category: config
     set_action:
       - logger.log:
           format: "Chosen option: %s"
@@ -304,6 +305,7 @@ select:
     restore_value: true
     initial_option: "PYLON +"
     optimistic: true
+    entity_category: config
     set_action:
       - logger.log:
           format: "Chosen option: %s"
@@ -362,13 +364,17 @@ switch:
     name: ${name} CAN Automatic Charge Current
     id: can_switch_auto_charge_current
     optimistic: true
+    entity_category: config
   - platform: template
     name: ${name} CAN Automatic Discharge Current
     id: can_switch_auto_discharge_current
     optimistic: true
-    # +--------------------------------------+
-  - platform: restart
-    name: "JK-BMS ESP32 Restart"
+    entity_category: config
+  - platform: template
+    name: ${name} CAN Automatic Charge Voltage
+    id: can_switch_auto_charge_voltage
+    optimistic: true
+    entity_category: config
 
 sensor:
   - platform: jk_bms_ble
@@ -391,53 +397,85 @@ sensor:
     average_cell_voltage:
       name: "${name} average cell voltage"
     cell_voltage_1:
+      id: cell_v_01
       name: "${name} cell voltage 01"
     cell_voltage_2:
+      id: cell_v_02
       name: "${name} cell voltage 02"
     cell_voltage_3:
+      id: cell_v_03
       name: "${name} cell voltage 03"
     cell_voltage_4:
+      id: cell_v_04
       name: "${name} cell voltage 04"
     cell_voltage_5:
+      id: cell_v_05
       name: "${name} cell voltage 05"
     cell_voltage_6:
+      id: cell_v_06
       name: "${name} cell voltage 06"
     cell_voltage_7:
+      id: cell_v_07
       name: "${name} cell voltage 07"
     cell_voltage_8:
+      id: cell_v_08
       name: "${name} cell voltage 08"
     cell_voltage_9:
+      id: cell_v_09
       name: "${name} cell voltage 09"
     cell_voltage_10:
+      id: cell_v_10
       name: "${name} cell voltage 10"
     cell_voltage_11:
+      id: cell_v_11
       name: "${name} cell voltage 11"
     cell_voltage_12:
+      id: cell_v_12
       name: "${name} cell voltage 12"
     cell_voltage_13:
+      id: cell_v_13
       name: "${name} cell voltage 13"
     cell_voltage_14:
+      id: cell_v_14
       name: "${name} cell voltage 14"
     cell_voltage_15:
+      id: cell_v_15
       name: "${name} cell voltage 15"
     cell_voltage_16:
+      id: cell_v_16
       name: "${name} cell voltage 16"
-    #cell_voltage_17:
-    #  name: "${name} cell voltage 17"
-    #cell_voltage_18:
-    #  name: "${name} cell voltage 18"
-    #cell_voltage_19:
-    #  name: "${name} cell voltage 19"
-    #cell_voltage_20:
-    #  name: "${name} cell voltage 20"
-    #cell_voltage_21:
-    #  name: "${name} cell voltage 21"
-    #cell_voltage_22:
-    #  name: "${name} cell voltage 22"
-    #cell_voltage_23:
-    #  name: "${name} cell voltage 23"
-    #cell_voltage_24:
-    #  name: "${name} cell voltage 24"
+    cell_voltage_17:
+      id: cell_v_17
+      name: "${name} cell voltage 17"
+      disabled_by_default: true
+    cell_voltage_18:
+      id: cell_v_18
+      name: "${name} cell voltage 18"
+      disabled_by_default: true
+    cell_voltage_19:
+      id: cell_v_19
+      name: "${name} cell voltage 19"
+      disabled_by_default: true
+    cell_voltage_20:
+      id: cell_v_20
+      name: "${name} cell voltage 20"
+      disabled_by_default: true
+    cell_voltage_21:
+      id: cell_v_21
+      name: "${name} cell voltage 21"
+      disabled_by_default: true
+    cell_voltage_22:
+      id: cell_v_22
+      name: "${name} cell voltage 22"
+      disabled_by_default: true
+    cell_voltage_23:
+      id: cell_v_23
+      name: "${name} cell voltage 23"
+      disabled_by_default: true
+    cell_voltage_24:
+      id: cell_v_24
+      name: "${name} cell voltage 24"
+      disabled_by_default: true
     cell_resistance_1:
       name: "${name} cell resistance 01"
     cell_resistance_2:
@@ -501,15 +539,15 @@ sensor:
     discharging_power:
       id: discharging_power
       name: "${name} discharging power"
+    power_tube_temperature:
+      id: power_tube_temperature
+      name: "${name} power tube temperature"
     temperature_sensor_1:
       id: temperature_sensor_1
       name: "${name} temperature sensor 1"
     temperature_sensor_2:
       id: temperature_sensor_2
       name: "${name} temperature sensor 2"
-    power_tube_temperature:
-      id: power_tube_temperature
-      name: "${name} power tube temperature"
     state_of_charge:
       id: state_of_charge
       name: "${name} state of charge"
@@ -535,7 +573,7 @@ sensor:
   # | Total Daily Energy                   |
   # +--------------------------------------+
   - platform: total_daily_energy
-    name: "${name} BMS Daily Charging Power"
+    name: "${name} BMS Daily Charging Energy"
     power_id: charging_power
     unit_of_measurement: 'kWh'
     state_class: total_increasing
@@ -545,7 +583,7 @@ sensor:
       # Multiplication factor from W to kW is 0.001
       - multiply: 0.001
   - platform: total_daily_energy
-    name: "${name} BMS Daily Discharging Power"
+    name: "${name} BMS Daily Discharging Energy"
     power_id: discharging_power
     unit_of_measurement: 'kWh'
     state_class: total_increasing
@@ -561,6 +599,7 @@ sensor:
     name: ${name} Uptime Sensor
     id: uptime_sensor
     update_interval: 60s
+    entity_category: diagnostic
     on_raw_value:
       then:
         - text_sensor.template.publish:
@@ -587,14 +626,28 @@ sensor:
     id: requested_charge_voltage
     unit_of_measurement: V
     device_class: voltage
-  # +------------------------------------+
+  - platform: template
+    name: "${name} Last Complete Charge"
+    device_class: timestamp
+    id: eoc_timestamp_template
+    lambda: return id(eoc_timestamp);
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: eoc_timestamp_human
+            state: !lambda |-
+              char str[19];
+              strftime(str, sizeof(str), " %H:%M %d %b %Y", localtime(&id(eoc_timestamp)));
+              return  {str};
+    entity_category: diagnostic
+  # +--------------------------------------+
   # | Auto Charge Current Control          |
   # +--------------------------------------+
   # First, an initial charge current is calculated based upon the maximum cell voltage but only if the Auto Charge Current switch is enabled.
   - platform: copy
     source_id: max_cell_voltage
     name: ${name} Initial Charge Current
-    id: auto_charge_current_initial
+    id: auto_ccl_initial
     unit_of_measurement: A
     device_class: current
     internal: true  
@@ -604,15 +657,15 @@ sensor:
               double cell_float_v = (id(float_voltage).state / id(cell_count).state);
               // Auto Charge Current function
               if (id(can_switch_auto_charge_current).state) {
-                if (id(max_cell_voltage).state > id(cell_ovr).state) return 0.0;
-                else return max(0.0,(- pow(${charge_a_factor_curve_end}, pow( max(0.0, ((x - cell_float_v) / (id(cell_ovr).state - cell_float_v))),${charge_a_factor_curve_shape}))+2) * id(charging_current).state);
+                if (id(max_cell_voltage).state > id(cell_ovpr).state) return 0.0;
+                else return max(0.0,(- pow(${charge_a_factor_curve_end}, pow( max(0.0, ((x - cell_float_v) / (id(cell_ovpr).state - cell_float_v))),${charge_a_factor_curve_shape}))+2) * id(charging_current).state);
               }
               else return id(charging_current).state;
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial charge current values.
   - platform: copy
-    source_id: auto_charge_current_initial
+    source_id: auto_ccl_initial
     name: ${name} Moving Average Charge Current
-    id:  auto_charge_current_moving_average
+    id:  auto_ccl_moving_average
     unit_of_measurement: A
     device_class: current
     internal: true  
@@ -624,16 +677,16 @@ sensor:
   # Third, if the instantaneous initial charge current value is lower than the moving average, use that, otherwise use the moving average.
   # This means that cell voltage spikes will be reacted to quickly, but reduced cell voltages will not, preventing oscillation of requested current.
   - platform: copy
-    source_id: auto_charge_current_initial
+    source_id: auto_ccl_initial
     name: ${name} Requested Charge Current
-    id: auto_charge_current_final
+    id: auto_ccl
     unit_of_measurement: A
     device_class: current
     accuracy_decimals: 1
     internal: false
     filters:
     - lambda: !lambda |-
-              return (round(min(id(auto_charge_current_moving_average).state, x) * 10) / 10);
+              return (round(min(id(auto_ccl_moving_average).state, x) * 10) / 10);
   # +--------------------------------------+
   # | Auto Discharge Current Control       |
   # +--------------------------------------+
@@ -641,7 +694,7 @@ sensor:
   - platform: copy
     source_id: min_cell_voltage
     name: ${name} Initial Discharge Current
-    id: auto_discharge_current_initial
+    id: auto_dcl_initial
     unit_of_measurement: A
     device_class: current
     internal: true  
@@ -649,15 +702,15 @@ sensor:
     - lambda: !lambda |-
               // Auto Discharge Current function
               if (id(can_switch_auto_discharge_current).state) {
-                if (id(min_cell_voltage).state < id(cell_uvr).state) return 0.0;
-                else return max(0.0,(- pow(${discharge_a_factor_curve_end}, pow( max(0.0, ((x - ${discharge_knee_v}) / (id(cell_uvr).state - ${discharge_knee_v}))),${discharge_a_factor_curve_shape}))+2) * id(discharging_current).state);
+                if (id(min_cell_voltage).state < id(cell_uvpr).state) return 0.0;
+                else return max(0.0,(- pow(${discharge_a_factor_curve_end}, pow( max(0.0, ((x - ${discharge_knee_v}) / (id(cell_uvpr).state - ${discharge_knee_v}))),${discharge_a_factor_curve_shape}))+2) * id(discharging_current).state);
               }
               else return id(discharging_current).state;
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial discharge current values.
   - platform: copy
-    source_id: auto_discharge_current_initial
+    source_id: auto_dcl_initial
     name: ${name} Moving Average Discharge Current
-    id:  auto_discharge_current_moving_average
+    id:  auto_dcl_moving_average
     unit_of_measurement: A
     device_class: current
     internal: true  
@@ -669,16 +722,88 @@ sensor:
   # Third, if the instantaneous initial discharge current value is lower than the moving average, use that, otherwise use the moving average.
   # This means that cell voltage drops will be reacted to quickly, but increased cell voltages will not, preventing oscillation of requested current.
   - platform: copy
-    source_id: auto_discharge_current_initial
+    source_id: auto_dcl_initial
     name: ${name} Requested Discharge Current
-    id: auto_discharge_current_final
+    id: auto_dcl
     unit_of_measurement: A
     device_class: current
-    accuracy_decimals: 1
+    accuracy_decimals: 1                         
     internal: false
     filters:
     - lambda: !lambda |-
-              return (round(min(id(auto_discharge_current_moving_average).state, x) * 10) / 10);
+              return (round(min(id(auto_dcl_moving_average).state, x) * 10) / 10);
+  # +--------------------------------------+
+  # | Auto Charge Voltage Control          |
+  # +--------------------------------------+
+  - platform: template
+    name: ${name} Auto Charge Voltage
+    id: auto_cvl
+    unit_of_measurement: V
+    device_class: voltage
+    internal: true
+    lambda: !lambda |-
+            // Based on logic by Matthias U and Stuart Pittaway https://github.com/stuartpittaway/diyBMSv4ESP32/blob/9a0a3ed26f2dc973d3faf3e2799a6688da3ab13e/ESPController/src/Rules.cpp
+            // Variables
+            float cell_delta_cutoff = 0.005;
+            float cell_uniformity = 1.0;
+            float cell_sensitivity = 1.8; // For more aggressive reponse, reduce this number.
+            float cell_bulk_v = (id(bulk_voltage).state / id(cell_count).state);
+            float cell_charge_knee_v = 3.400;
+            float actual_total_v = 0.0;
+            float target_total_v = 0.0;
+            float dyn_chg_v = 0.0;
+            // Check feature enabled or if cell delta is above cutoff (this reduces requested voltage oscillation at near zero delta)
+            if ((!id(can_switch_auto_charge_voltage).state) | (id(delta_cell_voltage).state <= cell_delta_cutoff)) {
+              return id(bulk_voltage).state;
+            } else {
+            // Create array of cell voltages
+            float cell_array[] = {
+              id(cell_v_01).state, id(cell_v_02).state, id(cell_v_03).state, id(cell_v_04).state,
+              id(cell_v_05).state, id(cell_v_06).state, id(cell_v_07).state, id(cell_v_08).state,
+              id(cell_v_09).state, id(cell_v_10).state, id(cell_v_11).state, id(cell_v_12).state,
+              id(cell_v_13).state, id(cell_v_14).state, id(cell_v_15).state, id(cell_v_16).state,
+              id(cell_v_17).state, id(cell_v_18).state, id(cell_v_19).state, id(cell_v_20).state,
+              id(cell_v_21).state, id(cell_v_22).state, id(cell_v_23).state, id(cell_v_24).state,
+            };
+            // Calculate actual total voltage
+            for(int i = 0; i < id(cell_count).state; i++) {
+              actual_total_v += cell_array[i];
+            // Set target voltage to actual voltage
+            target_total_v = actual_total_v;
+            };
+            // Calculate voltage range (R)
+            float R = min(
+              ((cell_bulk_v - id(max_cell_voltage).state) * cell_uniformity),
+              ((id(cell_ovpr).state - cell_charge_knee_v) / cell_sensitivity)
+            );
+            // Force R to 1 if value is Zero
+            if (R == 0) {
+              R = 1;
+            };
+            // Calculate HminusR and MminusH
+            float HminusR = id(max_cell_voltage).state - R;
+            float MminusH = cell_bulk_v - id(max_cell_voltage).state;
+            // Add cell voltage offset to target total voltage if possible
+            for(int i = 0; i < id(cell_count).state; i++) {
+              if (cell_array[i] >= HminusR) {
+                target_total_v += (MminusH * (cell_array[i] - HminusR) / R);
+              }
+            };
+            // Force target voltage to current voltage if cell is over target voltage
+            if (id(max_cell_voltage).state >= cell_bulk_v) {
+              dyn_chg_v = actual_total_v;
+            };
+            // Use minimum of dynamic charge voltage or bulk voltage
+            dyn_chg_v = min(id(bulk_voltage).state, target_total_v);
+            // Return automatic charge voltage
+            return ceil(dyn_chg_v * 10) / 10;
+            }
+    update_interval: 1s
+    filters:
+    - min:
+        window_size: 5
+        send_every: 1
+        send_first_at: 1
 
 text_sensor:
   - platform: jk_bms_ble
@@ -686,6 +811,7 @@ text_sensor:
       name: "${name} errors"
     total_runtime_formatted:
       name: "${name} total runtime formatted"
+      entity_category: diagnostic
   # +--------------------------------------+
   # | Template text sensors                |
   # +--------------------------------------+
@@ -693,6 +819,12 @@ text_sensor:
     name: ${name} Uptime Human Readable
     id: uptime_human
     icon: mdi:clock-start
+    entity_category: diagnostic
+  - platform: template
+    name: ${name} Last Complete Charge Human Readable
+    id: eoc_timestamp_human
+    icon: mdi:clock-start
+    entity_category: diagnostic
   - platform: template
     name: "${name} Charging Status"
     id: charging_status
@@ -712,13 +844,13 @@ number:
       id: cell_ovp
       name: "${name} cell voltage overvoltage protection"
     cell_voltage_overvoltage_recovery:
-      id: cell_ovr
+      id: cell_ovpr
       name: "${name} cell voltage overvoltage recovery"
     cell_voltage_undervoltage_protection:
       id: cell_uvp
       name: "${name} cell voltage undervoltage protection"
     cell_voltage_undervoltage_recovery:
-      id: cell_uvr
+      id: cell_uvpr
       name: "${name} cell voltage undervoltage recovery"
     balance_starting_voltage:
       name: "${name} balance starting voltage"
@@ -735,7 +867,7 @@ number:
     max_discharge_current:
       name: "${name} max discharge current"
   # +--------------------------------------+
-  # | Slider (14S)                         |
+  # | Slider / Box                         |
   # +--------------------------------------+
   - platform: template
     name: "${name} Bulk voltage"
@@ -744,11 +876,12 @@ number:
     min_value: 54.6 # 3.90
     max_value: 58.8 # 4.20
     restore_value: true
-    mode: slider
+    mode: "${input_number_mode}"
     initial_value: "${bulk_v}"
     unit_of_measurement: V
     icon: mdi:battery-charging
     optimistic: true
+    entity_category: config
   - platform: template
     name: "${name} Float voltage"
     id: "float_voltage"
@@ -756,11 +889,12 @@ number:
     min_value: 51.8 # 3.70
     max_value: 58.8 # 4.20
     restore_value: true
-    mode: slider
+    mode: "${input_number_mode}"
     initial_value: "${float_v}"
     unit_of_measurement: V
     icon: mdi:battery-charging
     optimistic: true
+    entity_category: config
   - platform: template
     name: "${name} Rebulk V."
     id: "rebulk_voltage"
@@ -768,11 +902,12 @@ number:
     min_value: 50.4 # 3.6
     max_value: 54.6 # 3.9
     restore_value: true
-    mode: slider
+    mode: "${input_number_mode}"
     initial_value: "${rebulk_v}"
     unit_of_measurement: V
     icon: mdi:sine-wave
     optimistic: true
+    entity_category: config
   - platform: template
     name: "${name} Absorption Offset V."
     id: "absorption_offset"
@@ -780,11 +915,12 @@ number:
     min_value: 0
     max_value: 0.3
     restore_value: true
-    mode: slider
+    mode: "${input_number_mode}"
     initial_value: 0.1
     unit_of_measurement: V
     icon: mdi:sine-wave
     optimistic: true
+    entity_category: config
   - platform: template
     name: "${name} Charging current max"
     id: "charging_current"
@@ -792,11 +928,12 @@ number:
     min_value: 0
     max_value: "${charge_a}"
     restore_value: true
-    mode: slider
+    mode: "${input_number_mode}"
     initial_value: "${charge_a}"
     unit_of_measurement: A
     icon: mdi:current-dc
     optimistic: true
+    entity_category: config
   - platform: template
     name: "${name} Discharging current max"
     id: "discharging_current"
@@ -804,18 +941,24 @@ number:
     min_value: 0
     max_value: "${discharge_a}"
     restore_value: true
-    mode: slider
+    mode: "${input_number_mode}"
     initial_value: "${discharge_a}"
     unit_of_measurement: A
     icon: mdi:current-dc
     optimistic: true
-
+    entity_category: config
+    
 button:
   - platform: jk_bms_ble
     retrieve_settings:
       name: "${name} retrieve settings"
+      entity_category: config
     retrieve_device_info:
       name: "${name} retrieve device info"
+      entity_category: config
+  - platform: restart
+    name: "JK-BMS ESP32 Restart"
+    entity_category: config
 
 # +--------------------------------------+
 # | Start CAN Handling                   |
@@ -1112,8 +1255,8 @@ interval:
                           // Charging
                           if (id(current).state >= 0) {
 
-                            float cv_min = 3.90;
-                            float cv_max = 4.20;
+                            float cv_min = 3.37;
+                            float cv_max = 3.65;
                             float cutoff_current = (id(battery_capacity).state * 0.05 * (cell_bulk_v - cv_min) / (cv_max - cv_min));
                             float cutoff_voltage = (cv_min + (cv_max - cv_min)/(0.05 + cell_absorption_offset_v) * (id(current).state / id(battery_capacity).state));
                             
@@ -1152,39 +1295,48 @@ interval:
                       // | Charge values                        |
                       // +--------------------------------------+
 
+                      // Variables
+                      float charging_v = 0;
+                      float charging_a = 0;
+
                       // Bulk Charge
                       if ((id(charge_status) == "Bulk") | (id(charge_status) == "Force Bulk") | (id(charge_status) == "Balancing") | (id(charge_status) == "Absorption")) {
-                        id(charging_v) = (id(bulk_voltage).state + ${inverter_offset_v});
-                        id(charging_a) = id(auto_charge_current_final).state;
+                        charging_v = (id(auto_cvl).state + ${inverter_offset_v});
+                        charging_a = id(auto_ccl).state;
                         id(eoc) = false;                                                            // SOC 100% can't be sent
                       }
                       // Float Charge
                       else if (id(charge_status) == "Float") {
-                        id(charging_v) = (id(float_voltage).state + ${inverter_offset_v});
-                        id(charging_a) = id(auto_charge_current_final).state;
+                        charging_v = (id(float_voltage).state + ${inverter_offset_v});
+                        charging_a = id(auto_ccl).state;
                       }
                       // Wait : Stop Charging
                       else if (id(charge_status) == "Wait") {
-                        id(charging_v) = (id(rebulk_voltage).state);                                // Rebulk V.
-                        id(charging_a) = 0;
+                        charging_v = (id(rebulk_voltage).state);                                    // Rebulk V.
+                        charging_a = 0;
                       }
                       // End Of Charge (EOC) : Stop Charging
                       else if (id(charge_status) == "EOC") {
-                        id(charging_v) = (id(rebulk_voltage).state);                                // Rebulk V.
-                        id(charging_a) = 0;
+                        charging_v = (id(rebulk_voltage).state);                                    // Rebulk V.
+                        charging_a = 0;
                         id(eoc) = true;                                                             // SOC 100% can be sent
+                        id(eoc_timestamp) = id(sntp_time).utcnow().timestamp;                       // Store charge completion timestamp
                       }
                       
                       // +--------------------------------------+
                       // | Discharge values                     |
                       // +--------------------------------------+
 
+                      // Variables
+                      float discharging_v = id(cell_uvpr).state * id(cell_count).state;
+                      float discharging_a = 0;
+
                       // Stop Discharging if BMS or ESP32 switch is OFF
-                      if ((!id(bms_switch_discharging).state) | (!id(can_switch_discharging).state)) id(discharging_a) = 0;
+                      if ((!id(bms_switch_discharging).state) | (!id(can_switch_discharging).state)) discharging_a = 0;
                       // Stop Discharging if battery voltage is low
-                      else if (id(total_voltage).state <= ${min_discharge_v}) id(discharging_a) = 0;
+                      else if (id(total_voltage).state <= discharging_v) discharging_a = 0;
                       // Allow Discharging
-                      else id(discharging_a) = id(auto_discharge_current_final).state;
+                      else discharging_a = id(auto_dcl).state;
 
                       // +--------------------------------------+
                       // | Preventive Alarms Logic              |
@@ -1207,18 +1359,18 @@ interval:
                       
                       // Alarm : Stop Charging and Discharging
                       if ((id(alarm_status) == "OTP") | (id(alarm_status) == "BMS")){
-                          id(charging_v) = (3.2 * id(cell_count).state);
-                          id(charging_a) = 0;
-                          id(discharging_a) = 0;
+                          charging_v = (3.2 * id(cell_count).state);
+                          charging_a = 0;
+                          discharging_a = 0;
                       }
                       // Alarm : Stop Charging
                       else if ((id(alarm_status) == "OVP") | (id(alarm_status) == "UTP") | (id(alarm_status) == "COCP")){
-                          id(charging_v) = (3.2 * id(cell_count).state);
-                          id(charging_a) = 0;
+                          charging_v = (3.2 * id(cell_count).state);
+                          charging_a = 0;
                       }
                       // Alarm : Stop Discharging
                       else if ((id(alarm_status) == "UVP") | (id(alarm_status) == "DOCP")){
-                          id(discharging_a) = 0;
+                          discharging_a = 0;
                       }
                       
                       // +--------------------------------------+
@@ -1232,21 +1384,21 @@ interval:
                       
                       uint8_t can_mesg[8];
                       
-                      can_mesg[0] = uint16_t(id(charging_v) * 10) & 0xff;
-                      can_mesg[1] = uint16_t(id(charging_v) * 10) >> 8 & 0xff;
-                      can_mesg[2] = uint16_t(id(charging_a) * 10) & 0xff;
-                      can_mesg[3] = uint16_t(id(charging_a) * 10) >> 8 & 0xff;
-                      can_mesg[4] = uint16_t(id(discharging_a) * 10) & 0xff;
-                      can_mesg[5] = uint16_t(id(discharging_a) * 10) >> 8 & 0xff;
-                      can_mesg[6] = uint16_t(${min_discharge_v} * 10) & 0xff;
-                      can_mesg[7] = uint16_t(${min_discharge_v} * 10) >> 8 & 0xff;
+                      can_mesg[0] = uint16_t(charging_v * 10) & 0xff;
+                      can_mesg[1] = uint16_t(charging_v * 10) >> 8 & 0xff;
+                      can_mesg[2] = uint16_t(charging_a * 10) & 0xff;
+                      can_mesg[3] = uint16_t(charging_a * 10) >> 8 & 0xff;
+                      can_mesg[4] = uint16_t(discharging_a * 10) & 0xff;
+                      can_mesg[5] = uint16_t(discharging_a * 10) >> 8 & 0xff;
+                      can_mesg[6] = uint16_t(discharging_v * 10) & 0xff;
+                      can_mesg[7] = uint16_t(discharging_v * 10) >> 8 & 0xff;
                       
                       // +--------------------------------------+
                       // | Publish sensor state                 |
                       // +--------------------------------------+
 
                       id(charging_status).publish_state(id(charge_status));
-                      id(requested_charge_voltage).publish_state(id(charging_v));
+                      id(requested_charge_voltage).publish_state(charging_v);
                       
                       // Logs
                       ESP_LOGI("main", "send can id: 0x351 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
@@ -1613,6 +1765,10 @@ interval:
                         else if (id(can_bms_name).active_index() == 3){
                            ESP_LOGI("main", "send can id: 0x35E ASCII : SHEnergy");
                            return {0x53, 0x48, 0x45, 0x6E, 0x65, 0x72, 0x67, 0x79}; // SHEnergy (SEPLOS)
+                        }
+                        else if (id(can_bms_name).active_index() == 4){
+                           ESP_LOGI("main", "send can id: 0x35E ASCII : SMA");
+                           return {0x53, 0x4D, 0x41, 0x20, 0x20, 0x20, 0x20, 0x20}; // SMA
                         }
                         else {
                            ESP_LOGI("main", "send can id: 0x35E ASCII : PYLON");
