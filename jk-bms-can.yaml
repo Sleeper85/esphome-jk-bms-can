@@ -1,0 +1,130 @@
+# JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
+
+# esp32_wire_jk-bms-can.yaml is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+# V1.18.1 Sleeper85 : New packaged YAML, Independent Smart BMS Logic, Improved Request flag (CAN ID 0x35C)
+# V1.17.4 MrPablo   : Added "SMA" to CAN BMS names, added function "Auto Charge Voltage Control" to avoid OVP alarms and improve balancing, categorised sensors, set time source to SNTP, min battery voltage based on BMS value, added "Last Complete Charge" timestamp, renamed daily energy sensors and added input number display option
+# V1.17.3 Sleeper85 : Renumbering cells, Added “BMS Charging”, “BMS Discharging” and “JK-BMS ESP32 Restart” switches, adding Total Daily Energy sensors, set jk_bms update interval to 3s, set default log level to INFO, improvement of comments
+# V1.17.2 MrPablo   : Added function "Auto Charge/Discharge Current Control" to avoid OVP/UVP alarms
+# V1.17.1 Sleeper85 : New Cut-Off Current/Voltage Charging Logic for LFP with the participation of @shvmm
+# V1.16.6 Sleeper85 : Selectable CAN settings + Adding inverter_offset_v + Improved CAN ID 0x355, sending 100% only at the end of the absorption phase, adding bytes [04:05] and [06:07] + Automatic calculation of the number of battery modules + Save and Restore slider values
+# V1.16.5 Sleeper85 : Add Preventive Alarms Logic, CAN ID 0x356: send average temperature of T1/T2, new "Discharging current max" slider
+# V1.16.4 Sleeper85 : Improved Charging Logic for ESP32 startup/reboot and Float charge, Add CAN ID 0x356 bytes [06:07] cycles for Sofar, Change switch name
+# V1.16.3 Sleeper85 : ID 0x379 will be sent when choosing protocol 2 or 4 (Battery Capacity for Victron, Sol-Ark and Luxpower)
+# V1.16.2 Sleeper85 : Split the "Charge/Discharge values" section and added instructions for "Stop Discharging" + Set "esp-idf" framework by default
+# V1.16.1 Sleeper85 : Slider charging_current max value = ${charge_a}, Improved Alarm/Charging/Discharging Logic, Improved CAN protocol and Victron support
+# V1.15.5 Sleeper85 : Improved code and set api "reboot_timout" to "0s" by default (no reboot without HA)
+# V1.15.4 Sleeper85 : Improved documentation for API, Web Server and WiFi settings
+# V1.15.3 Sleeper85 : Add 'CAN Protocol Settings' and new CAN ID based on the SMA and Victron protocol (alpha)
+# V1.15.2 Sleeper85 : Improved Alarm handling, all alarms will set charge/discharge current to 0A and set 'Charging Status' to Alarm
+# V1.15.1 Sleeper85 : New CANBUS script with CANBUS Status in HA, stop sending CAN messages if the inverter is not responding (fix WDT reboot issues)
+# V1.14.3 Sleeper85 : Improved documentation + Charging Voltage tips for Deye
+# V1.14.2 Sleeper85 : Improve 'Charging Voltage' behavior
+# V1.14.1 Sleeper85 : Add 'Float charge function'
+# V1.13.6 Sleeper85 : Add 'Absorption time' and 'Absorption Offset V.' slider
+# V1.13.5 Sleeper85 : Set CAN manufacter to "PYLON" for improve compatibility with Deye and other inverters
+# V1.13.4 Sleeper85 : Improve 'Charge Status' behavior + add 'Rebulk Offset V.' slider
+# V1.13.3 uksa007   : Improve compatibility with Deye and other inverters
+# V1.13.2 uksa007   : Send Max Temperature of T1, T2 to inverter
+# V1.13.1 uksa007   : Fix compile issues with new version of ESPhome 2023.4.0, set rebulk offset to 2.5
+
+esphome:
+  name: jk-bms-can-dev
+    
+logger:
+  #level: INFO
+
+ota:
+  
+# Please use the native `api` component instead of the `mqtt` section.
+# If you use Home Assistant, the native API is more lightweight.
+# If there is no HA server connected to this API, the ESP32 reboots every 15 minutes to try to resolve the problem.
+# If you don't use Home Assistant please uncomment the "reboot_timeout: 0s" option.
+api:
+  reboot_timeout: 0s
+
+# If you don't want to use ESPHome's native API you can use MQTT instead.
+# In this case don't forget to remove the 'api:' section.
+# mqtt:
+#  broker: !secret mqtt_host
+#  username: !secret mqtt_username
+#  password: !secret mqtt_password
+#  id: mqtt_client
+
+# In the event of problems with the WiFi network, the ESP32 will reboot every 15 minutes to try to resolve the problem.
+# If we don't want to connect the ESP32 to the WiFi network please remove the 4 lines below.
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  domain: !secret domain
+
+captive_portal:
+
+#web_server:
+#  port: 80
+#  log: false
+#  ota: false
+
+# +--------------------------------------+
+# | ************ Packages ************** |
+# +--------------------------------------+
+packages:
+
+  device: !include device_configs/device_esp32_devkit_v1.yaml
+
+  bms: !include
+    file: packages/jk-bms_wire.yaml
+    vars:
+      bms_name: 'JK-BMS-DEV'
+      bms_update_interval: "3s"
+      bms_tx_pin: GPIO17
+      bms_rx_pin: GPIO16
+  
+  #jk-bms_fake_traffic: !include packages/jk-bms_fake_traffic.yaml
+
+  smart_bms: !include
+    file: packages/smart_bms.yaml
+    vars:
+      smart_bms_name: 'Smart BMS'
+      smart_bms_template_update: "1s"
+      # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.
+      smart_bms_input_number_mode: 'slider'
+      # Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6V = 3.35V/Cell for 16S battery)
+      smart_bms_float_v: "53.6"
+      # Bulk / Absorption Voltage : corresponds to the Bulk voltage that will be used to charge the battery. (55.2V = 3.45V/Cell for 16S battery)
+      smart_bms_bulk_v: "55.2"
+      # Rebulk voltage, voltage less than FLOAT at which BMS requests rebulk. (52.8V = 3.3V/Cell for 16S battery)
+      smart_bms_rebulk_v: "52.8"
+      # Max charging amps eg 100A (5000W), should be at least 10A less than BMS over charge current protection, 0.5C max.
+      smart_bms_charge_a: "100"
+      # Max discharge amps eg 120A (6000W), should be at least 10A less than BMS over discharge current protection, 0.5C max.
+      smart_bms_discharge_a: "120"
+      # Inverter offset, allows you to correct the inverter charging voltage.
+      # For example, with my Deye, if the requested charging voltage is 55.2v the Deye effective charging voltage will be 55.1V.
+      # An offset of 0.1 provides an effective charging voltage of 55.2V.
+      smart_bms_inverter_offset_v: "0.0"
+      # Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
+      smart_bms_max_cycles: "6000.0"
+
+  canbus: !include
+    file: packages/canbus.yaml
+    vars:
+      canbus_name: 'CANBUS'
+      canbus_tx_pin: GPIO23
+      canbus_rx_pin: GPIO22
+      # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after sending 30 CAN IDs.
+      canbus_max_no_ack: "30"
+
+  automatic_voltage_control: !include packages/automatic_voltage_control.yaml
+  automatic_current_control: !include packages/automatic_current_control.yaml

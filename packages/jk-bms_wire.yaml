@@ -1,0 +1,314 @@
+external_components:
+  - source: github://syssi/esphome-jk-bms@main
+    refresh: 0s
+
+# +--------------------------------------+
+# | JK-BMS UART connection               |
+# +--------------------------------------+
+
+uart:
+  id: uart_0
+  baud_rate: 115200
+  rx_buffer_size: 384
+  tx_pin: ${bms_tx_pin}
+  rx_pin: ${bms_rx_pin}
+#  debug:
+#    direction: BOTH
+
+jk_modbus:
+  id: modbus0
+  uart_id: uart_0
+
+jk_bms:
+  id: bms0
+  jk_modbus_id: modbus0
+  update_interval: ${bms_update_interval}
+
+binary_sensor:
+  - platform: jk_bms
+    balancing:
+      id: equalizing
+      name: "${bms_name} balancing"
+    balancing_switch:
+      id: bms_switch_balancing
+      name: "${bms_name} balancing switch"
+    charging:
+      name: "${bms_name} charging"
+    charging_switch:
+      id: bms_switch_charging
+      name: "${bms_name} charging switch"
+    discharging:
+      name: "${bms_name} discharging"
+    discharging_switch:
+      id: bms_switch_discharging
+      name: "${bms_name} discharging switch"
+    dedicated_charger_switch:
+      name: "${bms_name} dedicated charger switch"
+
+switch:
+  - platform: jk_bms
+    charging:
+      name: "${bms_name} Charge switch"
+    discharging:
+      name: "${bms_name} Discharge switch"
+
+sensor:
+  - platform: jk_bms
+    min_cell_voltage:
+      id: min_cell_voltage
+      name: "${bms_name} min cell voltage"
+    max_cell_voltage:
+      id: max_cell_voltage
+      name: "${bms_name} max cell voltage"
+    min_voltage_cell:
+      id: min_voltage_cell
+      name: "${bms_name} min voltage cell"
+    max_voltage_cell:
+      id: max_voltage_cell
+      name: "${bms_name} max voltage cell"
+    delta_cell_voltage:
+      id: delta_cell_voltage
+      name: "${bms_name} delta cell voltage"
+    average_cell_voltage:
+      name: "${bms_name} average cell voltage"
+    cell_voltage_1:
+      id: cell_v_01
+      name: "${bms_name} cell voltage 01"
+    cell_voltage_2:
+      id: cell_v_02
+      name: "${bms_name} cell voltage 02"
+    cell_voltage_3:
+      id: cell_v_03
+      name: "${bms_name} cell voltage 03"
+    cell_voltage_4:
+      id: cell_v_04
+      name: "${bms_name} cell voltage 04"
+    cell_voltage_5:
+      id: cell_v_05
+      name: "${bms_name} cell voltage 05"
+    cell_voltage_6:
+      id: cell_v_06
+      name: "${bms_name} cell voltage 06"
+    cell_voltage_7:
+      id: cell_v_07
+      name: "${bms_name} cell voltage 07"
+    cell_voltage_8:
+      id: cell_v_08
+      name: "${bms_name} cell voltage 08"
+    cell_voltage_9:
+      id: cell_v_09
+      name: "${bms_name} cell voltage 09"
+    cell_voltage_10:
+      id: cell_v_10
+      name: "${bms_name} cell voltage 10"
+    cell_voltage_11:
+      id: cell_v_11
+      name: "${bms_name} cell voltage 11"
+    cell_voltage_12:
+      id: cell_v_12
+      name: "${bms_name} cell voltage 12"
+    cell_voltage_13:
+      id: cell_v_13
+      name: "${bms_name} cell voltage 13"
+    cell_voltage_14:
+      id: cell_v_14
+      name: "${bms_name} cell voltage 14"
+    cell_voltage_15:
+      id: cell_v_15
+      name: "${bms_name} cell voltage 15"
+    cell_voltage_16:
+      id: cell_v_16
+      name: "${bms_name} cell voltage 16"
+    cell_voltage_17:
+      id: cell_v_17
+      name: "${bms_name} cell voltage 17"
+      disabled_by_default: true
+    cell_voltage_18:
+      id: cell_v_18
+      name: "${bms_name} cell voltage 18"
+      disabled_by_default: true
+    cell_voltage_19:
+      id: cell_v_19
+      name: "${bms_name} cell voltage 19"
+      disabled_by_default: true
+    cell_voltage_20:
+      id: cell_v_20
+      name: "${bms_name} cell voltage 20"
+      disabled_by_default: true
+    cell_voltage_21:
+      id: cell_v_21
+      name: "${bms_name} cell voltage 21"
+      disabled_by_default: true
+    cell_voltage_22:
+      id: cell_v_22
+      name: "${bms_name} cell voltage 22"
+      disabled_by_default: true
+    cell_voltage_23:
+      id: cell_v_23
+      name: "${bms_name} cell voltage 23"
+      disabled_by_default: true
+    cell_voltage_24:
+      id: cell_v_24
+      name: "${bms_name} cell voltage 24"
+      disabled_by_default: true
+    power_tube_temperature:
+      id: power_tube_temperature
+      name: "${bms_name} power tube temperature"
+    temperature_sensor_1:
+      id: temperature_sensor_1
+      name: "${bms_name} temperature sensor 1"
+    temperature_sensor_2:
+      id: temperature_sensor_2
+      name: "${bms_name} temperature sensor 2"
+    total_voltage:
+      id: total_voltage
+      name: "${bms_name} total voltage"
+    current:
+      id: current
+      name: "${bms_name} current"
+    power:
+      id: power
+      name: "${bms_name} power"
+    charging_power:
+      id: charging_power
+      name: "${bms_name} charging power"
+    discharging_power:
+      id: discharging_power
+      name: "${bms_name} discharging power"
+    capacity_remaining:
+      id: state_of_charge
+      name: "${bms_name} capacity remaining"
+    capacity_remaining_derived:
+      id: capacity_remaining_ah
+      name: "${bms_name} capacity remaining derived"
+    temperature_sensors:
+      name: "${bms_name} temperature sensors"
+      entity_category: diagnostic
+    charging_cycles:
+      id: charging_cycles
+      name: "${bms_name} charging cycles"
+    total_charging_cycle_capacity:
+      name: "${bms_name} total charging cycle capacity"
+    battery_strings:
+      id: cell_count
+      name: "${bms_name} battery strings"
+    errors_bitmask:
+      id: errors_bitmask
+      name: "${bms_name} errors bitmask"
+      entity_category: diagnostic
+    operation_mode_bitmask:
+      name: "${bms_name} operation mode bitmask"
+      entity_category: diagnostic
+    total_voltage_overvoltage_protection:
+      name: "${bms_name} total voltage overvoltage protection"
+    total_voltage_undervoltage_protection:
+      name: "${bms_name} total voltage undervoltage protection"
+      id: total_uvp
+    cell_voltage_overvoltage_protection:
+      id: cell_ovp
+      name: "${bms_name} cell voltage overvoltage protection"
+    cell_voltage_overvoltage_recovery:
+      id: cell_ovpr
+      name: "${bms_name} cell voltage overvoltage recovery"
+    cell_voltage_overvoltage_delay:
+      name: "${bms_name} cell voltage overvoltage delay"
+    cell_voltage_undervoltage_protection:
+      id: cell_uvp
+      name: "${bms_name} cell voltage undervoltage protection"
+    cell_voltage_undervoltage_recovery:
+      id: cell_uvpr
+      name: "${bms_name} cell voltage undervoltage recovery"
+    cell_voltage_undervoltage_delay:
+      name: "${bms_name} cell voltage undervoltage delay"
+    cell_pressure_difference_protection:
+      name: "${bms_name} cell pressure difference protection"
+    discharging_overcurrent_protection:
+      name: "${bms_name} discharging overcurrent protection"
+    discharging_overcurrent_delay:
+      name: "${bms_name} discharging overcurrent delay"
+    charging_overcurrent_protection:
+      name: "${bms_name} charging overcurrent protection"
+    charging_overcurrent_delay:
+      name: "${bms_name} charging overcurrent delay"
+    balance_starting_voltage:
+      id: balance_starting_voltage
+      name: "${bms_name} balance starting voltage"
+    balance_opening_pressure_difference:
+      id: balance_trigger_voltage
+      name: "${bms_name} balance opening pressure difference"
+    power_tube_temperature_protection:
+      name: "${bms_name} power tube temperature protection"
+    power_tube_temperature_recovery:
+      name: "${bms_name} power tube temperature recovery"
+    temperature_sensor_temperature_protection:
+      name: "${bms_name} temperature sensor temperature protection"
+    temperature_sensor_temperature_recovery:
+      name: "${bms_name} temperature sensor temperature recovery"
+    temperature_sensor_temperature_difference_protection:
+      name: "${bms_name} temperature sensor temperature difference protection"
+    charging_high_temperature_protection:
+      name: "${bms_name} charging high temperature protection"
+    discharging_high_temperature_protection:
+      name: "${bms_name} discharging high temperature protection"
+    charging_low_temperature_protection:
+      name: "${bms_name} charging low temperature protection"
+    charging_low_temperature_recovery:
+      name: "${bms_name} charging low temperature recovery"
+    discharging_low_temperature_protection:
+      name: "${bms_name} discharging low temperature protection"
+    discharging_low_temperature_recovery:
+      name: "${bms_name} discharging low temperature recovery"
+    total_battery_capacity_setting:
+      id: battery_capacity
+      name: "${bms_name} total battery capacity setting"
+    current_calibration:
+      name: "${bms_name} current calibration"
+    device_address:
+      name: "${bms_name} device address"
+      entity_category: diagnostic
+    sleep_wait_time:
+      name: "${bms_name} sleep wait time"
+      entity_category: diagnostic
+      disabled_by_default: true
+    alarm_low_volume:
+      name: "${bms_name} alarm low volume"
+      disabled_by_default: true
+    manufacturing_date:
+      name: "${bms_name} manufacturing date"
+      entity_category: diagnostic
+      disabled_by_default: true
+    total_runtime:
+      name: "${bms_name} total runtime"
+      entity_category: diagnostic
+    # start_current_calibration:
+    #   name: "${bms_name} start current calibration"
+    actual_battery_capacity:
+      name: "${bms_name} actual battery capacity"
+    # protocol_version:
+    #   name: "${bms_name} protocol version"
+
+text_sensor:
+  - platform: jk_bms
+    errors:
+      name: "${bms_name} errors"
+      entity_category: diagnostic
+    operation_mode:
+      name: "${bms_name} operation mode"
+      entity_category: diagnostic
+    battery_type:
+      name: "${bms_name} battery type"
+      entity_category: diagnostic
+    # password:
+    #   name: "${bms_name} password"
+    device_type:
+      name: "${bms_name} device type"
+      entity_category: diagnostic
+    software_version:
+      name: "${bms_name} software version"
+      entity_category: diagnostic
+    manufacturer:
+      name: "${bms_name} manufacturer"
+      entity_category: diagnostic
+    total_runtime_formatted:
+      name: "${bms_name} total runtime formatted"
+      entity_category: diagnostic
