@@ -25,6 +25,7 @@ sensor:
     internal: true
     lambda: !lambda |-
             // Based on logic by Matthias U and Stuart Pittaway https://github.com/stuartpittaway/diyBMSv4ESP32/blob/9a0a3ed26f2dc973d3faf3e2799a6688da3ab13e/ESPController/src/Rules.cpp
+            
             // Variables
             float cell_delta_cutoff = 0.005;
             float cell_uniformity = 1.0;
@@ -34,12 +35,14 @@ sensor:
             float actual_total_v = 0.0;
             float target_total_v = 0.0;
             float dyn_chg_v = 0.0;
+            
             // Check feature enabled or if cell delta is above cutoff (this reduces requested voltage oscillation at near zero delta)
             if ((!id(can_switch_auto_charge_voltage).state) | (id(delta_cell_voltage).state <= cell_delta_cutoff)) {
-              return id(bulk_voltage).state;
+              id(auto_cvl_function) = false;
             } else {
+              id(auto_cvl_function) = true;            
             // Create array of cell voltages
-            float cell_array[] = {
+              float cell_array[] = {
               id(cell_v_01).state, id(cell_v_02).state, id(cell_v_03).state, id(cell_v_04).state,
               id(cell_v_05).state, id(cell_v_06).state, id(cell_v_07).state, id(cell_v_08).state,
               id(cell_v_09).state, id(cell_v_10).state, id(cell_v_11).state, id(cell_v_12).state,
