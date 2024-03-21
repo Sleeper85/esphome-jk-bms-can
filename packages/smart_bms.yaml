@@ -1,0 +1,487 @@
+substitutions:
+  # +--------------------------------------+
+  # | Smart BMS Alarm Logic                |
+  # +--------------------------------------+
+  # Information from the EVE LF280K v2 cell datasheet
+  # LFP Recommended Operating Temperature Range : 10~45°C
+  # Number of cycles at 25°C : 6000
+  # Number of cycles at 45°C : 2500
+  # 60°C  : Never charging or discharging
+  # 0°C   : Never charging
+  # -30°C : Never discharging
+  # +--------------------------------------+
+  # High Temp Protection - Temp > OTP : Stop Charging and Discharging
+  otp: "45.0"
+  # Low Temp Protection  - Temp < UTP : Stop Charging
+  utp: "1.0"
+
+globals:
+  - id: charge_status
+    type: std::string
+    restore_value: no
+    initial_value: '"Wait"'
+  - id: alarm_status
+    type: std::string
+    restore_value: no
+    initial_value: '"NoAlarm"'
+  - id: auto_cvl_function
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: auto_ccl_function
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: auto_dcl_function
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: eoc
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: eoc_timestamp
+    type: time_t
+    restore_value: true
+    initial_value: ''
+
+output:
+  - platform: gpio
+    pin: 2
+    id: led
+    inverted: true
+
+light:
+  - platform: binary
+    output: led
+    id: blue_led
+    name: "Blue LED"
+    internal: true
+
+time: # Enable time component to reset energy at midnight
+  - platform: sntp
+    id: sntp_time
+
+button:
+  - platform: restart
+    name: "${smart_bms_name} ESP32 Restart"
+    entity_category: config
+
+number:
+  # +--------------------------------------+
+  # | Slider / Box                         |
+  # +--------------------------------------+
+  - platform: template
+    name: "${smart_bms_name} Bulk voltage"
+    id: "bulk_voltage"
+    step: 0.1
+    min_value: 54.0
+    max_value: 58.4
+    restore_value: true
+    mode: "${smart_bms_input_number_mode}"
+    initial_value: "${smart_bms_bulk_v}"
+    unit_of_measurement: V
+    icon: mdi:battery-charging
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "${smart_bms_name} Float voltage"
+    id: "float_voltage"
+    step: 0.1
+    min_value: 52.8
+    max_value: 58.4
+    restore_value: true
+    mode: "${smart_bms_input_number_mode}"
+    initial_value: "${smart_bms_float_v}"
+    unit_of_measurement: V
+    icon: mdi:battery-charging
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "${smart_bms_name} Rebulk V."
+    id: "rebulk_voltage"
+    step: 0.1
+    min_value: 51.2
+    max_value: 53.6
+    restore_value: true
+    mode: "${smart_bms_input_number_mode}"
+    initial_value: "${smart_bms_rebulk_v}"
+    unit_of_measurement: V
+    icon: mdi:sine-wave
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "${smart_bms_name} Absorption Offset V."
+    id: "absorption_offset"
+    step: 0.05
+    min_value: 0
+    max_value: 0.3
+    restore_value: true
+    mode: "${smart_bms_input_number_mode}"
+    initial_value: 0.1
+    unit_of_measurement: V
+    icon: mdi:sine-wave
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "${smart_bms_name} Charging current max"
+    id: "charging_current"
+    step: 1
+    min_value: 0
+    max_value: "${smart_bms_charge_a}"
+    restore_value: true
+    mode: "${smart_bms_input_number_mode}"
+    initial_value: "${smart_bms_charge_a}"
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "${smart_bms_name} Discharging current max"
+    id: "discharging_current"
+    step: 1
+    min_value: 0
+    max_value: "${smart_bms_discharge_a}"
+    restore_value: true
+    mode: "${smart_bms_input_number_mode}"
+    initial_value: "${smart_bms_discharge_a}"
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    optimistic: true
+    entity_category: config
+
+sensor:
+  # +--------------------------------------+
+  # | Last Complete Charge                 |
+  # +--------------------------------------+
+  - platform: template
+    name: "${smart_bms_name} Last Complete Charge"
+    device_class: timestamp
+    id: eoc_timestamp_template
+    lambda: return id(eoc_timestamp);
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: eoc_timestamp_human
+            state: !lambda |-
+                   char str[19];
+                   strftime(str, sizeof(str), " %H:%M %d %b %Y", localtime(&id(eoc_timestamp)));
+                   return  {str};
+    entity_category: diagnostic
+  # +--------------------------------------+
+  # | Requested Charge Voltage             |
+  # +--------------------------------------+
+  - platform: template
+    name: ${smart_bms_name} Requested Charge Voltage
+    id: requested_charge_voltage
+    unit_of_measurement: V
+    device_class: voltage
+    update_interval: ${smart_bms_template_update}
+    lambda: !lambda |-
+            // Bulk
+            if (id(charging_instruction).state == "Bulk"){
+              if(id(auto_cvl_function) == true) return (id(auto_cvl).state + ${smart_bms_inverter_offset_v});
+              else return (id(bulk_voltage).state + ${smart_bms_inverter_offset_v});
+            }
+            // Float
+            else if (id(charging_instruction).state == "Float") return (id(float_voltage).state + ${smart_bms_inverter_offset_v});
+            // Stop Charging
+            else return id(rebulk_voltage).state;
+  # +--------------------------------------+
+  # | Requested Charge Current             |
+  # +--------------------------------------+
+  - platform: template
+    name: ${smart_bms_name} Requested Charge Current
+    id: requested_charge_current
+    unit_of_measurement: A
+    device_class: current
+    update_interval: ${smart_bms_template_update}
+    lambda: !lambda |-
+            // Charging Allowed
+            if ((id(charging_instruction).state == "Bulk") | (id(charging_instruction).state == "Float")){
+              if(id(auto_ccl_function) == true) return id(auto_ccl).state;
+              else return id(charging_current).state;
+            }
+            // Stop Charging
+            else return id(rebulk_voltage).state;
+  # +--------------------------------------+
+  # | Requested Discharge Voltage          |
+  # +--------------------------------------+
+  - platform: template
+    name: ${smart_bms_name} Requested Discharge Voltage
+    id: requested_discharge_voltage
+    unit_of_measurement: V
+    device_class: voltage
+    update_interval: ${smart_bms_template_update}
+    lambda: return (id(cell_uvpr).state * id(cell_count).state);
+  # +--------------------------------------+
+  # | Requested Discharge Current          |
+  # +--------------------------------------+
+  - platform: template
+    name: ${smart_bms_name} Requested Discharge Current
+    id: requested_discharge_current
+    unit_of_measurement: A
+    device_class: current
+    update_interval: ${smart_bms_template_update}
+    lambda: !lambda |-
+            // Discharging Allowed
+            if (id(discharging_instruction).state == true){
+              if(id(auto_dcl_function) == true) return id(auto_dcl).state;
+              else return id(discharging_current).state;
+            }
+            // Stop Discharging
+            else return 0;
+  # +--------------------------------------+
+  # | Battery State of Charge (SOC)        |
+  # +--------------------------------------+
+  - platform: template
+    name: ${smart_bms_name} Battery SOC
+    id: battery_soc
+    unit_of_measurement: "%"
+    device_class: battery
+    update_interval: ${smart_bms_template_update}
+    lambda: !lambda |-
+            if (id(state_of_charge).state < 100) return id(state_of_charge).state;      // SOC < 100% => Sending BMS SOC
+            else if (id(eoc) == true) return 100;                                       // End Of Charge => Sending 100%
+            else return 99;                                                             // Otherwise => Sending 99%
+  # +--------------------------------------+
+  # | Battery State of Health (SOH)        |
+  # +--------------------------------------+
+  - platform: template
+    name: ${smart_bms_name} Battery SOH
+    id: battery_soh
+    unit_of_measurement: "%"
+    device_class: battery
+    update_interval: ${smart_bms_template_update}
+    lambda: return round(((id(charging_cycles).state/${smart_bms_max_cycles})-1)*-100);
+  # +--------------------------------------+
+  # | Total Daily Energy                   |
+  # +--------------------------------------+
+  - platform: total_daily_energy
+    name: "${smart_bms_name} Daily Charging Energy"
+    power_id: charging_power
+    unit_of_measurement: 'kWh'
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+  - platform: total_daily_energy
+    name: "${smart_bms_name} Daily Discharging Energy"
+    power_id: discharging_power
+    unit_of_measurement: 'kWh'
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+  # +--------------------------------------+
+  # | Uptime sensor                        |
+  # +--------------------------------------+
+  - platform: uptime
+    name: ${smart_bms_name} Uptime Sensor
+    id: uptime_sensor
+    update_interval: 60s
+    entity_category: diagnostic
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+text_sensor:
+  # +--------------------------------------+
+  # | Last Complete Charge                 |
+  # +--------------------------------------+
+  - platform: template
+    name: ${smart_bms_name} Last Complete Charge Human Readable
+    id: eoc_timestamp_human
+    icon: mdi:clock-start
+    entity_category: diagnostic
+  # +--------------------------------------+
+  # | *** Charging Status ***              |
+  # | Cut-off Charging Logic               |
+  # +--------------------------------------+
+  - platform: template
+    name: "${smart_bms_name} Charging Status"
+    id: charging_status
+    update_interval: ${smart_bms_template_update}
+    lambda: !lambda |-
+            // +-----------------------------------------------+
+            // | Cut-off Charging Logic                        |
+            // +-----------------------------------------------+
+            
+            // Warning : information from JK BMS is not available immediately after boot
+            
+            // JK-BMS Alarm !
+            if (id(errors_bitmask).state > 1) id(charge_status) = "Alarm";
+            // JK-BMS Alarm ended
+            else if ((id(charge_status) == "Alarm") & (id(errors_bitmask).state < 2)) {
+              if (id(eoc) == true) id(charge_status) = "EOC";
+              else id(charge_status) = "Wait";
+            }
+            // Float
+            else if ((id(charge_status) == "EOC") & (id(can_switch_float).state)) id(charge_status) = "Float";
+            // No Float => EOC
+            else if ((id(charge_status) == "Float") & (!id(can_switch_float).state)) id(charge_status) = "EOC";
+            // No Force Bulk => Wait
+            else if ((id(charge_status) == "Force Bulk") & (!id(can_switch_force_bulk).state)) id(charge_status) = "Wait";
+            // No Balancing => Wait
+            else if ((id(charge_status) == "Balancing") & (!id(bms_switch_balancing).state)) id(charge_status) = "Wait";
+            
+            // +-----------------------------------------------+
+            // | Charge ON : BMS and CAN charging switch is ON |
+            // +-----------------------------------------------+
+            else if ((id(bms_switch_charging).state) & (id(can_switch_charging).state)) {
+            
+              // Variables
+              float cell_bulk_v = (id(bulk_voltage).state / id(cell_count).state);
+              float cell_rebulk_v = (id(rebulk_voltage).state / id(cell_count).state);
+              float cell_absorption_offset_v = (id(absorption_offset).state / id(cell_count).state);
+              
+              // Force Bulk Logic
+              if (id(can_switch_force_bulk).state) {
+                // Stop Force Bulk when cells equalizing (charging ends when cells are equalized)
+                if (id(equalizing).state) {
+                  id(charge_status) = "Balancing";
+                  id(can_switch_force_bulk).turn_off();
+                }
+                // Force Bulk
+                else id(charge_status) = "Force Bulk";
+              }
+              
+              // Rebulk Logic (eg: Max Cell V. <= 3.3V)
+              else if (id(max_cell_voltage).state <= cell_rebulk_v) id(charge_status) = "Bulk";
+              
+              // Charging Logic
+              else if ((id(charge_status) == "Wait") | (id(charge_status) == "Bulk") | (id(charge_status) == "Force Bulk") | (id(charge_status) == "Balancing") | (id(charge_status) == "Absorption")) {
+              
+                // Charging
+                if (id(current).state >= 0) {
+                  
+                  float cv_min = 3.37;
+                  float cv_max = 3.65;
+                  float cutoff_current = (id(battery_capacity).state * 0.05 * (cell_bulk_v - cv_min) / (cv_max - cv_min));
+                  float cutoff_voltage = (cv_min + (cv_max - cv_min)/(0.05 + cell_absorption_offset_v) * (id(current).state / id(battery_capacity).state));
+                  
+                  ESP_LOGI("main", "Cut-Off Current : %f", cutoff_current);
+                  ESP_LOGI("main", "Cut-Off Voltage : %f", cutoff_voltage);
+                
+                  // Stop Charging
+                  if ((id(current).state <= cutoff_current) & (id(max_cell_voltage).state >= cutoff_voltage)) {
+                  
+                    // End Of Charge
+                    if ((!id(equalizing).state)) id(charge_status) = "EOC";
+                  
+                  }
+                  // Start Charging
+                  else {
+                    
+                    // With the "Auto Charge Current Control", the current is reduced automatically if "max_cell_voltage" approaches BMS OVPR
+                    
+                    // Balancing : the BMS is equalizing the cells
+                    if (id(equalizing).state) id(charge_status) = "Balancing";
+                    // Absorption : Max Cell V. >= Cell Absorption V.
+                    else if (id(max_cell_voltage).state >= (cell_bulk_v - cell_absorption_offset_v)) id(charge_status) = "Absorption";
+                    // Bulk
+                    else id(charge_status) = "Bulk";
+                
+                  }
+                }
+                // Discharging (!= "EOC" | != "Float")
+                else if (id(max_cell_voltage).state < (cell_bulk_v - cell_absorption_offset_v)) id(charge_status) = "Bulk";
+              }
+            }
+            // Charge OFF
+            else id(charge_status) = "Wait";
+            
+            ESP_LOGI("main", "Charge Status : %s", id(charge_status).c_str());
+            return id(charge_status);
+  # +--------------------------------------+
+  # | Charging Instruction                 |
+  # +--------------------------------------+
+  - platform: template
+    name: "${smart_bms_name} Charging Instruction"
+    id: charging_instruction
+    update_interval: ${smart_bms_template_update}
+    lambda: !lambda |-
+            // Alarm > Stop Charging
+            if ((id(alarm_status) == "OVP") | (id(alarm_status) == "UTP") | (id(alarm_status) == "COCP") | (id(alarm_status) == "OTP") | (id(alarm_status) == "BMS")){
+              return {"Stop"};
+            }
+            // Bulk Charge
+            else if ((id(charge_status) == "Bulk") | (id(charge_status) == "Force Bulk") | (id(charge_status) == "Balancing") | (id(charge_status) == "Absorption")) {
+              id(eoc) = false;                                        // SOC 100% can't be sent
+              return {"Bulk"};
+            }
+            // Float Charge
+            else if (id(charge_status) == "Float") {
+              return {"Float"};
+            }
+            // End Of Charge (EOC) > Stop Charging
+            else if (id(charge_status) == "EOC") {
+              id(eoc) = true;                                         // SOC 100% can be sent
+              id(eoc_timestamp) = id(sntp_time).utcnow().timestamp;   // Store charge completion timestamp
+              return {"Stop"};
+            }
+            // Wait
+            else return {"Stop"};
+  # +--------------------------------------+
+  # | Preventive Alarm Logic               |
+  # +--------------------------------------+
+  - platform: template
+    name: "${smart_bms_name} Preventive Alarm"
+    id: smart_bms_alarm
+    update_interval: ${smart_bms_template_update}
+    entity_category: diagnostic
+    lambda: !lambda |-
+            // Over Temp Protection > Stop Charging and Discharging
+            if (max(id(temperature_sensor_1).state, id(temperature_sensor_2).state) > ${otp}){
+              id(alarm_status) = "OTP";
+            }
+            // Under Temp Protection > Stop Charging
+            else if (min(id(temperature_sensor_1).state, id(temperature_sensor_2).state) < ${utp}){
+              id(alarm_status) = "UTP";
+            }
+            ESP_LOGI("main", "Alarm Status : %s", id(alarm_status).c_str());
+            return id(alarm_status);
+  # +--------------------------------------+
+  # | Uptime Human Readable                |
+  # +--------------------------------------+
+  - platform: template
+    name: ${smart_bms_name} Uptime Human Readable
+    id: uptime_human
+    icon: mdi:clock-start
+    entity_category: diagnostic
+
+binary_sensor:
+  # +--------------------------------------+
+  # | Discharging Instruction              |
+  # +--------------------------------------+
+  - platform: template
+    name: "${smart_bms_name} Discharging Instruction"
+    id: discharging_instruction
+    lambda: !lambda |-
+            // Alarm > Stop Discharging
+            if ((id(alarm_status) == "UVP") | (id(alarm_status) == "DOCP") | (id(alarm_status) == "OTP") | (id(alarm_status) == "BMS")) return false;
+            // BMS or ESP32 switch is OFF > Stop Discharging
+            else if ((!id(bms_switch_discharging).state) | (!id(can_switch_discharging).state)) return false;
+            // Battery voltage is low > Stop Discharging
+            else if (id(total_voltage).state <= id(requested_discharge_voltage).state) return false;
+            // Discharging Allowed
+            else return true;
