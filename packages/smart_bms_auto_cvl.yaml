@@ -49,6 +49,11 @@ sensor:
             float target_total_v = 0.0;
             float dyn_chg_v = 0.0;
 
+            //  Update of the global variable used by smart_bms.yaml
+            if ((!id(smart_bms_switch_auto_cvl).state) | (id(delta_cell_voltage).state <= cell_delta_cutoff)) {
+              id(var_auto_cvl) = -1.0;
+              return id(bulk_voltage).state;
+            } else {
             // Create array of cell voltages
             float cell_array[] = {
               id(cell_v_01).state, id(cell_v_02).state, id(cell_v_03).state, id(cell_v_04).state,
@@ -89,12 +94,11 @@ sensor:
             // Use minimum of dynamic charge voltage or bulk voltage
             dyn_chg_v = min(id(bulk_voltage).state, target_total_v);
 
-            //  Update of the global variable used by smart_bms.yaml
-            if (id(smart_bms_switch_auto_cvl).state) id(var_auto_cvl) = ceil(dyn_chg_v * 10) / 10;
-            else id(var_auto_cvl) = -1.0;
+            id(var_auto_cvl) = ceil(dyn_chg_v * 10) / 10;
 
             // Return automatic charge voltage
             return ceil(dyn_chg_v * 10) / 10;
+            }
     filters:
     - min:
         window_size: 5
