@@ -1,0 +1,102 @@
+# Version : 2024.03.21
+
+# This YAML is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+esphome:
+  on_boot:
+    then:
+      - switch.turn_on: smart_bms_switch_auto_cvl
+
+switch:
+  - platform: template
+    name: ${smart_bms_name} Automatic Charge Voltage
+    id: smart_bms_switch_auto_cvl
+    optimistic: true
+    entity_category: config
+
+sensor:
+  # +--------------------------------------+
+  # | Auto Charge Voltage Control          |
+  # +--------------------------------------+
+  - platform: template
+    name: ${smart_bms_name} Auto Charge Voltage
+    id: auto_cvl
+    update_interval: ${smart_bms_update_interval}
+    unit_of_measurement: V
+    device_class: voltage
+    internal: false
+    lambda: !lambda |-
+            // Based on logic by Matthias U and Stuart Pittaway https://github.com/stuartpittaway/diyBMSv4ESP32/blob/9a0a3ed26f2dc973d3faf3e2799a6688da3ab13e/ESPController/src/Rules.cpp
+
+            // Variables
+            float cell_delta_cutoff = 0.005;
+            float cell_uniformity = 1.0;
+            float cell_sensitivity = 1.8; // For more aggressive reponse, reduce this number.
+            float cell_bulk_v = (id(bulk_voltage).state / id(cell_count).state);
+            float cell_charge_knee_v = 3.400;
+            float actual_total_v = 0.0;
+            float target_total_v = 0.0;
+            float dyn_chg_v = 0.0;
+
+            // Create array of cell voltages
+            float cell_array[] = {
+              id(cell_v_01).state, id(cell_v_02).state, id(cell_v_03).state, id(cell_v_04).state,
+              id(cell_v_05).state, id(cell_v_06).state, id(cell_v_07).state, id(cell_v_08).state,
+              id(cell_v_09).state, id(cell_v_10).state, id(cell_v_11).state, id(cell_v_12).state,
+              id(cell_v_13).state, id(cell_v_14).state, id(cell_v_15).state, id(cell_v_16).state,
+              id(cell_v_17).state, id(cell_v_18).state, id(cell_v_19).state, id(cell_v_20).state,
+              id(cell_v_21).state, id(cell_v_22).state, id(cell_v_23).state, id(cell_v_24).state,
+            };
+            // Calculate actual total voltage
+            for(int i = 0; i < id(cell_count).state; i++) {
+              actual_total_v += cell_array[i];
+            // Set target voltage to actual voltage
+            target_total_v = actual_total_v;
+            };
+            // Calculate voltage range (R)
+            float R = min(
+              ((cell_bulk_v - id(max_cell_voltage).state) * cell_uniformity),
+              ((id(cell_ovpr).state - cell_charge_knee_v) / cell_sensitivity)
+            );
+            // Force R to 1 if value is Zero
+            if (R == 0) {
+              R = 1;
+            };
+            // Calculate HminusR and MminusH
+            float HminusR = id(max_cell_voltage).state - R;
+            float MminusH = cell_bulk_v - id(max_cell_voltage).state;
+            // Add cell voltage offset to target total voltage if possible
+            for(int i = 0; i < id(cell_count).state; i++) {
+              if (cell_array[i] >= HminusR) {
+                target_total_v += (MminusH * (cell_array[i] - HminusR) / R);
+              }
+            };
+            // Force target voltage to current voltage if cell is over target voltage
+            if (id(max_cell_voltage).state >= cell_bulk_v) {
+              dyn_chg_v = actual_total_v;
+            };
+            // Use minimum of dynamic charge voltage or bulk voltage
+            dyn_chg_v = min(id(bulk_voltage).state, target_total_v);
+
+            //  Update of the global variable used by smart_bms.yaml
+            if (id(smart_bms_switch_auto_cvl).state) id(var_auto_cvl) = ceil(dyn_chg_v * 10) / 10;
+            else id(var_auto_cvl) = -1.0;
+
+            // Return automatic charge voltage
+            return ceil(dyn_chg_v * 10) / 10;
+    filters:
+    - min:
+        window_size: 5
+        send_every: 1
+        send_first_at: 1
