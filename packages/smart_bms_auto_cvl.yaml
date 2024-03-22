@@ -50,7 +50,7 @@ sensor:
             float dyn_chg_v = 0.0;
 
             //  Update of the global variable used by smart_bms.yaml
-            if ((!id(can_switch_auto_charge_voltage).state) | (id(delta_cell_voltage).state <= cell_delta_cutoff)) {
+            if ((!id(smart_bms_switch_auto_cvl).state) | (id(delta_cell_voltage).state <= cell_delta_cutoff)) {
               id(var_auto_cvl) = -1.0;
               return id(bulk_voltage).state;
             } else {
