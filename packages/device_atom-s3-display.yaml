@@ -1,0 +1,203 @@
+# +--------------------------------------+
+# | ESP32 device settings                |
+# +--------------------------------------+
+substitutions:
+# GPIO pins your JK-BMS UART-TTL is connected to the grove port of Atom Lite
+  bms_tx_pin: GPIO1
+  bms_rx_pin: GPIO2
+# GPIO pins your CAN bus transceiver ATOMIC CANBus Base (CA-IS3050G)
+  canbus_tx_pin: GPIO5
+  canbus_rx_pin: GPIO6
+
+# For a stable Bluetooth connection keep the "esp-idf" framework
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
+output:
+  - platform: gpio
+    pin: 4
+    id: led
+    inverted: true
+
+light:
+  - platform: binary
+    output: led
+    id: can_status_led
+    name: "IR LED"
+    internal: true
+
+# +--------------------------------------+
+# | Display settings                     |
+# +--------------------------------------+
+
+# LCD 0.85"
+# GPIO15 CS
+# GPIO16 BL
+# GPIO17 SCK
+# GPIO21 MOSI
+# GPIO33 RS
+# GPIO34 LCD-RST
+# GPIO4  IR
+# GPIO41 BUTTON
+
+spi:
+  clk_pin: GPIO17
+  mosi_pin: GPIO21
+
+color:
+  - id: my_red
+    red: 100%
+    green: 0%
+    blue: 0%
+  - id: my_yellow
+    red: 100%
+    green: 100%
+    blue: 0%
+  - id: my_green
+    red: 0%
+    green: 100%
+    blue: 0%
+  - id: my_blue
+    red: 0%
+    green: 0%
+    blue: 100%
+  - id: my_gray
+    red: 50%
+    green: 50%
+    blue: 50%
+
+font:
+  - file: "gfonts://Roboto"
+    id: roboto_32
+    size: 32
+  - file: "gfonts://Roboto"
+    id: roboto_24
+    size: 24
+  - file: "gfonts://Roboto"
+    id: roboto_12
+    size: 12
+  - file: "gfonts://Roboto"
+    id: roboto_18
+    size: 18
+
+binary_sensor:
+  - platform: gpio
+    name: Atom S3 Button
+    pin:
+      number: GPIO41
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - delayed_off: 10ms
+    on_press:
+      then:
+        - logger.log: Button Pressed
+        - display.page.show_next: display
+        #- display.page.show_previous: display
+
+# +--------------------------------------+
+# | Display Handling                     |
+# +--------------------------------------+
+display:
+  - platform: st7789v # https://esphome.io/components/display/st7789v.html
+    id: display
+    model: Custom
+    backlight_pin: GPIO16
+    cs_pin: GPIO15
+    dc_pin: GPIO33
+    reset_pin: GPIO34
+    height: 128
+    width: 128
+    offset_height: 2
+    offset_width: 1
+    eightbitcolor: true
+    update_interval: 2s
+    lambda: |-
+      it.rectangle(0,  0, it.get_width(), it.get_height(), id(my_blue));
+      it.rectangle(0, 20, it.get_width(), it.get_height(), id(my_blue));   // header bar
+
+      if (id(online_status).state) {
+        it.print(115, 5, id(roboto_12), id(my_green), TextAlign::TOP_RIGHT, "BLE OK");
+      }
+      else {
+        it.print(115, 5, id(roboto_12), id(my_red), TextAlign::TOP_RIGHT, "BLE KO");
+      }
+      
+      if (id(can_bus_status).state) {
+        it.print(0, 5, id(roboto_12), id(my_green), TextAlign::TOP_LEFT, "CAN OK");
+      }
+      else {
+        it.print(0, 5, id(roboto_12), id(my_red), TextAlign::TOP_LEFT, "CAN KO");
+      }
+
+    pages:
+       - id: page1
+         lambda: |-
+           it.rectangle(0,  0, it.get_width(), it.get_height(), id(my_blue));
+           it.rectangle(0, 20, it.get_width(), it.get_height(), id(my_blue));   // header bar
+           it.rectangle(0, 100, it.get_width(), it.get_height(), id(my_blue));   // footer bar
+           it.printf(64, 118, id(roboto_18), id(my_yellow), TextAlign::CENTER, "%s", id(charging_status).state.c_str());
+           if (id(online_status).state) {
+             it.print(115, 5, id(roboto_12), id(my_green), TextAlign::TOP_RIGHT, "BLE OK");
+           }
+           else {
+             it.print(115, 5, id(roboto_12), id(my_red), TextAlign::TOP_RIGHT, "BLE KO");
+           }
+            if (id(can_bus_status).state) {
+            it.print(0, 5, id(roboto_12), id(my_green), TextAlign::TOP_LEFT, "CAN OK");
+           }
+           else {
+             it.print(0, 5, id(roboto_12), id(my_red), TextAlign::TOP_LEFT, "CAN KO");
+           }
+          
+           it.print((128 / 2), (128 / 3) * 1, id(roboto_24), id(my_gray), TextAlign::CENTER,"SoC %");
+           it.printf((128 / 2), (128 / 3) * 2 - 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%.1f", id(state_of_charge).state);
+       - id: page2
+         lambda: |-
+           it.rectangle(0,  0, it.get_width(), it.get_height(), id(my_blue));
+           it.rectangle(0, 20, it.get_width(), it.get_height(), id(my_blue));   // header bar
+           it.rectangle(0, 100, it.get_width(), it.get_height(), id(my_blue));   // footer bar
+           it.printf(64, 118, id(roboto_18), id(my_yellow), TextAlign::CENTER, "%s", id(charging_status).state.c_str());
+           if (id(online_status).state) {
+             it.print(115, 5, id(roboto_12), id(my_green), TextAlign::TOP_RIGHT, "BLE OK");
+           }
+           else {
+             it.print(115, 5, id(roboto_12), id(my_red), TextAlign::TOP_RIGHT, "BLE KO");
+           }
+            if (id(can_bus_status).state) {
+            it.print(0, 5, id(roboto_12), id(my_green), TextAlign::TOP_LEFT, "CAN OK");
+           }
+           else {
+             it.print(0, 5, id(roboto_12), id(my_red), TextAlign::TOP_LEFT, "CAN KO");
+           }      
+           it.print((128 / 2), (128 / 3) * 1, id(roboto_24), id(my_gray), TextAlign::CENTER,"Current A");
+           it.printf((128 / 2), (128 / 3) * 2 - 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%.1f", id(current).state);
+       - id: page3
+         lambda: |-
+           it.rectangle(0,  0, it.get_width(), it.get_height(), id(my_blue));
+           it.rectangle(0, 20, it.get_width(), it.get_height(), id(my_blue));   // header bar
+           it.rectangle(0, 100, it.get_width(), it.get_height(), id(my_blue));   // footer bar
+           it.printf(64, 118, id(roboto_18), id(my_yellow), TextAlign::CENTER, "%s", id(charging_status).state.c_str());
+           if (id(online_status).state) {
+             it.print(115, 5, id(roboto_12), id(my_green), TextAlign::TOP_RIGHT, "BLE OK");
+           }
+           else {
+             it.print(115, 5, id(roboto_12), id(my_red), TextAlign::TOP_RIGHT, "BLE KO");
+           }
+            if (id(can_bus_status).state) {
+            it.print(0, 5, id(roboto_12), id(my_green), TextAlign::TOP_LEFT, "CAN OK");
+           }
+           else {
+             it.print(0, 5, id(roboto_12), id(my_red), TextAlign::TOP_LEFT, "CAN KO");
+           }          
+           it.print((128 / 2), (128 / 3) * 1 + 5, id(roboto_24), id(my_gray), TextAlign::CENTER,"Voltage V");
+           it.printf((128 / 2), (128 / 3) * 2 - 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%.1f", id(total_voltage).state);  
+          
