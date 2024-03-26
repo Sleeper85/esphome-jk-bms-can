@@ -69,6 +69,9 @@ substitutions:
   # A setting below 1 will reduce current at a slow rate after the float voltage is reached, then increase as a cell reaches the BMS "cell_voltage_overvoltage_recovery".
   # A factor above 1 will reduce current at a fast rate after the float voltage is reached, then slow as a cell reaches the BMS "cell_voltage_overvoltage_recovery".
   charge_a_factor_curve_shape: "1.8"
+  # Factor to adjust the aggression of the auto voltage control logic.
+  # The higher the setting, the more that requested charge voltage will reduce as cells exceed the target voltage (bulk voltage).
+  charge_v_factor: "2.0"
 # +--------------------------------------+
 # | Battery Discharge Settings           |
 # +--------------------------------------+
@@ -772,19 +775,16 @@ sensor:
     unit_of_measurement: V
     device_class: voltage
     internal: true
-    lambda: !lambda |-
-            // Based on logic by Matthias U and Stuart Pittaway https://github.com/stuartpittaway/diyBMSv4ESP32/blob/9a0a3ed26f2dc973d3faf3e2799a6688da3ab13e/ESPController/src/Rules.cpp
+    lambda: !lambda |-a
             // Variables
-            float cell_delta_cutoff = 0.005;
-            float cell_uniformity = 1.0;
-            float cell_sensitivity = 1.8; // For more aggressive reponse, reduce this number.
+            float charge_v_factor = ${charge_v_factor};
             float cell_bulk_v = (id(bulk_voltage).state / id(cell_count).state);
-            float cell_charge_knee_v = 3.400;
-            float actual_total_v = 0.0;
-            float target_total_v = 0.0;
-            float dyn_chg_v = 0.0;
-            // Check feature enabled or if cell delta is above cutoff (this reduces requested voltage oscillation at near zero delta)
-            if ((!id(can_switch_auto_charge_voltage).state) | (id(delta_cell_voltage).state <= cell_delta_cutoff)) {
+            float target_total_v = 0;
+            float excess_v = 0;
+            float offset_v = 0;
+            float dyn_chg_v = 0;
+            // Check feature enabled or if any cells are at / above bulk voltage
+            if ((!id(can_switch_auto_charge_voltage).state) | (id(max_cell_voltage).state < cell_bulk_v)){
               return id(bulk_voltage).state;
             } else {
             // Create array of cell voltages
@@ -798,31 +798,15 @@ sensor:
             };
             // Calculate actual total voltage
             for(int i = 0; i < id(cell_count).state; i++) {
-              actual_total_v += cell_array[i];
-            // Set target voltage to actual voltage
-            target_total_v = actual_total_v;
+              target_total_v += cell_array[i];
             };
-            // Calculate voltage range (R)
-            float R = min(
-              ((cell_bulk_v - id(max_cell_voltage).state) * cell_uniformity),
-              ((id(cell_ovpr).state - cell_charge_knee_v) / cell_sensitivity)
-            );
-            // Force R to 1 if value is Zero
-            if (R == 0) {
-              R = 1;
-            };
-            // Calculate HminusR and MminusH
-            float HminusR = id(max_cell_voltage).state - R;
-            float MminusH = cell_bulk_v - id(max_cell_voltage).state;
             // Add cell voltage offset to target total voltage if possible
             for(int i = 0; i < id(cell_count).state; i++) {
-              if (cell_array[i] >= HminusR) {
-                target_total_v += (MminusH * (cell_array[i] - HminusR) / R);
+              if (cell_array[i] >= cell_bulk_v) {
+                excess_v = cell_array[i] - cell_bulk_v;
+                offset_v = (pow(excess_v,2))*(charge_v_factor*-100);
+                target_total_v += offset_v;
               }
-            };
-            // Force target voltage to current voltage if cell is over target voltage
-            if (id(max_cell_voltage).state >= cell_bulk_v) {
-              dyn_chg_v = actual_total_v;
             };
             // Use minimum of dynamic charge voltage or bulk voltage
             dyn_chg_v = min(id(bulk_voltage).state, target_total_v);
@@ -830,11 +814,6 @@ sensor:
             return ceil(dyn_chg_v * 10) / 10;
             }
     update_interval: 1s
-    filters:
-    - min:
-        window_size: 5
-        send_every: 1
-        send_first_at: 1
 
 text_sensor:
   - platform: jk_bms
