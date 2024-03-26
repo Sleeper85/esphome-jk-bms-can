@@ -37,7 +37,7 @@ The CAN bus support is still in development and testing...<br>**
 
 ## Charging Logic Diagram
 
-The charging voltage and current correspond to the default values in the YAML script and can be modified.
+The charging voltage and current correspond to the default values in the YAML script and can be modified.  
 When Auto Charge / Discharge Current or Auto Charge Voltage are enabled, these default values will be automatically adjusted based on cell voltages.
 
 [Cut-Off Charging Logic](documents/README/Cut-Off_Charging_Logic.md) (what's happening in the yellow diamond)  
