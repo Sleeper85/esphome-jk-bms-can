@@ -28,3 +28,10 @@ esp32:
 
 logger:
   hardware_uart: USB_SERIAL_JTAG
+
+# You must also change the GPIO of the LED, replace 2 with 35
+output:
+  - platform: gpio
+    pin: 35
+    id: led
+    inverted: true
