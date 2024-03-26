@@ -744,7 +744,7 @@ sensor:
     unit_of_measurement: V
     device_class: voltage
     internal: true
-    lambda: !lambda |
+    lambda: !lambda |-
             // Variables
             float charge_v_factor = ${charge_v_factor};
             float cell_bulk_v = (id(bulk_voltage).state / id(cell_count).state);
