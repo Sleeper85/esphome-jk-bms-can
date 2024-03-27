@@ -81,9 +81,9 @@ substitutions:
   # Factor to adjust the aggression of the auto voltage control logic.
   # The higher the setting, the more that requested charge voltage will reduce as cells exceed the target voltage (bulk voltage).
   charge_v_factor: "2.0"
-  # Factor to adjust the aggression of the auto voltage control logic.
-  # The higher the setting, the more that requested charge voltage will reduce as cells exceed the target voltage (bulk voltage).
-  charge_v_factor: "2.0"
+  # End of charge (EOC) will be triggered if current and max cell voltage meet cut-off thresholds, plus the cycle count exceeds the below threshold.
+  # As default, this cycle count is set to 60 which is approximately 60 seconds. This will reduce the liklihood of premature EOC.
+  eoc_cycle_threshold: "60"
 # +--------------------------------------+
 # | Battery Discharge Settings           |
 # +--------------------------------------+
