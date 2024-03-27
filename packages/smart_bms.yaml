@@ -194,7 +194,7 @@ sensor:
                    return  {str};
     entity_category: diagnostic
   # +--------------------------------------+
-  # | Requested Charge Voltage             |
+  # |  Requested Charge Voltage  (CVL)     |
   # +--------------------------------------+
   - platform: template
     name: ${smart_bms_name} Requested Charge Voltage
@@ -213,7 +213,7 @@ sensor:
             // Stop Charging
             else return id(rebulk_voltage).state;
   # +--------------------------------------+
-  # | Requested Charge Current             |
+  # |  Requested Charge Current  (CCL)     |
   # +--------------------------------------+
   - platform: template
     name: ${smart_bms_name} Requested Charge Current
@@ -228,9 +228,9 @@ sensor:
               else return id(var_auto_ccl);
             }
             // Stop Charging
-            else return id(rebulk_voltage).state;
+            else return 0;
   # +--------------------------------------+
-  # | Requested Discharge Voltage          |
+  # |  Requested Discharge Voltage  (DVL)  |
   # +--------------------------------------+
   - platform: template
     name: ${smart_bms_name} Requested Discharge Voltage
@@ -240,7 +240,7 @@ sensor:
     update_interval: ${smart_bms_update_interval}
     lambda: return (id(cell_uvpr).state * id(cell_count).state);
   # +--------------------------------------+
-  # | Requested Discharge Current          |
+  # |  Requested Discharge Current  (DCL)  |
   # +--------------------------------------+
   - platform: template
     name: ${smart_bms_name} Requested Discharge Current
@@ -473,3 +473,4 @@ binary_sensor:
             else if (id(total_voltage).state <= id(requested_discharge_voltage).state) return false;
             // Discharging Allowed
             else return true;
+          
