@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
+# v1.17.5 MrPablo   : "Auto Charge Voltage Control" function rewritten, EOC cycle threshold added to reduce premature triggering of float phase
 # V1.17.4 MrPablo   : Added "SMA" to CAN BMS names, added function "Auto Charge Voltage Control" to avoid OVP alarms and improve balancing, categorised sensors, set time source to SNTP, min battery voltage based on BMS value, added "Last Complete Charge" timestamp, renamed daily energy sensors and added input number display option
 # V1.17.3 Sleeper85 : Renumbering cells, Added “JK-BMS ESP32 Restart” switch, adding Total Daily Energy sensors, set jk_bms update interval to 3s, set default log level to INFO, improvement of comments
 # V1.17.2 MrPablo   : Added function "Auto Charge/Discharge Current Control" to avoid OVP/UVP alarms
@@ -1213,6 +1214,7 @@ interval:
                         float cell_bulk_v = (id(bulk_voltage).state / id(cell_count).state);
                         float cell_rebulk_v = (id(rebulk_voltage).state / id(cell_count).state);
                         float cell_absorption_offset_v = (id(absorption_offset).state / id(cell_count).state);
+                        static int num_executions = 0;
                         
                         // Force Bulk Logic
                         if (id(can_switch_force_bulk).state) {
@@ -1233,25 +1235,32 @@ interval:
                         
                           // Charging
                           if (id(current).state >= 0) {
-
+                            
                             float cv_min = 3.37;
                             float cv_max = 3.65;
                             float cutoff_current = (id(battery_capacity).state * 0.05 * (cell_bulk_v - cv_min) / (cv_max - cv_min));
                             float cutoff_voltage = (cv_min + (cv_max - cv_min)/(0.05 + cell_absorption_offset_v) * (id(current).state / id(battery_capacity).state));
                             
                             ESP_LOGI("main", "Cut-Off Current : %f", cutoff_current);
-                            ESP_LOGI("main", "Cut-Off Voltage : %f", cutoff_voltage);
+                            ESP_LOGI("main", "Cut-Off Voltage : %f", cutoff_voltage);                                                                                     
                           
                             // Stop Charging
                             if ((id(current).state <= cutoff_current) & (id(max_cell_voltage).state >= cutoff_voltage)) {
                             
                               // End Of Charge
-                              if ((!id(equalizing).state)) id(charge_status) = "EOC";
+                              if ((!id(equalizing).state)) {
+                                num_executions += 1;
+                                ESP_LOGI("main", "EOC Cycle Count : %i", num_executions);
+                                if (num_executions > ${eoc_cycle_threshold}) {
+                                  num_executions = 0;
+                                  id(charge_status) = "EOC";
+                                }
+                              }
                             
                             }
                             // Start Charging
                             else {
-                              
+                              num_executions = 0;
                               // With the "Auto Charge Current Control", the current is reduced automatically if "max_cell_voltage" approaches BMS OVPR
                               
                               // Balancing : the BMS is equalizing the cells
