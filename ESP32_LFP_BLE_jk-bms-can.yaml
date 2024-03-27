@@ -81,6 +81,9 @@ substitutions:
   # Factor to adjust the aggression of the auto voltage control logic.
   # The higher the setting, the more that requested charge voltage will reduce as cells exceed the target voltage (bulk voltage).
   charge_v_factor: "2.0"
+  # Factor to adjust the aggression of the auto voltage control logic.
+  # The higher the setting, the more that requested charge voltage will reduce as cells exceed the target voltage (bulk voltage).
+  charge_v_factor: "2.0"
 # +--------------------------------------+
 # | Battery Discharge Settings           |
 # +--------------------------------------+
