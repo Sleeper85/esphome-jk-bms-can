@@ -10,16 +10,9 @@
 # +--------------------------------------+
 # | ESP32 CAN/serial port pins           |
 # +--------------------------------------+
-# GPIO pins your CAN bus transceiver
-# Using ATOMIC CANBus Base (CA-IS3050G) - SKU: A103
+# GPIO pins your CAN bus transceiver ATOMIC CANBus Base (CA-IS3050G)
   can_tx_pin: GPIO5
   can_rx_pin: GPIO6
-
-# Using CANBus Unit (CA-IS3050G) - SKU: U085
-  can_tx_pin: GPIO2
-  can_rx_pin: GPIO1
-
-
 # GPIO pins your JK-BMS UART-TTL is connected to the grove port of Atom Lite
   tx_pin: GPIO1
   rx_pin: GPIO2
