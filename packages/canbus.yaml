@@ -59,6 +59,19 @@ select:
           format: "Chosen option: %s"
           args: ["x.c_str()"]
 
+output:
+  - platform: gpio
+    pin: ${canbus_status_led}
+    id: led
+    inverted: true
+
+light:
+  - platform: binary
+    output: led
+    id: can_status_led
+    name: "${canbus_name} Status LED"
+    internal: true
+
 binary_sensor:
   - platform: template
     name: "${canbus_name} Status"

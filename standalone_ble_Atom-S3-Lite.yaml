@@ -101,7 +101,8 @@ packages:
     vars:
       canbus_name: 'CANBUS'
       canbus_suffix: ''
-      canbus_tx_pin: GPIO5
-      canbus_rx_pin: GPIO6
+      canbus_tx_pin: 5
+      canbus_rx_pin: 6
+      canbus_status_led: 35
       # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after sending 30 CAN IDs.
       canbus_max_no_ack: "30"

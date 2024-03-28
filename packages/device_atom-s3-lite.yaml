@@ -1,15 +1,3 @@
-# +--------------------------------------+
-# | ESP32 device settings                |
-# +--------------------------------------+
-substitutions:
-# GPIO pins your JK-BMS UART-TTL is connected to the grove port of Atom Lite
-  bms_tx_pin: GPIO1
-  bms_rx_pin: GPIO2
-# GPIO pins your CAN bus transceiver ATOMIC CANBus Base (CA-IS3050G)
-  canbus_tx_pin: GPIO5
-  canbus_rx_pin: GPIO6
- 
-# For a stable Bluetooth connection keep the "esp-idf" framework
 esp32:
   board: esp32-s3-devkitc-1
   variant: esp32s3
@@ -18,16 +6,3 @@ esp32:
 
 logger:
   hardware_uart: USB_SERIAL_JTAG
-
-output:
-  - platform: gpio
-    pin: 35
-    id: led
-    inverted: true
-
-light:
-  - platform: binary
-    output: led
-    id: can_status_led
-    name: "RGB LED"
-    internal: true
