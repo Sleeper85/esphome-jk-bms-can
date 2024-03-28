@@ -71,8 +71,11 @@ substitutions:
   # A factor above 1 will reduce current at a fast rate after the float voltage is reached, then slow as a cell reaches the BMS "cell_voltage_overvoltage_recovery".
   charge_a_factor_curve_shape: "1.8"
   # Factor to adjust the aggression of the auto voltage control logic.
-  # The higher the setting, the more that requested charge voltage will reduce as cells exceed the target voltage (bulk voltage).
-  charge_v_factor: "2.0"
+  # The higher the setting, the greater the voltage penalty applied to cells exceeding the target voltage (bulk voltage).
+  charge_v_factor: "1.5"
+  # Factor to adjust the speed of the auto voltage control logic.
+  # The higher the setting, the longer the period of time that voltage changes are applied over.
+  charge_t_factor: "5"
   # End of charge (EOC) will be triggered if current and max cell voltage meet cut-off thresholds, plus the cycle count exceeds the below threshold.
   # As default, this cycle count is set to 60 which is approximately 60 seconds. This will reduce the liklihood of premature EOC.
   eoc_cycle_threshold: "60"
@@ -808,7 +811,7 @@ sensor:
             for(int i = 0; i < id(cell_count).state; i++) {
               if (cell_array[i] >= cell_bulk_v) {
                 excess_v = cell_array[i] - cell_bulk_v;
-                offset_v = (pow(excess_v,2))*(charge_v_factor*-100);
+                offset_v = excess_v * charge_v_factor;
                 target_total_v += offset_v;
               }
             };
@@ -818,6 +821,11 @@ sensor:
             return ceil(dyn_chg_v * 10) / 10;
             }
     update_interval: 1s
+    filters:    
+    - sliding_window_moving_average:
+        send_every: 1
+        send_first_at: 1
+        window_size: ${charge_t_factor}
 
 text_sensor:
   - platform: jk_bms
