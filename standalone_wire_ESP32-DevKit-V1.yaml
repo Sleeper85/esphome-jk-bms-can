@@ -63,6 +63,7 @@ packages:
   bms: !include
     file: packages/bms_jk-bms_wire.yaml
     vars:
+      bms_id: 'bms1'
       bms_name: 'JK-BMS'
       bms_update_interval: "3s"
       bms_tx_pin: 17
@@ -71,6 +72,12 @@ packages:
   smart_bms: !include
     file: packages/smart_bms.yaml
     vars:
+      # BMS IDs
+      bms_id_1: 'bms1'
+      bms_id_2: 'bms2'
+      bms_id_3: ''
+      # Smart BMS vars
+      smart_bms_id: 'smartbms1'
       smart_bms_name: 'Smart BMS'
       smart_bms_suffix: ''
       smart_bms_update_interval: "1s"
@@ -92,13 +99,16 @@ packages:
       smart_bms_inverter_offset_v: "0.0"
       # Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
       smart_bms_max_cycles: "6000.0"
-      # LFP settings
-      smart_bms_cutoff_cvmin: "3.37"
-      smart_bms_cutoff_cvmax: "3.65"
+      # Cutoff Charging Logic
+      smart_bms_cutoff_cvmin: "3.37" # LFP 3.37 - Li-ion 3.90
+      smart_bms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
 
   canbus: !include
     file: packages/canbus.yaml
     vars:
+      # Smart BMS ID
+      smart_bms_id: 'smartbms1'
+      # CANBUS vars
       canbus_name: 'CANBUS'
       canbus_suffix: ''
       canbus_tx_pin: 23

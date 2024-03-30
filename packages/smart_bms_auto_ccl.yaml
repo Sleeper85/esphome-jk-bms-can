@@ -1,4 +1,4 @@
-# Version : 2024.03.21
+# Version : 2024.03.31
 
 # This YAML is free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License
@@ -29,12 +29,12 @@ substitutions:
 esphome:
   on_boot:
     then:
-      - switch.turn_on: smart_bms_switch_auto_ccl
+      - switch.turn_on: ${smart_bms_id}_switch_auto_ccl
 
 switch:
   - platform: template
     name: ${smart_bms_name} Automatic Charge Current
-    id: smart_bms_switch_auto_ccl
+    id: ${smart_bms_id}_switch_auto_ccl
     optimistic: true
     entity_category: config
 
@@ -79,9 +79,9 @@ sensor:
     unit_of_measurement: A
     device_class: current
     accuracy_decimals: 1
-    internal: false
+    internal: true
     filters:
     - lambda: !lambda |-
-              if (id(smart_bms_switch_auto_ccl).state) id(var_auto_ccl) = (round(min(id(auto_ccl_moving_average).state, x) * 10) / 10);
-              else id(var_auto_ccl) = -1.0; // Auto CCL not used
+              if (id(${smart_bms_id}_switch_auto_ccl).state) id(${smart_bms_id}_auto_ccl) = (round(min(id(auto_ccl_moving_average).state, x) * 10) / 10);
+              else id(${smart_bms_id}_auto_ccl) = -1.0; // Auto CCL not used
               return (round(min(id(auto_ccl_moving_average).state, x) * 10) / 10);

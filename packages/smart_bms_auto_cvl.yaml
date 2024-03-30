@@ -1,4 +1,4 @@
-# Version : 2024.03.21
+# Version : 2024.03.31
 
 # This YAML is free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License
@@ -24,12 +24,12 @@ substitutions:
 esphome:
   on_boot:
     then:
-      - switch.turn_on: smart_bms_switch_auto_cvl
+      - switch.turn_on: ${smart_bms_id}_switch_auto_cvl
 
 switch:
   - platform: template
     name: ${smart_bms_name} Automatic Charge Voltage
-    id: smart_bms_switch_auto_cvl
+    id: ${smart_bms_id}_switch_auto_cvl
     optimistic: true
     entity_category: config
 
@@ -55,8 +55,8 @@ sensor:
             float dyn_chg_v = 0;
 
             //  Update of the global variable used by smart_bms.yaml (includes if any cells are at / above bulk voltage)
-            if ((!id(smart_bms_switch_auto_cvl).state) | (id(max_cell_voltage).state < cell_bulk_v)) {
-              id(var_auto_cvl) = -1.0;
+            if ((!id(${smart_bms_id}_switch_auto_cvl).state) | (id(max_cell_voltage).state < cell_bulk_v)) {
+              id(${smart_bms_id}_auto_cvl) = -1.0;
               return id(bulk_voltage).state;
             } else {
             // Create array of cell voltages

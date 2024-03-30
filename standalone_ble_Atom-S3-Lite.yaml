@@ -92,9 +92,9 @@ packages:
       smart_bms_inverter_offset_v: "0.0"
       # Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
       smart_bms_max_cycles: "6000.0"
-      # LFP settings
-      smart_bms_cutoff_cvmin: "3.37"
-      smart_bms_cutoff_cvmax: "3.65"
+      # Cutoff Charging Logic
+      smart_bms_cutoff_cvmin: "3.37" # LFP 3.37 - Li-ion 3.90
+      smart_bms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
 
   canbus: !include
     file: packages/canbus.yaml
