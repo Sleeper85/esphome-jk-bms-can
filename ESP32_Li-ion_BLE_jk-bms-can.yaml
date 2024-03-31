@@ -779,7 +779,7 @@ sensor:
             // Add cell voltage offset to target total voltage if possible
             for(int i = 0; i < id(cell_count).state; i++) {
               if (cell_array[i] >= cell_bulk_v) {
-                excess_v = cell_array[i] - cell_bulk_v;
+                excess_v = cell_bulk_v - cell_array[i];
                 offset_v = excess_v * charge_v_factor;
                 target_total_v += offset_v;
               }
