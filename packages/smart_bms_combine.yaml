@@ -1,0 +1,478 @@
+# Version : 2024.04.01
+
+# This YAML is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+switch:
+# Combine Enable-Switch (user controlled switch to en/dis-able combine)
+ #Shunt
+  - platform: template
+    name: "${smart_bms_name} Combine Enable Shunt"
+    id: ${shunt_id}_switch_combine
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+ #BMS1
+  - platform: template
+    name: "${smart_bms_name} Combine Enable BMS1"
+    id: ${bms_id_1}_switch_combine
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+ #BMS2
+  - platform: template
+    name: "${smart_bms_name} Combine Enable BMS2"
+    id: ${bms_id_2}_switch_combine
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+ #BMS3
+  - platform: template
+    name: "${smart_bms_name} Combine Enable BMS3"
+    id: ${bms_id_3}_switch_combine
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+binary_sensor:
+# Combine Availability (indicated, if the device is able to be included in combine)
+  #Shunt
+  - platform: template
+    name: "${smart_bms_name} Combine Availability Shunt"
+    id: ${shunt_id}_availability
+    lambda: return (id(shunt_uart_connected).state == 1);
+  #BMS1
+  - platform: template
+    name: "${smart_bms_name} Combine Availability BMS1"
+    id: ${bms_id_1}_availability
+    lambda: return ((id(${bms_id_1}_switch_charging).state) && (id(${bms_id_1}_switch_discharging).state) && (id(${bms_id_1}_errors_bitmask).state == 0));
+  #BMS2
+  - platform: template
+    name: "${smart_bms_name} Combine Availability BMS2"
+    id: ${bms_id_2}_availability
+    lambda: return ((id(${bms_id_2}_switch_charging).state) && (id(${bms_id_2}_switch_discharging).state) && (id(${bms_id_2}_errors_bitmask).state == 0));
+  #BMS3
+  - platform: template
+    name: "${smart_bms_name} Combine Availability BMS3"
+    id: ${bms_id_3}_availability
+    lambda: return ((id(${bms_id_3}_switch_charging).state) && (id(${bms_id_3}_switch_discharging).state) && (id(${bms_id_3}_errors_bitmask).state == 0));
+
+# Combine Status (indicated, if the device is included in combine)
+  #Shunt
+  - platform: template
+    name: "${smart_bms_name} Combine status Shunt"
+    id: ${shunt_id}_combine
+    lambda: return ((id(${shunt_id}_availability).state) && (id(${shunt_id}_switch_combine).state));
+  #BMS1
+  - platform: template
+    name: "${smart_bms_name} Combine status BMS1"
+    id: ${bms_id_1}_combine
+    lambda: return ((id(${bms_id_1}_availability).state) && (id(${bms_id_1}_switch_combine).state));
+  #BMS2
+  - platform: template
+    name: "${smart_bms_name} Combine status BMS2"
+    id: ${bms_id_2}_combine
+    lambda: return ((id(${bms_id_2}_availability).state) && (id(${bms_id_2}_switch_combine).state));
+  #BMS3
+  - platform: template
+    name: "${smart_bms_name} Combine status BMS3"
+    id: ${bms_id_3}_combine
+    lambda: return ((id(${bms_id_3}_availability).state) && (id(${bms_id_3}_switch_combine).state));
+
+# BMS sensors
+  # Balancing state (global = true if any BMS is balancing)
+  - platform: template
+    name: "${smart_bms_name} Equalizing State"
+    id: ${smart_bms_id}_equalizing
+    lambda: |-
+      bool global_state = false;
+      if ((id(${bms_id_1}_combine).state && id(${bms_id_1}_equalizing).state)) global_state = true;
+      if ((id(${bms_id_2}_combine).state && id(${bms_id_2}_equalizing).state)) global_state = true;
+      if ((id(${bms_id_3}_combine).state && id(${bms_id_3}_equalizing).state)) global_state = true;
+      return global_state;
+
+sensor:
+  # max_charge_current SUM
+  - platform: template
+    id: ${smart_bms_id}_max_charge_current
+    name: "${smart_bms_name} Max Charge current (Σ)"
+    update_interval: 1s
+    accuracy_decimals: 0
+    unit_of_measurement: A
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_max_charge_current).state;
+      float bms2_value = id(${bms_id_2}_max_charge_current).state;
+      float bms3_value = id(${bms_id_3}_max_charge_current).state;
+      float sum = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) sum += bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) sum += bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) sum += bms3_value;
+      return sum;
+
+  # max_discharge_current SUM
+  - platform: template
+    id: ${smart_bms_id}_max_discharge_current
+    name: "${smart_bms_name} Max Discharge Current (Σ)"
+    update_interval: 1s
+    accuracy_decimals: 0
+    unit_of_measurement: A
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_max_discharge_current).state;
+      float bms2_value = id(${bms_id_2}_max_discharge_current).state;
+      float bms3_value = id(${bms_id_3}_max_discharge_current).state;
+      float sum = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) sum += bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) sum += bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) sum += bms3_value;
+      return sum;
+
+  #min_cell_voltage MIN
+  - platform: template
+    id: ${smart_bms_id}_min_cell_voltage
+    name: "${smart_bms_name} Min Cell Voltage"
+    update_interval: 1s
+    accuracy_decimals: 3
+    unit_of_measurement: V
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_min_cell_voltage).state;
+      float bms2_value = id(${bms_id_2}_min_cell_voltage).state;
+      float bms3_value = id(${bms_id_3}_min_cell_voltage).state;
+      float min = 999;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value) && (bms1_value < min )) min = bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value) && (bms2_value < min )) min = bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value) && (bms3_value < min )) min = bms3_value;
+      if (min == 999) min = 0;
+      return min;
+
+  #max_cell_voltage MAX
+  - platform: template
+    id: ${smart_bms_id}_max_cell_voltage
+    name: "${smart_bms_name} Max Cell Voltage"
+    update_interval: 1s
+    accuracy_decimals: 3
+    unit_of_measurement: V
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_max_cell_voltage).state;
+      float bms2_value = id(${bms_id_2}_max_cell_voltage).state;
+      float bms3_value = id(${bms_id_3}_max_cell_voltage).state;
+      float max = -999;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value) && (bms1_value > max )) max = bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value) && (bms2_value > max )) max = bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value) && (bms3_value > max )) max = bms3_value;
+      if (max == -999) max = 0;
+      return max;
+
+  #total_voltage MEAN
+  - platform: template
+    id: ${smart_bms_id}_total_voltage
+    name: "${smart_bms_name} Total Voltage (Ø)"
+    update_interval: 1s
+    accuracy_decimals: 2
+    unit_of_measurement: V
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_total_voltage).state;
+      float bms2_value = id(${bms_id_2}_total_voltage).state;
+      float bms3_value = id(${bms_id_3}_total_voltage).state;
+      float shunt_value = id(shunt_total_voltage).state; //overrides all other values if !isnan & available & enabled
+      float sum = 0;
+      int count = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) { sum += bms1_value; count++; }
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) { sum += bms2_value; count++; }
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) { sum += bms3_value; count++; }
+      if (id(${shunt_id}_combine).state && !isnan(shunt_value)) { sum = shunt_value; count = 1; }
+      if (count)
+        sum /= count;
+      return sum;
+
+  #current SUM
+  - platform: template
+    id: ${smart_bms_id}_current
+    name: "${smart_bms_name} Current (Σ)"
+    update_interval: 1s
+    unit_of_measurement: A
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_current).state;
+      float bms2_value = id(${bms_id_2}_current).state;
+      float bms3_value = id(${bms_id_3}_current).state;
+      float shunt_value = id(shunt_current).state; // overrides all other values if !isnan & available & enabled
+      float sum = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) sum += bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) sum += bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) sum += bms3_value;
+      if (id(${shunt_id}_combine).state && !isnan(shunt_value)) sum = shunt_value;
+      return sum;
+
+  #power SUM
+  - platform: template
+    id: ${smart_bms_id}_power
+    name: "${smart_bms_name} Power (Σ)"
+    update_interval: 1s
+    accuracy_decimals: 0
+    unit_of_measurement: W
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_power).state;
+      float bms2_value = id(${bms_id_2}_power).state;
+      float bms3_value = id(${bms_id_3}_power).state;
+      float shunt_value = id(shunt_power).state; // overrides all other values if !isnan & available & enabled
+      float sum = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) sum += bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) sum += bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) sum += bms3_value;
+      if (id(${shunt_id}_combine).state && !isnan(shunt_value)) sum = shunt_value;
+      return sum;
+
+  #temperature_sensor_1 MIN_MAX                                                               #not implemented jet
+    # - platform: template
+    #   id: ${smart_bms_id}_temperature_sensor_1
+    #   name: "${smart_bms_name} temperature_sensor_1"
+    #   update_interval: 1s
+    #   accuracy_decimals: 2
+    #   unit_of_measurement: °C
+  #temperature_sensor_2 MIN_MAX                                                               #not implemented jet
+    # - platform: template
+    #   id: ${smart_bms_id}_temperature_sensor_2
+    #   name: "${smart_bms_name} temperature_sensor_2"
+    #   update_interval: 1s
+    #   accuracy_decimals: 2
+    #   unit_of_measurement: °C
+  #power_tube_temperature MIN_MAX                                                             #not implemented jet
+    # - platform: template
+    #   id: ${smart_bms_id}_power_tube_temperature
+    #   name: "${smart_bms_name} power_tube_temperature"
+    #   update_interval: 1s
+    #   accuracy_decimals: 2
+    #   unit_of_measurement: °C
+
+  #state_of_charge MEAN
+  - platform: template
+    id: ${smart_bms_id}_state_of_charge
+    name: "${smart_bms_name} SOC (Ø)"
+    update_interval: 1s
+    accuracy_decimals: 0
+    unit_of_measurement: '%'
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_state_of_charge).state;
+      float bms2_value = id(${bms_id_2}_state_of_charge).state;
+      float bms3_value = id(${bms_id_3}_state_of_charge).state;
+      float shunt_value = id(shunt_state_of_charge).state; // overrides all other values if !isnan & available & enabled
+      float sum = 0;
+      int count = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) { sum += bms1_value; count++; }
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) { sum += bms2_value; count++; }
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) { sum += bms3_value; count++; }
+      if (id(${shunt_id}_combine).state && !isnan(shunt_value)) { sum = shunt_value; count = 1; }
+      if (count)
+        sum /= count;
+      return sum;
+
+  #capacity_remaining_ah SUM
+  - platform: template
+    id: ${smart_bms_id}_capacity_remaining_ah
+    name: "${smart_bms_name} Capacity Remaining (Σ)"
+    update_interval: 1s
+    accuracy_decimals: 0
+    unit_of_measurement: Ah
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_capacity_remaining_ah).state;
+      float bms2_value = id(${bms_id_2}_capacity_remaining_ah).state;
+      float bms3_value = id(${bms_id_3}_capacity_remaining_ah).state;
+      float sum = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) sum += bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) sum += bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) sum += bms3_value;
+      return sum;
+
+  #battery_capacity SUM
+  - platform: template
+    id: ${smart_bms_id}_battery_capacity
+    name: "${smart_bms_name} Battery Capacity Total (Σ)"
+    update_interval: 1s
+    accuracy_decimals: 0
+    unit_of_measurement: Ah
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_battery_capacity).state;
+      float bms2_value = id(${bms_id_2}_battery_capacity).state;
+      float bms3_value = id(${bms_id_3}_battery_capacity).state;
+      float sum = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) sum += bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) sum += bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) sum += bms3_value;
+      return sum;
+
+  #charging_cycles MEAN
+  - platform: template
+    id: ${smart_bms_id}_charging_cycles
+    name: "${smart_bms_name} Charging Cycles (Ø)"
+    update_interval: 1s
+    accuracy_decimals: 0
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: |-
+      float sum = 0;
+      int count = 0;
+      if (id(${bms_id_1}_combine).state) { sum += id(${bms_id_1}_charging_cycles).state; count++; }
+      if (id(${bms_id_2}_combine).state) { sum += id(${bms_id_2}_charging_cycles).state; count++; }
+      if (id(${bms_id_3}_combine).state) { sum += id(${bms_id_3}_charging_cycles).state; count++; }
+      if (count)
+        sum /= count;
+      return sum;
+
+  #cell_ovp MIN
+  - platform: template
+    id: ${smart_bms_id}_cell_ovp
+    name: "${smart_bms_name} Cell OVP (MIN)"
+    update_interval: 1s
+    accuracy_decimals: 3
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_cell_ovp).state;
+      float bms2_value = id(${bms_id_2}_cell_ovp).state;
+      float bms3_value = id(${bms_id_3}_cell_ovp).state;
+      float min = 999;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value) && (bms1_value < min )) min = bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value) && (bms2_value < min )) min = bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value) && (bms3_value < min )) min = bms3_value;
+      if (min == 999) min = 0;
+
+      // ??? Why ???
+      id(${smart_bms_id}_bulk_voltage).traits.set_max_value(min * id(${bms_id_1}_cell_count).state);      // sets the sliders max value to the BMS cell_ovp * 16
+      id(${smart_bms_id}_float_voltage).traits.set_max_value(min * id(${bms_id_1}_cell_count).state);     // sets the sliders max value to the BMS cell_ovp * 16
+      id(${smart_bms_id}_rebulk_voltage).traits.set_max_value(min * id(${bms_id_1}_cell_count).state);    // sets the sliders max value to the BMS cell_ovp * 16
+      return min;
+
+
+  #cell_ovpr MIN
+  - platform: template
+    id: ${smart_bms_id}_cell_ovpr
+    name: "${smart_bms_name} Cell OVPR (MIN)"
+    update_interval: 1s
+    accuracy_decimals: 3
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_cell_ovpr).state;
+      float bms2_value = id(${bms_id_2}_cell_ovpr).state;
+      float bms3_value = id(${bms_id_3}_cell_ovpr).state;
+      float min = 999;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value) && (bms1_value < min )) min = bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value) && (bms2_value < min )) min = bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value) && (bms3_value < min )) min = bms3_value;
+      if (min == 999) min = 0;
+      return min;
+
+  #cell_uvr MAX
+  - platform: template
+    id: ${smart_bms_id}_cell_uvpr
+    name: "${smart_bms_name} Cell UVPR (MAX)"
+    update_interval: 1s
+    accuracy_decimals: 3
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_cell_uvr).state;
+      float bms2_value = id(${bms_id_2}_cell_uvr).state;
+      float bms3_value = id(${bms_id_3}_cell_uvr).state;
+      float max = -999;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value) && (bms1_value > max )) max = bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value) && (bms2_value > max )) max = bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value) && (bms3_value > max )) max = bms3_value;
+      if (max == -999) max = 0;
+      return max;
+
+  # Charge_Current_max SUM
+  - platform: template
+    id: ${smart_bms_id}_charging_current
+    name: "${smart_bms_name} CCL (Σ)"
+    update_interval: 1s
+    accuracy_decimals: 0
+    unit_of_measurement: A
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_charging_current).state;
+      float bms2_value = id(${bms_id_2}_charging_current).state;
+      float bms3_value = id(${bms_id_3}_charging_current).state;
+      float sum = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) sum += bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) sum += bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) sum += bms3_value;
+      return sum;
+
+
+  # Disharge_Current_max SUM
+  - platform: template
+    id: ${smart_bms_id}_discharging_current
+    name: "${smart_bms_name} DCL (Σ)"
+    update_interval: 1s
+    accuracy_decimals: 0
+    unit_of_measurement: A
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: |-
+      float bms1_value = id(${bms_id_1}_discharging_current).state;
+      float bms2_value = id(${bms_id_2}_discharging_current).state;
+      float bms3_value = id(${bms_id_3}_discharging_current).state;
+      float sum = 0;
+      if (id(${bms_id_1}_combine).state && !isnan(bms1_value)) sum += bms1_value;
+      if (id(${bms_id_2}_combine).state && !isnan(bms2_value)) sum += bms2_value;
+      if (id(${bms_id_3}_combine).state && !isnan(bms3_value)) sum += bms3_value;
+      return sum;
