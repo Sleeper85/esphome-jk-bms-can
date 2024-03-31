@@ -1,4 +1,4 @@
-# Version : 2024.03.21
+# Version : 2024.04.01
 
 # This YAML is free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License
@@ -47,20 +47,20 @@ jk_bms:
 binary_sensor:
   - platform: jk_bms
     balancing:
-      id: equalizing
+      id: ${bms_id}_equalizing
       name: "${bms_name} balancing"
     balancing_switch:
-      id: bms_switch_balancing
+      id: ${bms_id}_switch_balancing
       name: "${bms_name} balancing switch"
     charging:
       name: "${bms_name} charging"
     charging_switch:
-      id: bms_switch_charging
+      id: ${bms_id}_switch_charging
       name: "${bms_name} charging switch"
     discharging:
       name: "${bms_name} discharging"
     discharging_switch:
-      id: bms_switch_discharging
+      id: ${bms_id}_switch_discharging
       name: "${bms_name} discharging switch"
     dedicated_charger_switch:
       name: "${bms_name} dedicated charger switch"
@@ -73,151 +73,151 @@ switch:
       name: "${bms_name} Discharge switch"
     # Do not uncomment unless balancer switch over UART starts working in the future
     # balancer:
-    #   id: bms_switch_balancing
+    #   id: ${bms_id}_switch_balancing
     #   name: "${bms_name} Balance switch"
 
 sensor:
   - platform: jk_bms
     min_cell_voltage:
-      id: min_cell_voltage
+      id: ${bms_id}_min_cell_voltage
       name: "${bms_name} min cell voltage"
     max_cell_voltage:
-      id: max_cell_voltage
+      id: ${bms_id}_max_cell_voltage
       name: "${bms_name} max cell voltage"
     min_voltage_cell:
-      id: min_voltage_cell
+      id: ${bms_id}_min_voltage_cell
       name: "${bms_name} min voltage cell"
     max_voltage_cell:
-      id: max_voltage_cell
+      id: ${bms_id}_max_voltage_cell
       name: "${bms_name} max voltage cell"
     delta_cell_voltage:
-      id: delta_cell_voltage
+      id: ${bms_id}_delta_cell_voltage
       name: "${bms_name} delta cell voltage"
     average_cell_voltage:
       name: "${bms_name} average cell voltage"
     cell_voltage_1:
-      id: cell_v_01
+      id: ${bms_id}_cell_v_01
       name: "${bms_name} cell voltage 01"
     cell_voltage_2:
-      id: cell_v_02
+      id: ${bms_id}_cell_v_02
       name: "${bms_name} cell voltage 02"
     cell_voltage_3:
-      id: cell_v_03
+      id: ${bms_id}_cell_v_03
       name: "${bms_name} cell voltage 03"
     cell_voltage_4:
-      id: cell_v_04
+      id: ${bms_id}_cell_v_04
       name: "${bms_name} cell voltage 04"
     cell_voltage_5:
-      id: cell_v_05
+      id: ${bms_id}_cell_v_05
       name: "${bms_name} cell voltage 05"
     cell_voltage_6:
-      id: cell_v_06
+      id: ${bms_id}_cell_v_06
       name: "${bms_name} cell voltage 06"
     cell_voltage_7:
-      id: cell_v_07
+      id: ${bms_id}_cell_v_07
       name: "${bms_name} cell voltage 07"
     cell_voltage_8:
-      id: cell_v_08
+      id: ${bms_id}_cell_v_08
       name: "${bms_name} cell voltage 08"
     cell_voltage_9:
-      id: cell_v_09
+      id: ${bms_id}_cell_v_09
       name: "${bms_name} cell voltage 09"
     cell_voltage_10:
-      id: cell_v_10
+      id: ${bms_id}_cell_v_10
       name: "${bms_name} cell voltage 10"
     cell_voltage_11:
-      id: cell_v_11
+      id: ${bms_id}_cell_v_11
       name: "${bms_name} cell voltage 11"
     cell_voltage_12:
-      id: cell_v_12
+      id: ${bms_id}_cell_v_12
       name: "${bms_name} cell voltage 12"
     cell_voltage_13:
-      id: cell_v_13
+      id: ${bms_id}_cell_v_13
       name: "${bms_name} cell voltage 13"
     cell_voltage_14:
-      id: cell_v_14
+      id: ${bms_id}_cell_v_14
       name: "${bms_name} cell voltage 14"
     cell_voltage_15:
-      id: cell_v_15
+      id: ${bms_id}_cell_v_15
       name: "${bms_name} cell voltage 15"
     cell_voltage_16:
-      id: cell_v_16
+      id: ${bms_id}_cell_v_16
       name: "${bms_name} cell voltage 16"
     cell_voltage_17:
-      id: cell_v_17
+      id: ${bms_id}_cell_v_17
       name: "${bms_name} cell voltage 17"
       disabled_by_default: true
     cell_voltage_18:
-      id: cell_v_18
+      id: ${bms_id}_cell_v_18
       name: "${bms_name} cell voltage 18"
       disabled_by_default: true
     cell_voltage_19:
-      id: cell_v_19
+      id: ${bms_id}_cell_v_19
       name: "${bms_name} cell voltage 19"
       disabled_by_default: true
     cell_voltage_20:
-      id: cell_v_20
+      id: ${bms_id}_cell_v_20
       name: "${bms_name} cell voltage 20"
       disabled_by_default: true
     cell_voltage_21:
-      id: cell_v_21
+      id: ${bms_id}_cell_v_21
       name: "${bms_name} cell voltage 21"
       disabled_by_default: true
     cell_voltage_22:
-      id: cell_v_22
+      id: ${bms_id}_cell_v_22
       name: "${bms_name} cell voltage 22"
       disabled_by_default: true
     cell_voltage_23:
-      id: cell_v_23
+      id: ${bms_id}_cell_v_23
       name: "${bms_name} cell voltage 23"
       disabled_by_default: true
     cell_voltage_24:
-      id: cell_v_24
+      id: ${bms_id}_cell_v_24
       name: "${bms_name} cell voltage 24"
       disabled_by_default: true
     power_tube_temperature:
-      id: power_tube_temperature
+      id: ${bms_id}_power_tube_temperature
       name: "${bms_name} power tube temperature"
     temperature_sensor_1:
-      id: temperature_sensor_1
+      id: ${bms_id}_temperature_sensor_1
       name: "${bms_name} temperature sensor 1"
     temperature_sensor_2:
-      id: temperature_sensor_2
+      id: ${bms_id}_temperature_sensor_2
       name: "${bms_name} temperature sensor 2"
     total_voltage:
-      id: total_voltage
+      id: ${bms_id}_total_voltage
       name: "${bms_name} total voltage"
     current:
-      id: current
+      id: ${bms_id}_current
       name: "${bms_name} current"
     power:
-      id: power
+      id: ${bms_id}_power
       name: "${bms_name} power"
     charging_power:
-      id: charging_power
+      id: ${bms_id}_charging_power
       name: "${bms_name} charging power"
     discharging_power:
-      id: discharging_power
+      id: ${bms_id}_discharging_power
       name: "${bms_name} discharging power"
     capacity_remaining:
-      id: state_of_charge
+      id: ${bms_id}_state_of_charge
       name: "${bms_name} capacity remaining"
     capacity_remaining_derived:
-      id: capacity_remaining_ah
+      id: ${bms_id}_capacity_remaining_ah
       name: "${bms_name} capacity remaining derived"
     temperature_sensors:
       name: "${bms_name} temperature sensors"
       entity_category: diagnostic
     charging_cycles:
-      id: charging_cycles
+      id: ${bms_id}_charging_cycles
       name: "${bms_name} charging cycles"
     total_charging_cycle_capacity:
       name: "${bms_name} total charging cycle capacity"
     battery_strings:
-      id: cell_count
+      id: ${bms_id}_cell_count
       name: "${bms_name} battery strings"
     errors_bitmask:
-      id: errors_bitmask
+      id: ${bms_id}_errors_bitmask
       name: "${bms_name} errors bitmask"
       entity_category: diagnostic
     operation_mode_bitmask:
@@ -227,20 +227,20 @@ sensor:
       name: "${bms_name} total voltage overvoltage protection"
     total_voltage_undervoltage_protection:
       name: "${bms_name} total voltage undervoltage protection"
-      id: total_uvp
+      id: ${bms_id}_total_uvp
     cell_voltage_overvoltage_protection:
-      id: cell_ovp
+      id: ${bms_id}_cell_ovp
       name: "${bms_name} cell voltage overvoltage protection"
     cell_voltage_overvoltage_recovery:
-      id: cell_ovpr
+      id: ${bms_id}_cell_ovpr
       name: "${bms_name} cell voltage overvoltage recovery"
     cell_voltage_overvoltage_delay:
       name: "${bms_name} cell voltage overvoltage delay"
     cell_voltage_undervoltage_protection:
-      id: cell_uvp
+      id: ${bms_id}_cell_uvp
       name: "${bms_name} cell voltage undervoltage protection"
     cell_voltage_undervoltage_recovery:
-      id: cell_uvpr
+      id: ${bms_id}_cell_uvpr
       name: "${bms_name} cell voltage undervoltage recovery"
     cell_voltage_undervoltage_delay:
       name: "${bms_name} cell voltage undervoltage delay"
@@ -255,10 +255,10 @@ sensor:
     charging_overcurrent_delay:
       name: "${bms_name} charging overcurrent delay"
     balance_starting_voltage:
-      id: balance_starting_voltage
+      id: ${bms_id}_balance_starting_voltage
       name: "${bms_name} balance starting voltage"
     balance_opening_pressure_difference:
-      id: balance_trigger_voltage
+      id: ${bms_id}_balance_trigger_voltage
       name: "${bms_name} balance opening pressure difference"
     power_tube_temperature_protection:
       name: "${bms_name} power tube temperature protection"
@@ -283,7 +283,7 @@ sensor:
     discharging_low_temperature_recovery:
       name: "${bms_name} discharging low temperature recovery"
     total_battery_capacity_setting:
-      id: battery_capacity
+      id: ${bms_id}_battery_capacity
       name: "${bms_name} total battery capacity setting"
     current_calibration:
       name: "${bms_name} current calibration"
