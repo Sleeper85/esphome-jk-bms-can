@@ -16,12 +16,11 @@
 # +--------------------------------------+
 # | Packages                             |
 # +--------------------------------------+
-packages:
-  smart_bms_combine: !include smart_bms_combine.yaml
+#packages:
   # If not necessary, the following packages can be commented out
-  smart_bms_auto_cvl: !include smart_bms_auto_cvl.yaml
-  smart_bms_auto_ccl: !include smart_bms_auto_ccl.yaml
-  smart_bms_auto_dcl: !include smart_bms_auto_dcl.yaml
+  #smart_bms_auto_cvl: !include smart_bms_auto_cvl.yaml
+  #smart_bms_auto_ccl: !include smart_bms_auto_ccl.yaml
+  #smart_bms_auto_dcl: !include smart_bms_auto_dcl.yaml
 
 substitutions:
   # +----------------------------------------------------------------+
