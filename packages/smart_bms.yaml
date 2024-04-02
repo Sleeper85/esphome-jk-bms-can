@@ -16,11 +16,12 @@
 # +--------------------------------------+
 # | Packages                             |
 # +--------------------------------------+
-#packages:
+packages:
+  smart_bms_combine: !include smart_bms_combine.yaml
   # If not necessary, the following packages can be commented out
-  #smart_bms_auto_cvl: !include smart_bms_auto_cvl.yaml
-  #smart_bms_auto_ccl: !include smart_bms_auto_ccl.yaml
-  #smart_bms_auto_dcl: !include smart_bms_auto_dcl.yaml
+  # smart_bms_auto_cvl: !include smart_bms_auto_cvl.yaml
+  # smart_bms_auto_ccl: !include smart_bms_auto_ccl.yaml
+  # smart_bms_auto_dcl: !include smart_bms_auto_dcl.yaml
 
 substitutions:
   # +----------------------------------------------------------------+
@@ -238,7 +239,7 @@ sensor:
     unit_of_measurement: V
     device_class: voltage
     update_interval: ${smart_bms_update_interval}
-    lambda: return (id(${smart_bms_id}_cell_uvpr).state * id(${smart_bms_id}_cell_count).state);
+    lambda: return (id(${smart_bms_id}_cell_uvpr).state * id(${smart_bms_id}_cell_count));
   # +--------------------------------------+
   # |  Requested Discharge Current  (DCL)  |
   # +--------------------------------------+
@@ -325,9 +326,9 @@ text_sensor:
             // Warning : information from JK BMS is not available immediately after boot
             
             // JK-BMS Alarm !
-            if (id(${smart_bms_id}_errors_bitmask).state > 1) id(${smart_bms_id}_charge_status) = "Alarm";
+            if (id(bms1_errors_bitmask).state > 1) id(${smart_bms_id}_charge_status) = "Alarm";
             // JK-BMS Alarm ended
-            else if ((id(${smart_bms_id}_charge_status) == "Alarm") & (id(${smart_bms_id}_errors_bitmask).state < 2)) {
+            else if ((id(${smart_bms_id}_charge_status) == "Alarm") & (id(bms1_errors_bitmask).state < 2)) {
               if (id(${smart_bms_id}_eoc) == true) id(${smart_bms_id}_charge_status) = "EOC";
               else id(${smart_bms_id}_charge_status) = "Wait";
             }
@@ -338,7 +339,7 @@ text_sensor:
             // No Force Bulk => Wait
             else if ((id(${smart_bms_id}_charge_status) == "Force Bulk") & (!id(${smart_bms_id}_switch_force_bulk).state)) id(${smart_bms_id}_charge_status) = "Wait";
             // No Balancing => Wait
-            else if ((id(${smart_bms_id}_charge_status) == "Balancing") & (!id(${smart_bms_id}_switch_balancing).state)) id(${smart_bms_id}_charge_status) = "Wait";
+            else if ((id(${smart_bms_id}_charge_status) == "Balancing") & (!id(bms1_switch_balancing).state)) id(${smart_bms_id}_charge_status) = "Wait";
             
             // +-----------------------------------------------+
             // | Charge ON : BMS and CAN charging switch is ON |
@@ -346,9 +347,9 @@ text_sensor:
             else if ((id(${smart_bms_id}_switch_charging).state) & (id(${smart_bms_id}_switch_charging).state)) {
             
               // Variables
-              float cell_bulk_v = (id(${smart_bms_id}_bulk_voltage).state / id(${smart_bms_id}_cell_count).state);
-              float cell_rebulk_v = (id(${smart_bms_id}_rebulk_voltage).state / id(${smart_bms_id}_cell_count).state);
-              float cell_absorption_offset_v = (id(${smart_bms_id}_absorption_offset).state / id(${smart_bms_id}_cell_count).state);
+              float cell_bulk_v = (id(${smart_bms_id}_bulk_voltage).state / id(${smart_bms_id}_cell_count));
+              float cell_rebulk_v = (id(${smart_bms_id}_rebulk_voltage).state / id(${smart_bms_id}_cell_count));
+              float cell_absorption_offset_v = (id(${smart_bms_id}_absorption_offset).state / id(${smart_bms_id}_cell_count));
               
               // Force Bulk Logic
               if (id(${smart_bms_id}_switch_force_bulk).state) {

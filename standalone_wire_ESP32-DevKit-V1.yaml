@@ -63,6 +63,9 @@ packages:
   bms: !include
     file: packages/bms_jk-bms_wire.yaml
     vars:
+      # Smart BMS ID
+      smart_bms_id: 'smartbms1'
+      # BMS vars
       bms_id: 'bms1'
       bms_name: 'JK-BMS'
       bms_update_interval: "3s"
@@ -72,11 +75,6 @@ packages:
   smart_bms: !include
     file: packages/smart_bms.yaml
     vars:
-      # BMS IDs
-      bms_id_1: 'bms1'
-      bms_id_2: 'bms2'
-      bms_id_3: ''
-      # Smart BMS vars
       smart_bms_id: 'smartbms1'
       smart_bms_name: 'Smart BMS'
       smart_bms_suffix: ''
