@@ -15,6 +15,7 @@
 
 packages:
   bms_base: !include bms_base.yaml
+  bms_combine: !include bms_combine.yaml
 
 external_components:
   - source: github://syssi/esphome-jk-bms@main
@@ -247,10 +248,12 @@ sensor:
     cell_pressure_difference_protection:
       name: "${bms_name} cell pressure difference protection"
     discharging_overcurrent_protection:
+      id: ${bms_id}_max_discharge_current
       name: "${bms_name} discharging overcurrent protection"
     discharging_overcurrent_delay:
       name: "${bms_name} discharging overcurrent delay"
     charging_overcurrent_protection:
+      id: ${bms_id}_max_charge_current
       name: "${bms_name} charging overcurrent protection"
     charging_overcurrent_delay:
       name: "${bms_name} charging overcurrent delay"

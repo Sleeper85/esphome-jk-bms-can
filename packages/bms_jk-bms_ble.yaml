@@ -15,6 +15,7 @@
 
 packages:
   bms_base: !include bms_base.yaml
+  bms_combine: !include bms_combine.yaml
 
 external_components:
   - source: github://syssi/esphome-jk-bms@main
@@ -322,8 +323,10 @@ number:
     max_balance_current:
       name: "${bms_name} max balance current"
     max_charge_current:
+      id: ${bms_id}_max_charge_current
       name: "${bms_name} max charge current"
     max_discharge_current:
+      id: ${bms_id}_max_discharge_current
       name: "${bms_name} max discharge current"
 
 button:

@@ -172,8 +172,8 @@ interval:
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
                       // JK-BMS alarm ?
-                      if (id(${smart_bms_id}_errors_bitmask).state > 1) {
-                         uint16_t jk_errormask = id(${smart_bms_id}_errors_bitmask).state;
+                      if (id(bms1_errors_bitmask).state > 1) {
+                         uint16_t jk_errormask = id(bms1_errors_bitmask).state;
 
                          if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {                 // Hight.Voltage.Alarm JK bit 2,7,10
                             can_mesg[0] = 0x02;                                                                        // byte0_bit1 (0x02 = bin 10)
@@ -252,8 +252,8 @@ interval:
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
                       // JK-BMS alarm ?
-                      if (id(${smart_bms_id}_errors_bitmask).state > 1) {
-                         uint16_t jk_errormask = id(${smart_bms_id}_errors_bitmask).state;
+                      if (id(bms1_errors_bitmask).state > 1) {
+                         uint16_t jk_errormask = id(bms1_errors_bitmask).state;
 
                          if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {                 // Hight.Voltage.Alarm JK bit 2,7,10
                             can_mesg[0] = 0x04;                                                                        // byte0_bit2 (0x04 = bin 100)
@@ -460,10 +460,10 @@ interval:
                         
                         can_mesg[1] = 0x00;
                         can_mesg[3] = 0x00;
-                        can_mesg[4] = uint16_t(id(${smart_bms_id}_max_voltage_cell).state) & 0xff;
-                        can_mesg[5] = uint16_t(id(${smart_bms_id}_max_voltage_cell).state) >> 8 & 0xff;
-                        can_mesg[6] = uint16_t(id(${smart_bms_id}_min_voltage_cell).state) & 0xff;
-                        can_mesg[7] = uint16_t(id(${smart_bms_id}_min_voltage_cell).state) >> 8 & 0xff;
+                        can_mesg[4] = uint16_t(id(bms1_max_voltage_cell).state) & 0xff;
+                        can_mesg[5] = uint16_t(id(bms1_max_voltage_cell).state) >> 8 & 0xff;
+                        can_mesg[6] = uint16_t(id(bms1_min_voltage_cell).state) & 0xff;
+                        can_mesg[7] = uint16_t(id(bms1_min_voltage_cell).state) >> 8 & 0xff;
                         ESP_LOGI("main", "send can id: 0x371 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                         return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                         
@@ -525,7 +525,7 @@ interval:
                       can_id: 0x374
                       data: !lambda |-
                         
-                        int cell_id = id(${smart_bms_id}_min_voltage_cell).state;
+                        int cell_id = id(bms1_min_voltage_cell).state;
 
                         ESP_LOGI("main", "send can id: 0x374 [ASCII] Min cell voltage ID : %i", cell_id);
 
@@ -555,7 +555,7 @@ interval:
                       can_id: 0x375
                       data: !lambda |-
                         
-                        int cell_id = id(${smart_bms_id}_max_voltage_cell).state;
+                        int cell_id = id(bms1_max_voltage_cell).state;
 
                         ESP_LOGI("main", "send can id: 0x375 [ASCII] Max cell voltage ID : %i", cell_id);
 

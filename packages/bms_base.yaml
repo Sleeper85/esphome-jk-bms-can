@@ -19,7 +19,7 @@ sensor:
   # +--------------------------------------+
   - platform: total_daily_energy
     name: "${bms_name} Daily Charging Energy"
-    power_id: charging_power
+    power_id: ${bms_id}_charging_power
     unit_of_measurement: 'kWh'
     state_class: total_increasing
     device_class: energy
@@ -29,7 +29,7 @@ sensor:
       - multiply: 0.001
   - platform: total_daily_energy
     name: "${bms_name} Daily Discharging Energy"
-    power_id: discharging_power
+    power_id: ${bms_id}_discharging_power
     unit_of_measurement: 'kWh'
     state_class: total_increasing
     device_class: energy
