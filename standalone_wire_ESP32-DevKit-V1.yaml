@@ -60,23 +60,24 @@ packages:
   device_base: !include packages/device_base.yaml
   device_board: !include packages/device_esp32-devkit-v1.yaml
 
-  bms: !include
+  bms1: !include
     file: packages/bms_jk-bms_wire.yaml
     vars:
       # Smart BMS ID
       smart_bms_id: 'smartbms1'
       # BMS vars
       bms_id: 'bms1'
-      bms_name: 'JK-BMS'
+      bms_name: 'JK-BMS 1'
+      bms_suffix: ''
       bms_update_interval: "3s"
       bms_tx_pin: 17
       bms_rx_pin: 16
 
-  smart_bms: !include
+  smartbms1: !include
     file: packages/smart_bms.yaml
     vars:
       smart_bms_id: 'smartbms1'
-      smart_bms_name: 'Smart BMS'
+      smart_bms_name: 'Smart BMS 1'
       smart_bms_suffix: ''
       smart_bms_update_interval: "1s"
       # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.

@@ -1,4 +1,6 @@
-# Version : 2024.03.31
+# Updated : 2024.04.03
+# Version : 2.1.2
+# Owner   : MrPablo
 
 # This YAML is free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License
@@ -18,8 +20,11 @@ substitutions:
   # | Use the settings below with caution  |
   # +--------------------------------------+
   # Factor to adjust the aggression of the auto voltage control logic.
-  # The higher the setting, the more that requested charge voltage will reduce as cells exceed the target voltage (bulk voltage).
-  charge_v_factor: "2.0"
+  # The higher the setting, the greater the voltage penalty applied to cells exceeding the target voltage (bulk voltage).
+  charge_v_factor: "1.5"
+  # Factor to adjust the speed of the auto voltage control logic.
+  # The higher the setting, the longer the period of time that voltage changes are applied over.
+  charge_t_factor: "5"
 
 esphome:
   on_boot:
@@ -43,45 +48,50 @@ sensor:
     update_interval: ${smart_bms_update_interval}
     unit_of_measurement: V
     device_class: voltage
-    internal: false
-    lambda: !lambda |-
-
+    internal: true
+    lambda: |-
             // Variables
             float charge_v_factor = ${charge_v_factor};
-            float cell_bulk_v = (id(bulk_voltage).state / id(cell_count).state);
+            float cell_bulk_v = (id(${smart_bms_id}_bulk_voltage).state / id(${smart_bms_id}_cell_count).state);
             float target_total_v = 0;
             float excess_v = 0;
             float offset_v = 0;
             float dyn_chg_v = 0;
 
-            //  Update of the global variable used by smart_bms.yaml (includes if any cells are at / above bulk voltage)
-            if ((!id(${smart_bms_id}_switch_auto_cvl).state) | (id(max_cell_voltage).state < cell_bulk_v)) {
+            // Check feature enabled or if any cells are at / above bulk voltage
+            if ((!id(${smart_bms_id}_switch_auto_cvl).state) | (id(${smart_bms_id}_max_cell_voltage).state < cell_bulk_v)){
               id(${smart_bms_id}_auto_cvl) = -1.0;
-              return id(bulk_voltage).state;
+              return id(${smart_bms_id}_bulk_voltage).state;
             } else {
             // Create array of cell voltages
             float cell_array[] = {
-              id(cell_v_01).state, id(cell_v_02).state, id(cell_v_03).state, id(cell_v_04).state,
-              id(cell_v_05).state, id(cell_v_06).state, id(cell_v_07).state, id(cell_v_08).state,
-              id(cell_v_09).state, id(cell_v_10).state, id(cell_v_11).state, id(cell_v_12).state,
-              id(cell_v_13).state, id(cell_v_14).state, id(cell_v_15).state, id(cell_v_16).state,
-              id(cell_v_17).state, id(cell_v_18).state, id(cell_v_19).state, id(cell_v_20).state,
-              id(cell_v_21).state, id(cell_v_22).state, id(cell_v_23).state, id(cell_v_24).state,
+              id(bms1_cell_v_01).state, id(bms1_cell_v_02).state, id(bms1_cell_v_03).state, id(bms1_cell_v_04).state,
+              id(bms1_cell_v_05).state, id(bms1_cell_v_06).state, id(bms1_cell_v_07).state, id(bms1_cell_v_08).state,
+              id(bms1_cell_v_09).state, id(bms1_cell_v_10).state, id(bms1_cell_v_11).state, id(bms1_cell_v_12).state,
+              id(bms1_cell_v_13).state, id(bms1_cell_v_14).state, id(bms1_cell_v_15).state, id(bms1_cell_v_16).state,
+              id(bms1_cell_v_17).state, id(bms1_cell_v_18).state, id(bms1_cell_v_19).state, id(bms1_cell_v_20).state,
+              id(bms1_cell_v_21).state, id(bms1_cell_v_22).state, id(bms1_cell_v_23).state, id(bms1_cell_v_24).state,
             };
             // Calculate actual total voltage
-            for(int i = 0; i < id(cell_count).state; i++) {
+            for(int i = 0; i < id(${smart_bms_id}_cell_count).state; i++) {
               target_total_v += cell_array[i];
             };
             // Add cell voltage offset to target total voltage if possible
-            for(int i = 0; i < id(cell_count).state; i++) {
+            for(int i = 0; i < id(${smart_bms_id}_cell_count).state; i++) {
               if (cell_array[i] >= cell_bulk_v) {
-                excess_v = cell_array[i] - cell_bulk_v;
-                offset_v = (pow(excess_v,2))*(charge_v_factor*-100);
+                excess_v = cell_bulk_v - cell_array[i];
+                offset_v = excess_v * charge_v_factor;
                 target_total_v += offset_v;
               }
             };
             // Use minimum of dynamic charge voltage or bulk voltage
-            dyn_chg_v = min(id(bulk_voltage).state, target_total_v);
+            dyn_chg_v = min(id(${smart_bms_id}_bulk_voltage).state, target_total_v);
             // Return automatic charge voltage
-            return ceil(dyn_chg_v * 10) / 10;
+            return dyn_chg_v;
             }
+    filters:    
+    - sliding_window_moving_average:
+        send_every: 1
+        send_first_at: 1
+        window_size: ${charge_t_factor}
+    - round: 1

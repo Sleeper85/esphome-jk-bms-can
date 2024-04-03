@@ -1,4 +1,6 @@
-# Version : 2024.04.01
+# Updated : 2024.04.03
+# Version : 1.1.1
+# Owner   : Syssi
 
 # This YAML is free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License
@@ -47,18 +49,19 @@ esp32_ble_tracker:
 
 ble_client:
   - mac_address: ${bms_ble_mac_address}
-    id: client0
+    id: client_${bms_id}
 
 jk_bms_ble:
-  - ble_client_id: client0
+  - ble_client_id: client_${bms_id}
     protocol_version: ${bms_ble_protocol_version}
     throttle: ${bms_update_interval}
-    id: bms0
+    id: ${bms_id}
 
 # +--------------------------------------+
 
 binary_sensor:
   - platform: jk_bms_ble
+    jk_bms_ble_id: ${bms_id}
     balancing:
       id: ${bms_id}_equalizing
       name: "${bms_name} balancing"
@@ -71,6 +74,7 @@ binary_sensor:
 
 switch:
   - platform: jk_bms_ble
+    jk_bms_ble_id: ${bms_id}
     charging:
       id: ${bms_id}_switch_charging
       name: "${bms_name} Charge switch"
@@ -82,14 +86,14 @@ switch:
       name: "${bms_name} Balance switch"
     # +--------------------------------------+
   - platform: ble_client
-    ble_client_id: client0
+    ble_client_id: client_${bms_id}
     id: ${bms_id}_enable_bluetooth_connection
     name: "${bms_name} Enable Bluetooth connection"
     # +--------------------------------------+
 
 sensor:
   - platform: jk_bms_ble
-    jk_bms_ble_id: bms0
+    jk_bms_ble_id: ${bms_id}
     min_cell_voltage:
       id: ${bms_id}_min_cell_voltage
       name: "${bms_name} min cell voltage"
@@ -283,6 +287,7 @@ sensor:
 
 text_sensor:
   - platform: jk_bms_ble
+    jk_bms_ble_id: ${bms_id}
     errors:
       name: "${bms_name} errors"
     total_runtime_formatted:
@@ -291,7 +296,7 @@ text_sensor:
 
 number:
   - platform: jk_bms_ble
-    jk_bms_ble_id: bms0
+    jk_bms_ble_id: ${bms_id}
     balance_trigger_voltage:
       id: ${bms_id}_balance_trigger_voltage
       name: "${bms_name} balance trigger voltage"
@@ -331,6 +336,7 @@ number:
 
 button:
   - platform: jk_bms_ble
+    jk_bms_ble_id: ${bms_id}
     retrieve_settings:
       name: "${bms_name} retrieve settings"
       entity_category: config

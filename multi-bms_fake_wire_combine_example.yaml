@@ -1,3 +1,6 @@
+# Version : 2024.04.03
+# Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
+
 # JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
 
 # esp32_wire_jk-bms-can.yaml is free software: you can redistribute it
@@ -13,11 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
-# Version : 1.18.1
-# Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
-
 substitutions:
-  name: jk-bms-can
+  name: jk-bms-can-dev
 
 logger:
   #level: INFO
@@ -59,6 +59,8 @@ captive_portal:
 packages:
   device_base: !include packages/device_base.yaml
   device_board: !include packages/device_esp32-devkit-v1.yaml
+  fake_bms1: !include packages/bms_jk-bms_fake_traffic_bms1.yaml
+  fake_bms2: !include packages/bms_jk-bms_fake_traffic_bms2.yaml
 
   bms1: !include
     file: packages/bms_jk-bms_wire.yaml
@@ -67,7 +69,8 @@ packages:
       smart_bms_id: 'smartbms1'
       # BMS vars
       bms_id: 'bms1'
-      bms_name: 'JK-BMS'
+      bms_name: 'JK-BMS 1'
+      bms_suffix: ''
       bms_update_interval: "3s"
       bms_tx_pin: 17
       bms_rx_pin: 16
@@ -79,16 +82,17 @@ packages:
       smart_bms_id: 'smartbms1'
       # BMS vars
       bms_id: 'bms2'
-      bms_name: 'JK-BMS'
+      bms_name: 'JK-BMS 2'
+      bms_suffix: ''
       bms_update_interval: "3s"
       bms_tx_pin: 19
       bms_rx_pin: 18
 
-  smart_bms: !include
+  smartbms1: !include
     file: packages/smart_bms.yaml
     vars:
       smart_bms_id: 'smartbms1'
-      smart_bms_name: 'Smart BMS'
+      smart_bms_name: 'Smart BMS 1'
       smart_bms_suffix: ''
       smart_bms_update_interval: "1s"
       # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.

@@ -1,4 +1,6 @@
-# Version : 2024.04.01
+# Updated : 2024.04.03
+# Version : 1.1.1
+# Owner   : Syssi
 
 # This YAML is free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License
@@ -26,27 +28,28 @@ external_components:
 # +--------------------------------------+
 
 uart:
-  id: uart_0
-  baud_rate: 115200
-  rx_buffer_size: 384
-  tx_pin: ${bms_tx_pin}
-  rx_pin: ${bms_rx_pin}
-#  debug:
-#    direction: BOTH
+  - id: uart_${bms_id}
+    baud_rate: 115200
+    rx_buffer_size: 384
+    tx_pin: ${bms_tx_pin}
+    rx_pin: ${bms_rx_pin}
+#   debug:
+#     direction: BOTH
 
 jk_modbus:
-  id: modbus0
-  uart_id: uart_0
+  - id: modbus_${bms_id}
+    uart_id: uart_${bms_id}
 
 jk_bms:
-  id: bms0
-  jk_modbus_id: modbus0
-  update_interval: ${bms_update_interval}
+  - id: ${bms_id}
+    jk_modbus_id: modbus_${bms_id}
+    update_interval: ${bms_update_interval}
 
 # +--------------------------------------+
 
 binary_sensor:
   - platform: jk_bms
+    jk_bms_id: ${bms_id}
     balancing:
       id: ${bms_id}_equalizing
       name: "${bms_name} balancing"
@@ -68,6 +71,7 @@ binary_sensor:
 
 switch:
   - platform: jk_bms
+    jk_bms_id: ${bms_id}
     charging:
       name: "${bms_name} Charge switch"
     discharging:
@@ -79,6 +83,7 @@ switch:
 
 sensor:
   - platform: jk_bms
+    jk_bms_id: ${bms_id}
     min_cell_voltage:
       id: ${bms_id}_min_cell_voltage
       name: "${bms_name} min cell voltage"
@@ -316,6 +321,7 @@ sensor:
 
 text_sensor:
   - platform: jk_bms
+    jk_bms_id: ${bms_id}
     errors:
       name: "${bms_name} errors"
       entity_category: diagnostic
