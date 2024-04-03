@@ -1,4 +1,6 @@
-# Version : 2024.03.31
+# Updated : 2024.04.03
+# Version : 1.1.1
+# Owner   : MrPablo
 
 # This YAML is free software: you can redistribute it
 # and/or modify it under the terms of the GNU General Public License
@@ -46,7 +48,7 @@ sensor:
   # +--------------------------------------+
   # First, an initial discharge current is calculated based upon the minimum cell voltage but only if the Auto Discharge Current switch is enabled.
   - platform: copy
-    source_id: min_cell_voltage
+    source_id: ${smart_bms_id}_min_cell_voltage
     name: ${smart_bms_name} Initial Discharge Current
     id: auto_dcl_initial
     unit_of_measurement: A
@@ -55,8 +57,8 @@ sensor:
     filters:
     - lambda: !lambda |-
               // Auto Discharge Current function
-              if (id(min_cell_voltage).state < id(cell_uvpr).state) return 0.0;
-              else return max(0.0,(- pow(${discharge_a_factor_curve_end}, pow( max(0.0, ((x - ${discharge_knee_v}) / (id(cell_uvpr).state - ${discharge_knee_v}))),${discharge_a_factor_curve_shape}))+2) * id(discharging_current).state);
+              if (id(${smart_bms_id}_min_cell_voltage).state < id(${smart_bms_id}_cell_uvpr).state) return 0.0;
+              else return max(0.0,(- pow(${discharge_a_factor_curve_end}, pow( max(0.0, ((x - ${discharge_knee_v}) / (id(${smart_bms_id}_cell_uvpr).state - ${discharge_knee_v}))),${discharge_a_factor_curve_shape}))+2) * id(${smart_bms_id}_discharging_current).state);
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial discharge current values.
   - platform: copy
     source_id: auto_dcl_initial

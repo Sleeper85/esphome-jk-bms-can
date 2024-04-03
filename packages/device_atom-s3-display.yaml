@@ -1,3 +1,7 @@
+# Updated : 2024.04.03
+# Version : 1.1.1
+# Owner   : Arzaman
+
 esp32:
   board: esp32-s3-devkitc-1
   variant: esp32s3
