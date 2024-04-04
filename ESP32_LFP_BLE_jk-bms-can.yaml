@@ -759,7 +759,7 @@ sensor:
             double balance_delta = id(balance_trigger_voltage).state;
             double max_allowed_voltage = cell_bulk_v + balance_delta;
             double max_cell_v = id(max_cell_voltage).state;
-            float max_CVL = id(bulk_voltage).state;                                   // Maximum CVL
+            double max_CVL = id(bulk_voltage).state;                                   // Maximum CVL
             double min_CVL = id(float_voltage).state;                                 // Minimum CVL
             double CVL = id(bulk_voltage).state;                                      // Starting CVL
 
