@@ -1,0 +1,130 @@
+# Version : 2024.04.03
+# Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
+
+# JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
+
+# esp32_wire_jk-bms-can.yaml is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+substitutions:
+  name: jk-bms-can-dev
+
+logger:
+  #level: INFO
+
+ota:
+  
+# Please use the native `api` component instead of the `mqtt` section.
+# If you use Home Assistant, the native API is more lightweight.
+# If there is no HA server connected to this API, the ESP32 reboots every 15 minutes to try to resolve the problem.
+# If you don't use Home Assistant please uncomment the "reboot_timeout: 0s" option.
+api:
+  reboot_timeout: 0s
+
+# If you don't want to use ESPHome's native API you can use MQTT instead.
+# In this case don't forget to remove the 'api:' section.
+# mqtt:
+#  broker: !secret mqtt_host
+#  username: !secret mqtt_username
+#  password: !secret mqtt_password
+#  id: mqtt_client
+
+# In the event of problems with the WiFi network, the ESP32 will reboot every 15 minutes to try to resolve the problem.
+# If we don't want to connect the ESP32 to the WiFi network please remove the 4 lines below.
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  domain: !secret domain
+
+captive_portal:
+
+#web_server:
+#  port: 80
+#  log: false
+#  ota: false
+
+# +--------------------------------------+
+# | Packages                             |
+# +--------------------------------------+
+packages:
+  device_base: !include packages/device_base.yaml
+  device_board: !include packages/device_esp32-devkit-v1.yaml
+
+  bms1: !include
+    file: packages/bms_jk-bms_ble.yaml
+    vars:
+      # Smart BMS ID
+      smart_bms_id: 'smartbms1'
+      # BMS vars
+      bms_id: 'bms1'
+      bms_name: 'JK-BMS 1'
+      bms_suffix: ''
+      bms_update_interval: "3s"
+      bms_ble_protocol_version: JK02_32S
+      bms_ble_mac_address: C8:47:8C:10:7E:AB
+  
+  bms2: !include
+    file: packages/bms_jk-bms_ble.yaml
+    vars:
+      # Smart BMS ID
+      smart_bms_id: 'smartbms1'
+      # BMS vars
+      bms_id: 'bms2'
+      bms_name: 'JK-BMS 2'
+      bms_suffix: ''
+      bms_update_interval: "3s"
+      bms_ble_protocol_version: JK02_32S
+      bms_ble_mac_address: C8:47:8C:10:7E:AC
+
+  smartbms1: !include
+    file: packages/smart_bms.yaml
+    vars:
+      smart_bms_id: 'smartbms1'
+      smart_bms_name: 'Smart BMS 1'
+      smart_bms_suffix: ''
+      smart_bms_update_interval: "1s"
+      # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.
+      smart_bms_input_number_mode: 'slider'
+      # Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6V = 3.35V/Cell for 16S battery)
+      smart_bms_float_v: "53.6"
+      # Bulk / Absorption Voltage : corresponds to the Bulk voltage that will be used to charge the battery. (55.2V = 3.45V/Cell for 16S battery)
+      smart_bms_bulk_v: "55.2"
+      # Rebulk voltage, voltage less than FLOAT at which BMS requests rebulk. (52.8V = 3.3V/Cell for 16S battery)
+      smart_bms_rebulk_v: "52.8"
+      # Max charging amps eg 100A (5000W), should be at least 10A less than BMS over charge current protection, 0.5C max.
+      smart_bms_charge_a: "100"
+      # Max discharge amps eg 120A (6000W), should be at least 10A less than BMS over discharge current protection, 0.5C max.
+      smart_bms_discharge_a: "120"
+      # Inverter offset, allows you to correct the inverter charging voltage.
+      # For example, with my Deye, if the requested charging voltage is 55.2v the Deye effective charging voltage will be 55.1V.
+      # An offset of 0.1 provides an effective charging voltage of 55.2V.
+      smart_bms_inverter_offset_v: "0.0"
+      # Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
+      smart_bms_max_cycles: "6000.0"
+      # Cutoff Charging Logic
+      smart_bms_cutoff_cvmin: "3.37" # LFP 3.37 - Li-ion 3.90
+      smart_bms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
+
+  canbus: !include
+    file: packages/canbus.yaml
+    vars:
+      # Smart BMS ID
+      smart_bms_id: 'smartbms1'
+      # CANBUS vars
+      canbus_name: 'CANBUS'
+      canbus_suffix: ''
+      canbus_tx_pin: 23
+      canbus_rx_pin: 22
+      canbus_status_led: 2
+      # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after sending 30 CAN IDs.
+      canbus_max_no_ack: "30"

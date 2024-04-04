@@ -1,4 +1,4 @@
-# Updated : 2024.04.03
+# Updated : 2024.04.04
 # Version : 1.1.1
 # Owner   : Syssi
 
@@ -26,7 +26,7 @@ external_components:
 ota:
   on_begin:
     then:
-      - lambda: id(enable_bluetooth_connection).turn_off();
+      - lambda: id(${bms_id}_enable_bluetooth_connection).turn_off();
       - logger.log: "BLE shutdown for flashing"
   
 # +--------------------------------------+
