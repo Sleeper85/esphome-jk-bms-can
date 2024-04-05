@@ -1,3 +1,7 @@
+# Updated : 2024.04.05
+# Owner   : Sleeper85
+# Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
+
 # JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
 
 # esp32_wire_jk-bms-can.yaml is free software: you can redistribute it
@@ -12,9 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
-
-# Version : 1.18.1
-# Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
 
 substitutions:
   name: jk-bms-can
@@ -102,12 +103,13 @@ packages:
       smart_bms_cutoff_cvmin: "3.37" # LFP 3.37 - Li-ion 3.90
       smart_bms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
 
-  canbus: !include
+  canbus1: !include
     file: packages/canbus.yaml
     vars:
       # Smart BMS ID
       smart_bms_id: 'smartbms1'
       # CANBUS vars
+      canbus_id: 'canbus1'
       canbus_name: 'CANBUS'
       canbus_suffix: ''
       canbus_tx_pin: 23
