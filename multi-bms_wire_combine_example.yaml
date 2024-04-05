@@ -1,4 +1,5 @@
-# Version : 2024.04.03
+# Updated : 2024.04.05
+# Owner   : Sleeper85
 # Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
 
 # JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
@@ -115,12 +116,13 @@ packages:
       smart_bms_cutoff_cvmin: "3.37" # LFP 3.37 - Li-ion 3.90
       smart_bms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
 
-  canbus: !include
+  canbus1: !include
     file: packages/canbus.yaml
     vars:
       # Smart BMS ID
       smart_bms_id: 'smartbms1'
       # CANBUS vars
+      canbus_id: 'canbus1'
       canbus_name: 'CANBUS'
       canbus_suffix: ''
       canbus_tx_pin: 23
