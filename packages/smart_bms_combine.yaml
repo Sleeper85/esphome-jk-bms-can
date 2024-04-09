@@ -1,5 +1,5 @@
-# Updated : 2024.04.03
-# Version : 1.1.1
+# Updated : 2024.04.09
+# Version : 1.1
 # Owner   : Sleeper85
 
 # This YAML is free software: you can redistribute it
@@ -20,7 +20,7 @@
 # id(bms1_errors_bitmask).state
 # id(bms1_min_voltage_cell).state
 # id(bms1_max_voltage_cell).state
-# auto_cvl : id(bms1_cell_v_01).state to id(bms1_cell_v_24).state
+# auto_cvl : id(bms1_balance_trigger_voltage).state
 
 globals:
   - id: ${smart_bms_id}_bms_counter

@@ -1,5 +1,5 @@
-# Updated : 2024.04.03
-# Version : 2.1.2
+# Updated : 2024.04.09
+# Version : 2.2
 # Owner   : MrPablo
 
 # This YAML is free software: you can redistribute it
@@ -19,12 +19,12 @@ substitutions:
   # +--------------------------------------+
   # | Use the settings below with caution  |
   # +--------------------------------------+
-  # Factor to adjust the aggression of the auto voltage control logic.
-  # The higher the setting, the greater the voltage penalty applied to cells exceeding the target voltage (bulk voltage).
-  charge_v_factor: "1.5"
-  # Factor to adjust the speed of the auto voltage control logic.
-  # The higher the setting, the longer the period of time that voltage changes are applied over.
-  charge_t_factor: "5"
+  # Factor to adjust the proportional gain of the auto voltage control PI logic.
+  # The higher the setting, the faster the correcting response. Too high a value will cause oscillation.
+  charge_v_kp: "0.05"
+  # Factor to adjust the integral gain of the auto voltage control PI logic.
+  # The higher the setting, the more the correction response will be increased over time. Too high a value will cause oscillation.
+  charge_v_ki: "0.5"
 
 esphome:
   on_boot:
@@ -51,47 +51,55 @@ sensor:
     internal: true
     lambda: |-
             // Variables
-            float charge_v_factor = ${charge_v_factor};
-            float cell_bulk_v = (id(${smart_bms_id}_bulk_voltage).state / id(${smart_bms_id}_cell_count).state);
-            float target_total_v = 0;
-            float excess_v = 0;
-            float offset_v = 0;
-            float dyn_chg_v = 0;
 
-            // Check feature enabled or if any cells are at / above bulk voltage
-            if ((!id(${smart_bms_id}_switch_auto_cvl).state) | (id(${smart_bms_id}_max_cell_voltage).state < cell_bulk_v)){
+            double static integral = 0.0;                                             // Integral term initialization
+            double cell_bulk_v = (id(${smart_bms_id}_bulk_voltage).state / id(${smart_bms_id}_cell_count).state);
+            double balance_delta = id(bms1_balance_trigger_voltage).state;
+            double max_allowed_voltage = cell_bulk_v + balance_delta;
+            double max_cell_v = id(${smart_bms_id}_max_cell_voltage).state;
+            double max_CVL = id(${smart_bms_id}_bulk_voltage).state;                  // Maximum CVL
+            double min_CVL = id(${smart_bms_id}_float_voltage).state;                 // Minimum CVL
+            double CVL = id(${smart_bms_id}_bulk_voltage).state;                      // Starting CVL
+
+            double kp = ${charge_v_kp};                                               // Proportional gain, adjust as needed
+            double ki = ${charge_v_ki};                                               // Integral gain, adjust as needed
+            double dt = 1.0;                                                          // Time step, adjust based on update_interval
+            double error = 0.0;                                                       // Starting error
+            double output = 0.0;                                                      // Starting output
+
+            // Check feature enabled
+            if (!id(${smart_bms_id}_switch_auto_cvl).state){
               id(${smart_bms_id}_auto_cvl) = -1.0;
               return id(${smart_bms_id}_bulk_voltage).state;
             } else {
-            // Create array of cell voltages
-            float cell_array[] = {
-              id(bms1_cell_v_01).state, id(bms1_cell_v_02).state, id(bms1_cell_v_03).state, id(bms1_cell_v_04).state,
-              id(bms1_cell_v_05).state, id(bms1_cell_v_06).state, id(bms1_cell_v_07).state, id(bms1_cell_v_08).state,
-              id(bms1_cell_v_09).state, id(bms1_cell_v_10).state, id(bms1_cell_v_11).state, id(bms1_cell_v_12).state,
-              id(bms1_cell_v_13).state, id(bms1_cell_v_14).state, id(bms1_cell_v_15).state, id(bms1_cell_v_16).state,
-              id(bms1_cell_v_17).state, id(bms1_cell_v_18).state, id(bms1_cell_v_19).state, id(bms1_cell_v_20).state,
-              id(bms1_cell_v_21).state, id(bms1_cell_v_22).state, id(bms1_cell_v_23).state, id(bms1_cell_v_24).state,
-            };
-            // Calculate actual total voltage
-            for(int i = 0; i < id(${smart_bms_id}_cell_count).state; i++) {
-              target_total_v += cell_array[i];
-            };
-            // Add cell voltage offset to target total voltage if possible
-            for(int i = 0; i < id(${smart_bms_id}_cell_count).state; i++) {
-              if (cell_array[i] >= cell_bulk_v) {
-                excess_v = cell_bulk_v - cell_array[i];
-                offset_v = excess_v * charge_v_factor;
-                target_total_v += offset_v;
+              // PI Algorithm
+              error = cell_bulk_v - max_cell_v;
+              // It's possible for PI control to start before BMS values are available, so don't store non-number values
+              if(isnan(integral)) {
+                integral = 0;
               }
-            };
-            // Use minimum of dynamic charge voltage or bulk voltage
-            dyn_chg_v = min(id(${smart_bms_id}_bulk_voltage).state, target_total_v);
-            // Return automatic charge voltage
-            return dyn_chg_v;
+              // Check if max cell voltage is in deadband
+              if ((max_cell_v <= max_allowed_voltage) & (max_cell_v >= cell_bulk_v)) {
+                // No integral error within deadband zone
+              } else {
+                // Prevent integral from updating if CVL >= max_CVL or CVL <= min_CVL - wind-up protection
+                if ((CVL < max_CVL) | (CVL > min_CVL)) {
+                    integral += error * dt;
+                }
+              }
+              // Calculate PI output
+              output = kp * error + ki * integral;
+              // Update CVL
+              CVL += output;
+              // If CVL is less than lower limit, enforce limit
+              if (CVL <= min_CVL) {
+                CVL = min_CVL;
+              }
+              // If CVL is greater than upper limit, enforce limit
+              else if (CVL >= max_CVL) {
+                CVL = max_CVL;
+              }
+              return CVL;
             }
     filters:    
-    - sliding_window_moving_average:
-        send_every: 1
-        send_first_at: 1
-        window_size: ${charge_t_factor}
     - round: 1
