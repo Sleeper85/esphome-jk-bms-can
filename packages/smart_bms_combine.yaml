@@ -16,11 +16,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
 # TODO !
-# id(bms1_switch_balancing).state
 # id(bms1_errors_bitmask).state
 # id(bms1_min_voltage_cell).state
 # id(bms1_max_voltage_cell).state
-# auto_cvl : id(bms1_balance_trigger_voltage).state
 
 globals:
   - id: ${smart_bms_id}_bms_counter
@@ -32,6 +30,14 @@ globals:
     restore_value: no
     initial_value: '0'
   - id: ${smart_bms_id}_equalizing_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: ${smart_bms_id}_bms_switch_charging_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: ${smart_bms_id}_bms_switch_discharging_counter
     type: int
     restore_value: no
     initial_value: '0'
@@ -95,6 +101,10 @@ globals:
     type: float
     restore_value: no
     initial_value: '0.0'
+  - id: ${smart_bms_id}_max_balance_trigger_voltage
+    type: float
+    restore_value: no
+    initial_value: '0.0'
   - id: ${smart_bms_id}_max_temperature_sensor_1
     type: float
     restore_value: no
@@ -117,11 +127,11 @@ interval:
             id(${smart_bms_id}_total_voltage).publish_state(total_voltage);
             id(${smart_bms_id}_total_total_voltage) = 0.0;
             
-            // current SUM
+            // current TOTAL
             id(${smart_bms_id}_current).publish_state(id(${smart_bms_id}_total_current));
             id(${smart_bms_id}_total_current) = 0.0;
             
-            // power SUM
+            // power TOTAL
             id(${smart_bms_id}_power).publish_state(id(${smart_bms_id}_total_power));
             id(${smart_bms_id}_total_power) = 0.0;
             
@@ -131,7 +141,7 @@ interval:
             id(${smart_bms_id}_state_of_charge).publish_state(soc);
             id(${smart_bms_id}_total_soc) = 0.0;
             
-            // capacity_remaining_ah SUM
+            // capacity_remaining_ah TOTAL
             id(${smart_bms_id}_capacity_remaining_ah).publish_state(id(${smart_bms_id}_total_capacity_remaining_ah));
             id(${smart_bms_id}_total_capacity_remaining_ah) = 0.0;
             
@@ -141,16 +151,35 @@ interval:
             id(${smart_bms_id}_charging_cycles).publish_state(charging_cycles);
             id(${smart_bms_id}_total_charging_cycles) = 0.0;
             
+            // equalizing_counter
+            if (id(${smart_bms_id}_equalizing_counter) > 0) id(${smart_bms_id}_equalizing).publish_state(true);
+            id(${smart_bms_id}_equalizing_counter) = 0;
+
+            // bms_switch_charging_counter
+            if (id(${smart_bms_id}_bms_switch_charging_counter) > 0) id(${smart_bms_id}_bms_switch_charging).publish_state(true);
+            id(${smart_bms_id}_bms_switch_charging_counter) = 0;
+
+            // bms_switch_discharging_counter
+            if (id(${smart_bms_id}_bms_switch_discharging_counter) > 0) id(${smart_bms_id}_bms_switch_discharging).publish_state(true);
+            id(${smart_bms_id}_bms_switch_discharging_counter) = 0;
+
             // Reset combined_bms_counter
             id(${smart_bms_id}_combined_bms_counter) = 0;
           }
 
 binary_sensor:
-  # Balancing state (global = true if any BMS is balancing)
+  # equalizing
   - platform: template
-    name: "${smart_bms_name} Equalizing State"
+    name: "${smart_bms_name} Equalizing state"
     id: ${smart_bms_id}_equalizing
-    lambda: return (id(${smart_bms_id}_equalizing_counter) > 0);
+  # bms_switch_charging
+  - platform: template
+    name: "${smart_bms_name} BMS Charge switch state"
+    id: ${smart_bms_id}_bms_switch_charging
+  # bms_switch_discharging
+  - platform: template
+    name: "${smart_bms_name} BMS Discharge switch state"
+    id: ${smart_bms_id}_bms_switch_discharging
 
 sensor:
   # cell_count
@@ -256,36 +285,6 @@ sensor:
         - throttle: 10s
         - delta: 1
 
-  # temperature_sensor_1 MAX
-  - platform: template
-    id: ${smart_bms_id}_temperature_sensor_1
-    name: "${smart_bms_name} Temperature Sensor 1"
-    update_interval: ${smart_bms_update_interval}
-    accuracy_decimals: 2
-    unit_of_measurement: °C
-    lambda: |-
-      if (id(${smart_bms_id}_bms_counter) == 0) id(${smart_bms_id}_max_temperature_sensor_1) = 0.0;
-      return id(${smart_bms_id}_max_temperature_sensor_1);
-
-  # temperature_sensor_2 MAX
-  - platform: template
-    id: ${smart_bms_id}_temperature_sensor_2
-    name: "${smart_bms_name} Temperature Sensor 2"
-    update_interval: ${smart_bms_update_interval}
-    accuracy_decimals: 2
-    unit_of_measurement: °C
-    lambda: |-
-      if (id(${smart_bms_id}_bms_counter) == 0) id(${smart_bms_id}_max_temperature_sensor_2) = 0.0;
-      return id(${smart_bms_id}_max_temperature_sensor_2);
-
-# power_tube_temperature MIN_MAX
-# - platform: template
-#   id: ${smart_bms_id}_power_tube_temperature
-#   name: "${smart_bms_name} power_tube_temperature"
-#   update_interval: ${smart_bms_update_interval}
-#   accuracy_decimals: 2
-#   unit_of_measurement: °C
-
   # state_of_charge MEAN
   - platform: template
     id: ${smart_bms_id}_state_of_charge
@@ -380,6 +379,50 @@ sensor:
     lambda: |-
       if (id(${smart_bms_id}_bms_counter) == 0) id(${smart_bms_id}_max_cell_uvpr) = 0.0;
       return id(${smart_bms_id}_max_cell_uvpr);
+
+  # balance_trigger_voltage MAX
+  - platform: template
+    id: ${smart_bms_id}_balance_trigger_voltage
+    name: "${smart_bms_name} Cell UVPR (MAX)"
+    update_interval: ${smart_bms_update_interval}
+    accuracy_decimals: 3
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: |-
+      if (id(${smart_bms_id}_bms_counter) == 0) id(${smart_bms_id}_max_balance_trigger_voltage) = 0.0;
+      return id(${smart_bms_id}_max_balance_trigger_voltage);
+
+  # temperature_sensor_1 MAX
+  - platform: template
+    id: ${smart_bms_id}_temperature_sensor_1
+    name: "${smart_bms_name} Temperature Sensor 1"
+    update_interval: ${smart_bms_update_interval}
+    accuracy_decimals: 2
+    unit_of_measurement: °C
+    lambda: |-
+      if (id(${smart_bms_id}_bms_counter) == 0) id(${smart_bms_id}_max_temperature_sensor_1) = 0.0;
+      return id(${smart_bms_id}_max_temperature_sensor_1);
+
+  # temperature_sensor_2 MAX
+  - platform: template
+    id: ${smart_bms_id}_temperature_sensor_2
+    name: "${smart_bms_name} Temperature Sensor 2"
+    update_interval: ${smart_bms_update_interval}
+    accuracy_decimals: 2
+    unit_of_measurement: °C
+    lambda: |-
+      if (id(${smart_bms_id}_bms_counter) == 0) id(${smart_bms_id}_max_temperature_sensor_2) = 0.0;
+      return id(${smart_bms_id}_max_temperature_sensor_2);
+
+# power_tube_temperature MIN_MAX
+# - platform: template
+#   id: ${smart_bms_id}_power_tube_temperature
+#   name: "${smart_bms_name} power_tube_temperature"
+#   update_interval: ${smart_bms_update_interval}
+#   accuracy_decimals: 2
+#   unit_of_measurement: °C
 
   # Charge_Current_max SUM
 #  - platform: template

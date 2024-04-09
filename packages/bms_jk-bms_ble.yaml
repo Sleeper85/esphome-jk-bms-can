@@ -297,9 +297,6 @@ text_sensor:
 number:
   - platform: jk_bms_ble
     jk_bms_ble_id: ${bms_id}
-    balance_trigger_voltage:
-      id: ${bms_id}_balance_trigger_voltage
-      name: "${bms_name} balance trigger voltage"
     cell_count:
       id: ${bms_id}_cell_count
       name: "${bms_name} cell count"
@@ -317,8 +314,6 @@ number:
     cell_voltage_undervoltage_recovery:
       id: ${bms_id}_cell_uvpr
       name: "${bms_name} cell voltage undervoltage recovery"
-    balance_starting_voltage:
-      name: "${bms_name} balance starting voltage"
     voltage_calibration:
       name: "${bms_name} voltage calibration"
     current_calibration:
@@ -333,6 +328,12 @@ number:
     max_discharge_current:
       id: ${bms_id}_max_discharge_current
       name: "${bms_name} max discharge current"
+    balance_starting_voltage:
+      id: ${bms_id}_balance_starting_voltage
+      name: "${bms_name} balance starting voltage"
+    balance_trigger_voltage:
+      id: ${bms_id}_balance_trigger_voltage
+      name: "${bms_name} balance trigger voltage"
 
 button:
   - platform: jk_bms_ble
