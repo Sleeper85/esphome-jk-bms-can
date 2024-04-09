@@ -54,7 +54,7 @@ sensor:
 
             double static integral = 0.0;                                             // Integral term initialization
             double cell_bulk_v = (id(${smart_bms_id}_bulk_voltage).state / id(${smart_bms_id}_cell_count).state);
-            double balance_delta = id(bms1_balance_trigger_voltage).state;
+            double balance_delta = id(${smart_bms_id}_balance_trigger_voltage).state;
             double max_allowed_voltage = cell_bulk_v + balance_delta;
             double max_cell_v = id(${smart_bms_id}_max_cell_voltage).state;
             double max_CVL = id(${smart_bms_id}_bulk_voltage).state;                  // Maximum CVL

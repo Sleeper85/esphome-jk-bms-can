@@ -1,5 +1,5 @@
-# Updated : 2024.04.03
-# Version : 1.18.1
+# Updated : 2024.04.10
+# Version : 1.1
 # Owner   : Sleeper85
 
 # This YAML is free software: you can redistribute it
@@ -349,13 +349,11 @@ text_sensor:
       else if ((id(${smart_bms_id}_charge_status) == "Float") & (!id(${smart_bms_id}_switch_float).state)) id(${smart_bms_id}_charge_status) = "EOC";
       // No Force Bulk => Wait
       else if ((id(${smart_bms_id}_charge_status) == "Force Bulk") & (!id(${smart_bms_id}_switch_force_bulk).state)) id(${smart_bms_id}_charge_status) = "Wait";
-      // No Balancing => Wait
-      else if ((id(${smart_bms_id}_charge_status) == "Balancing") & (!id(bms1_switch_balancing).state)) id(${smart_bms_id}_charge_status) = "Wait";
       
       // +-----------------------------------------------+
       // | Charge ON : BMS and CAN charging switch is ON |
       // +-----------------------------------------------+
-      else if ((id(${smart_bms_id}_switch_charging).state) & (id(${smart_bms_id}_switch_charging).state)) {
+      else if ((id(${smart_bms_id}_bms_switch_charging).state) & (id(${smart_bms_id}_switch_charging).state)) {
       
         // Variables
         float cell_bulk_v = (id(${smart_bms_id}_bulk_voltage).state / id(${smart_bms_id}_cell_count).state);
@@ -489,7 +487,7 @@ binary_sensor:
       // Alarm > Stop Discharging
       if ((id(${smart_bms_id}_alarm_status) == "UVP") | (id(${smart_bms_id}_alarm_status) == "DOCP") | (id(${smart_bms_id}_alarm_status) == "OTP") | (id(${smart_bms_id}_alarm_status) == "BMS")) return false;
       // BMS or ESP32 switch is OFF > Stop Discharging
-      else if ((!id(${smart_bms_id}_switch_discharging).state) | (!id(${smart_bms_id}_switch_discharging).state)) return false;
+      else if ((!id(${smart_bms_id}_bms_switch_discharging).state) | (!id(${smart_bms_id}_switch_discharging).state)) return false;
       // Battery voltage is low > Stop Discharging
       else if (id(${smart_bms_id}_total_voltage).state <= id(${smart_bms_id}_requested_discharge_voltage).state) return false;
       // Discharging Allowed
