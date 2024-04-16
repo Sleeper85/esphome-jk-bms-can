@@ -53,6 +53,7 @@ sensor:
             // Variables
 
             double static integral = 0.0;                                             // Integral term initialization
+            double static prev_integral = 0.0;                                        // Prior Integral term initialization
             double cell_bulk_v = (id(${smart_bms_id}_bulk_voltage).state / id(${smart_bms_id}_cell_count).state);
             double balance_delta = id(${smart_bms_id}_balance_trigger_voltage).state;
             double max_allowed_voltage = cell_bulk_v + balance_delta;
@@ -75,29 +76,30 @@ sensor:
               // PI Algorithm
               error = cell_bulk_v - max_cell_v;
               // It's possible for PI control to start before BMS values are available, so don't store non-number values
-              if(isnan(integral)) {
+              if(isnan(prev_integral)) {
+                prev_integral = 0;
                 integral = 0;
               }
               // Check if max cell voltage is in deadband
               if ((max_cell_v <= max_allowed_voltage) & (max_cell_v >= cell_bulk_v)) {
                 // No integral error within deadband zone
               } else {
-                // Prevent integral from updating if CVL >= max_CVL or CVL <= min_CVL - wind-up protection
-                if ((CVL < max_CVL) | (CVL > min_CVL)) {
-                    integral += error * dt;
-                }
+                  integral = prev_integral + error * dt;
               }
               // Calculate PI output
               output = kp * error + ki * integral;
               // Update CVL
               CVL += output;
               // If CVL is less than lower limit, enforce limit
-              if (CVL <= min_CVL) {
+              if (CVL < min_CVL) {
                 CVL = min_CVL;
               }
               // If CVL is greater than upper limit, enforce limit
-              else if (CVL >= max_CVL) {
+              else if (CVL > max_CVL) {
                 CVL = max_CVL;
+              }
+              else {
+                prev_integral = integral;
               }
               return CVL;
             }
