@@ -1,5 +1,5 @@
-# Updated : 2024.04.09
-# Version : 2.2
+# Updated : 2024.04.17
+# Version : 2.2.1
 # Owner   : MrPablo
 
 # This YAML is free software: you can redistribute it
@@ -64,7 +64,7 @@ sensor:
 
             double kp = ${charge_v_kp};                                               // Proportional gain, adjust as needed
             double ki = ${charge_v_ki};                                               // Integral gain, adjust as needed
-            double dt = 1.0;                                                          // Time step, adjust based on update_interval
+            double dt = ${smart_bms_update_interval};                                 // Time step, adjust based on update_interval
             double error = 0.0;                                                       // Starting error
             double output = 0.0;                                                      // Starting output
 
