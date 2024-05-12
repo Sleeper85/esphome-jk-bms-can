@@ -1,9 +1,9 @@
-# Updated : 2024.04.17
+# Updated : 2024.05.12
 # Version : 2.2.1
-# Owner   : MrPablo
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
-# This YAML is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
@@ -33,7 +33,7 @@ esphome:
 
 switch:
   - platform: template
-    name: ${smart_bms_name} Automatic Charge Voltage
+    name: ${name} ${smart_bms_name} Automatic Charge Voltage
     id: ${smart_bms_id}_switch_auto_cvl
     optimistic: true
     entity_category: config
@@ -43,7 +43,7 @@ sensor:
   # | Auto Charge Voltage Control          |
   # +--------------------------------------+
   - platform: template
-    name: ${smart_bms_name} Auto Charge Voltage
+    name: ${name} ${smart_bms_name} Auto Charge Voltage
     id: auto_cvl
     update_interval: ${smart_bms_update_interval}
     unit_of_measurement: V
@@ -64,7 +64,7 @@ sensor:
 
             double kp = ${charge_v_kp};                                               // Proportional gain, adjust as needed
             double ki = ${charge_v_ki};                                               // Integral gain, adjust as needed
-            double dt = ${smart_bms_update_interval};                                 // Time step, adjust based on update_interval
+            double dt = 1.0;                                                          // Time step, adjust based on update_interval
             double error = 0.0;                                                       // Starting error
             double output = 0.0;                                                      // Starting output
 

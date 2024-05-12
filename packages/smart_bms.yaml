@@ -1,9 +1,9 @@
-# Updated : 2024.04.10
-# Version : 1.1
-# Owner   : Sleeper85
+# Updated : 2024.05.12
+# Version : 1.1.1
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
-# This YAML is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
@@ -82,19 +82,19 @@ globals:
 
 switch:
   - platform: template
-    name: "${smart_bms_name} Charge enabled"
+    name: "${name} ${smart_bms_name} Charge enabled"
     id: ${smart_bms_id}_switch_charging
     optimistic: true
   - platform: template
-    name: "${smart_bms_name} Discharge enabled"
+    name: "${name} ${smart_bms_name} Discharge enabled"
     id: ${smart_bms_id}_switch_discharging
     optimistic: true
   - platform: template
-    name: "${smart_bms_name} Force Bulk (top bal)"
+    name: "${name} ${smart_bms_name} Force Bulk (top bal)"
     id: ${smart_bms_id}_switch_force_bulk
     optimistic: true
   - platform: template
-    name: "${smart_bms_name} Float charge enabled"
+    name: "${name} ${smart_bms_name} Float charge enabled"
     id: ${smart_bms_id}_switch_float
     optimistic: true
 
@@ -103,7 +103,7 @@ number:
   # | Slider / Box                         |
   # +--------------------------------------+
   - platform: template
-    name: "${smart_bms_name} Bulk voltage"
+    name: "${name} ${smart_bms_name} Bulk voltage"
     id: "${smart_bms_id}_bulk_voltage"
     step: 0.1
     min_value: 54.0
@@ -116,7 +116,7 @@ number:
     optimistic: true
     entity_category: config
   - platform: template
-    name: "${smart_bms_name} Float voltage"
+    name: "${name} ${smart_bms_name} Float voltage"
     id: "${smart_bms_id}_float_voltage"
     step: 0.1
     min_value: 52.8
@@ -129,7 +129,7 @@ number:
     optimistic: true
     entity_category: config
   - platform: template
-    name: "${smart_bms_name} Rebulk V."
+    name: "${name} ${smart_bms_name} Rebulk V."
     id: "${smart_bms_id}_rebulk_voltage"
     step: 0.1
     min_value: 51.2
@@ -142,7 +142,7 @@ number:
     optimistic: true
     entity_category: config
   - platform: template
-    name: "${smart_bms_name} Absorption Offset V."
+    name: "${name} ${smart_bms_name} Absorption Offset V."
     id: "${smart_bms_id}_absorption_offset"
     step: 0.05
     min_value: 0
@@ -155,7 +155,7 @@ number:
     optimistic: true
     entity_category: config
   - platform: template
-    name: "${smart_bms_name} Charging current max"
+    name: "${name} ${smart_bms_name} Charging current max"
     id: "${smart_bms_id}_charging_current"
     step: 1
     min_value: 0
@@ -168,7 +168,7 @@ number:
     optimistic: true
     entity_category: config
   - platform: template
-    name: "${smart_bms_name} Discharging current max"
+    name: "${name} ${smart_bms_name} Discharging current max"
     id: "${smart_bms_id}_discharging_current"
     step: 1
     min_value: 0
@@ -186,7 +186,7 @@ sensor:
   # | Last Complete Charge                 |
   # +--------------------------------------+
   - platform: template
-    name: "${smart_bms_name} Last Complete Charge"
+    name: "${name} ${smart_bms_name} Last Complete Charge"
     device_class: timestamp
     id: ${smart_bms_id}_eoc_timestamp_template
     lambda: return id(${smart_bms_id}_eoc_timestamp);
@@ -203,7 +203,7 @@ sensor:
   # |  Requested Charge Voltage  (CVL)     |
   # +--------------------------------------+
   - platform: template
-    name: ${smart_bms_name} Requested Charge Voltage
+    name: ${name} ${smart_bms_name} Requested Charge Voltage
     id: ${smart_bms_id}_requested_charge_voltage
     unit_of_measurement: V
     device_class: voltage
@@ -222,7 +222,7 @@ sensor:
   # |  Requested Charge Current  (CCL)     |
   # +--------------------------------------+
   - platform: template
-    name: ${smart_bms_name} Requested Charge Current
+    name: ${name} ${smart_bms_name} Requested Charge Current
     id: ${smart_bms_id}_requested_charge_current
     unit_of_measurement: A
     device_class: current
@@ -239,7 +239,7 @@ sensor:
   # |  Requested Discharge Voltage  (DVL)  |
   # +--------------------------------------+
   - platform: template
-    name: ${smart_bms_name} Requested Discharge Voltage
+    name: ${name} ${smart_bms_name} Requested Discharge Voltage
     id: ${smart_bms_id}_requested_discharge_voltage
     unit_of_measurement: V
     device_class: voltage
@@ -249,7 +249,7 @@ sensor:
   # |  Requested Discharge Current  (DCL)  |
   # +--------------------------------------+
   - platform: template
-    name: ${smart_bms_name} Requested Discharge Current
+    name: ${name} ${smart_bms_name} Requested Discharge Current
     id: ${smart_bms_id}_requested_discharge_current
     unit_of_measurement: A
     device_class: current
@@ -266,7 +266,7 @@ sensor:
   # | Battery module                       |
   # +--------------------------------------+
   - platform: template
-    name: ${smart_bms_name} Battery module
+    name: ${name} ${smart_bms_name} Battery module
     id: ${smart_bms_id}_battery_module
     device_class: battery
     update_interval: ${smart_bms_update_interval}
@@ -287,7 +287,7 @@ sensor:
   # | Battery State of Charge (SOC)        |
   # +--------------------------------------+
   - platform: template
-    name: ${smart_bms_name} Battery SOC
+    name: ${name} ${smart_bms_name} Battery SOC
     id: ${smart_bms_id}_battery_soc
     unit_of_measurement: "%"
     device_class: battery
@@ -305,7 +305,7 @@ sensor:
   # | Battery State of Health (SOH)        |
   # +--------------------------------------+
   - platform: template
-    name: ${smart_bms_name} Battery SOH
+    name: ${name} ${smart_bms_name} Battery SOH
     id: ${smart_bms_id}_battery_soh
     unit_of_measurement: "%"
     device_class: battery
@@ -317,7 +317,7 @@ text_sensor:
   # | Last Complete Charge                 |
   # +--------------------------------------+
   - platform: template
-    name: ${smart_bms_name} Last Complete Charge Human Readable
+    name: ${name} ${smart_bms_name} Last Complete Charge Human Readable
     id: ${smart_bms_id}_eoc_timestamp_human
     icon: mdi:clock-start
     entity_category: diagnostic
@@ -326,7 +326,7 @@ text_sensor:
   # | ********* Charging  Status ********* |
   # +--------------------------------------+
   - platform: template
-    name: "${smart_bms_name} Charging Status"
+    name: "${name} ${smart_bms_name} Charging Status"
     id: ${smart_bms_id}_charging_status
     update_interval: ${smart_bms_update_interval}
     lambda: |-
@@ -429,7 +429,7 @@ text_sensor:
   # | Charging Instruction                 |
   # +--------------------------------------+
   - platform: template
-    name: "${smart_bms_name} Charging Instruction"
+    name: "${name} ${smart_bms_name} Charging Instruction"
     id: ${smart_bms_id}_charging_instruction
     update_interval: ${smart_bms_update_interval}
     lambda: |-
@@ -449,7 +449,7 @@ text_sensor:
       // End Of Charge (EOC) > Stop Charging
       else if (id(${smart_bms_id}_charge_status) == "EOC") {
         id(${smart_bms_id}_eoc) = true;                                         // SOC 100% can be sent
-        id(${smart_bms_id}_eoc_timestamp) = id(sntp_time).utcnow().timestamp;   // Store charge completion timestamp
+        id(${smart_bms_id}_eoc_timestamp) = id(my_time).utcnow().timestamp;   // Store charge completion timestamp
         return {"Stop"};
       }
       // Wait
@@ -458,7 +458,7 @@ text_sensor:
   # | Smart BMS Alarm Logic                |
   # +--------------------------------------+
   - platform: template
-    name: "${smart_bms_name} Alarm"
+    name: "${name} ${smart_bms_name} Alarm"
     id: ${smart_bms_id}_smart_bms_alarm
     update_interval: ${smart_bms_update_interval}
     entity_category: diagnostic
@@ -481,7 +481,7 @@ binary_sensor:
   # | Discharging Instruction              |
   # +--------------------------------------+
   - platform: template
-    name: "${smart_bms_name} Discharging Instruction"
+    name: "${name} ${smart_bms_name} Discharging Instruction"
     id: ${smart_bms_id}_discharging_instruction
     lambda: |-
       // Alarm > Stop Discharging

@@ -1,9 +1,9 @@
-# Updated : 2024.04.09
-# Version : 1.1
-# Owner   : MrPablo
+# Updated : 2024.05.12
+# Version : 1.1.1
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
-# This YAML is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
@@ -35,7 +35,7 @@ esphome:
 
 switch:
   - platform: template
-    name: ${smart_bms_name} Automatic Charge Current
+    name: ${name} ${smart_bms_name} Automatic Charge Current
     id: ${smart_bms_id}_switch_auto_ccl
     optimistic: true
     entity_category: config
@@ -47,7 +47,7 @@ sensor:
   # First, an initial charge current is calculated based upon the maximum cell voltage but only if the Auto Charge Current switch is enabled.
   - platform: copy
     source_id: ${smart_bms_id}_max_cell_voltage
-    name: ${smart_bms_name} Initial Charge Current
+    name: ${name} ${smart_bms_name} Initial Charge Current
     id: auto_ccl_initial
     unit_of_measurement: A
     device_class: current
@@ -62,7 +62,7 @@ sensor:
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial charge current values.
   - platform: copy
     source_id: auto_ccl_initial
-    name: ${smart_bms_name} Moving Average Charge Current
+    name: ${name} ${smart_bms_name} Moving Average Charge Current
     id:  auto_ccl_moving_average
     unit_of_measurement: A
     device_class: current
@@ -76,7 +76,7 @@ sensor:
   # This means that cell voltage spikes will be reacted to quickly, but reduced cell voltages will not, preventing oscillation of requested current.
   - platform: copy
     source_id: auto_ccl_initial
-    name: ${smart_bms_name} Auto Charge Current
+    name: ${name} ${smart_bms_name} Auto Charge Current
     id: auto_ccl
     unit_of_measurement: A
     device_class: current

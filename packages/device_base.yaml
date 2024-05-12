@@ -1,9 +1,9 @@
-# Updated : 2024.04.09
+# Updated : 2024.05.12
 # Version : 1.1
-# Owner   : Sleeper85
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
-# This YAML is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
@@ -17,10 +17,18 @@
 
 esphome:
   name: ${name}
+  # friendly_name: ${name}
+  # comment: 'Solar system braining and more !'
+  # area: 'Technical local'
+  # project:
+  #   name: esphome.bms2can
+  #   version: "1.1.1"
+  min_version: 2024.3.0
 
 time:
-  - platform: sntp
-    id: sntp_time
+# https://esphome.io/components/time/homeassistant
+  - platform: homeassistant
+    id: my_time
 
 button:
   - platform: restart

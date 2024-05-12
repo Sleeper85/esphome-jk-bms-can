@@ -1,0 +1,165 @@
+# Updated : 2024.05.12
+# Version : 1.0.1
+# GitHub  : https://github.com/SeByDocKy/pvbrain2
+
+esphome:
+  name: ${name}
+  # friendly_name: ${name}
+  # comment: 'Solar system braining and more !'
+  # area: 'Local Technique'
+  project:
+    name: esphome.pvbrain2
+    version: "1.0.1"
+  min_version: 2024.3.0
+  # The following option is required for ESP32 S3 with memory > 16MB, eg. the N32R8V
+  # platformio_options:
+  #   board_build.arduino.memory_type: opi_opi
+  #   board_build.flash_mode: dio
+  #   board_upload.maximum_ram_size: 524288
+  #   board_build.partitions: large_littlefs_32MB.csv
+  #   build_flags:
+  #     -DBOARD_HAS_PSRAM
+  #     -DARDUINO_USB_CDC_ON_BOOT=1
+  #     -mfix-esp32-psram-cache-issue
+
+packages:
+  # BUS
+  # bus_i2c0: used for devices BME280 or BMP280 and SX1509
+  # bus_i2c0: !include device_bus_i2c0.yaml
+  # bus_dallas: !include device_bus_dallas.yaml
+
+  # Devices
+  # device_uart_esp: !include device_uart_esp.yaml
+  device_wk2168_spi: !include device_wk2168_spi.yaml
+  # device_wk2168_i2c: !include device_wk2168_i2c.yaml
+  # device_sx1509: !include device_sx1509.yaml
+
+time:
+# https://esphome.io/components/time/homeassistant
+  - platform: homeassistant
+    id: my_time
+ 
+binary_sensor:
+# https://esphome.io/components/binary_sensor/status  
+  - platform: status
+    name: ${name}_status   
+   
+light:
+# https://esphome.io/components/light/status_led
+  - platform: status_led
+    name: ${name}_led_light_1
+    id: led_light_1
+    pin: GPIO01
+    effects: !include
+      file: ../environmental/light/effects/monochrome.yaml
+    entity_category: config
+
+  - platform: status_led
+    name: ${name}_led_light_2
+    id: led_light_2
+    pin: GPIO02    
+    effects: !include
+      file: ../environmental/light/effects/monochrome.yaml
+    entity_category: config
+
+# https://esphome.io/components/light/esp32_rmt_led_strip
+  - platform: esp32_rmt_led_strip
+    id: on_board_light_io48
+    name: ${name}_on_board_light_io48
+    rgb_order: GRB
+    pin: GPIO48
+    num_leds: 1
+    rmt_channel: 0
+    chipset: ws2812
+    effects: !include
+      file: ../environmental/light/effects/addressable_monoled.yaml
+    entity_category: config
+
+switch:
+# https://esphome.io/components/switch/restart
+  - platform: restart
+    name: ${name}_restart
+    id: ${name}_restart    
+
+# https://esphome.io/components/switch/safe_mode
+  - platform: safe_mode
+    name: ${name}_safe_mode
+    id: ${name}_safe_mode
+
+# https://esphome.io/components/switch/shutdown
+  - platform: shutdown
+    name: ${name}_shutdown
+    id: ${name}_shutdown
+
+sensor:
+# https://esphome.io/components/sensor/wifi_signal 
+  - platform: wifi_signal
+    id: ${name}_wifi_power
+    name: ${name}_wifi_power
+    update_interval: 10s
+    entity_category: diagnostic
+
+  - platform: copy # Reports the WiFi signal strength in %
+    source_id: ${name}_wifi_power
+    name: ${name}_wifi_power_percent
+    id: wifi_power_percent
+    filters:
+      - lambda: 'return min(max(2 * (x + 100.0), 0.0), 100.0);'
+    unit_of_measurement: '%'
+    entity_category: diagnostic
+
+# https://esphome.io/components/sensor/internal_temperature
+  - platform: internal_temperature
+    name: ${name}_internal_temperature
+    id: ${name}_internal_temperature
+    update_interval: 10s
+    entity_category: diagnostic
+
+# https://esphome.io/components/sensor/uptime
+  - platform: uptime
+    id: uptime_sec
+
+text_sensor:
+# https://esphome.io/components/text_sensor/wifi_info
+  - platform: wifi_info
+    ip_address:
+      name: ${name}_ip_address
+    ssid:
+      name: ${name}_connected_ssid
+    bssid:
+      name: ${name}_connected_bssid
+    mac_address:
+      name: ${name}_mac_wifi_address
+    scan_results:
+      name: ${name}_latest_scan_results
+    dns_address:
+      name: ${name}_dns_address
+
+# https://esphome.io/components/text_sensor/version
+  - platform: version
+    name: ${name}_esphomelib_version
+    hide_timestamp: false #true
+    entity_category: diagnostic
+
+  - platform: template
+    name: ${name}_uptime
+    lambda: |-
+      int seconds = (id(uptime_sec).state);
+      int days = seconds / (24 * 3600);
+      seconds = seconds % (24 * 3600); 
+      int hours = seconds / 3600;
+      seconds = seconds % 3600;
+      int minutes = seconds /  60;
+      seconds = seconds % 60;
+      if ( days ) {
+        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( hours ) {
+        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else if ( minutes ) {
+        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
+      } else {
+        return { (std::to_string(seconds) +"s ").c_str() };
+      }
+    icon: mdi:clock-start
+    update_interval: 113s
+    entity_category: diagnostic

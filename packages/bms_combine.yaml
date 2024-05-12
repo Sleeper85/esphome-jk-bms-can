@@ -1,9 +1,9 @@
-# Updated : 2024.04.09
-# Version : 1.1
-# Owner   : Sleeper85
+# Updated : 2024.05.12
+# Version : 1.1.1
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
-# This YAML is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
 globals:
-  - id: ${bms_id}_combined
+  - id: bms${bms_id}_combined
     type: bool
     restore_value: no
     initial_value: "false"
@@ -24,126 +24,138 @@ globals:
 switch:
 # Combine Enable-Switch (user controlled switch to en/dis-able combine)
   - platform: template
-    name: "${bms_name} Combine Enable"
-    id: ${bms_id}_switch_combine
+    name: "${name} ${bms_name} Combine Enable"
+    id: bms${bms_id}_switch_combine
     optimistic: true
     restore_mode: RESTORE_DEFAULT_ON
 
 binary_sensor:
 # Combine Availability (indicated, if the device is able to be included in combine)
   - platform: template
-    name: "${bms_name} Combine Availability"
-    id: ${bms_id}_availability
-    lambda: return ((id(${bms_id}_switch_charging).state) && (id(${bms_id}_switch_discharging).state) && (id(${bms_id}_errors_bitmask).state == 0));
+    name: "${name} ${bms_name} Combine Availability"
+    id: bms${bms_id}_availability
+    lambda: return ((id(bms${bms_id}_switch_charging).state) && (id(bms${bms_id}_switch_discharging).state) && (id(bms${bms_id}_errors_bitmask).state == 0));
 
 # Combine Status (indicated, if the device is included in combine)
   - platform: template
-    name: "${bms_name} Combine"
-    id: ${bms_id}_combine
-    lambda: return ((id(${bms_id}_availability).state) && (id(${bms_id}_switch_combine).state));
+    name: "${name} ${bms_name} Combine"
+    id: bms${bms_id}_combine
+    lambda: return ((id(bms${bms_id}_availability).state) && (id(bms${bms_id}_switch_combine).state));
 
 interval:
   - interval: 1s
     then:
       - lambda: |-
           // Combine Datas
-          if (id(${bms_id}_combine).state) {
+          if (id(bms${bms_id}_combine).state) {
 
             // Combine one time
-            if (id(${bms_id}_combined) == false) {
+            if (id(bms${bms_id}_combined) == false) {
               
               // bms_counter
               id(${smart_bms_id}_bms_counter) += 1;
               
               // cell_count
-              id(${smart_bms_id}_total_cell_count) = id(${bms_id}_cell_count).state;
+              id(${smart_bms_id}_total_cell_count) = id(bms${bms_id}_cell_count).state;
               
               // max_charge_current TOTAL
-              id(${smart_bms_id}_total_max_charge_current) += id(${bms_id}_max_charge_current).state;
+              id(${smart_bms_id}_total_max_charge_current) += id(bms${bms_id}_max_charge_current).state;
               
               // max_discharge_current TOTAL
-              id(${smart_bms_id}_total_max_discharge_current) += id(${bms_id}_max_discharge_current).state;
+              id(${smart_bms_id}_total_max_discharge_current) += id(bms${bms_id}_max_discharge_current).state;
               
               // battery_capacity TOTAL
-              id(${smart_bms_id}_total_battery_capacity) += id(${bms_id}_battery_capacity).state;
+              id(${smart_bms_id}_total_battery_capacity) += id(bms${bms_id}_battery_capacity).state;
               
               // Combined
-              id(${bms_id}_combined) = true;
+              id(bms${bms_id}_combined) = true;
             }
 
             // Combine continuously
             if (id(${smart_bms_id}_combined_bms_counter) < id(${smart_bms_id}_bms_counter)) {
 
               // balance_trigger_voltage MAX
-              if (id(${bms_id}_balance_trigger_voltage).state > id(${smart_bms_id}_max_balance_trigger_voltage)) id(${smart_bms_id}_max_balance_trigger_voltage) = id(${bms_id}_balance_trigger_voltage).state;
-              
+              if (id(bms${bms_id}_balance_trigger_voltage).state > id(${smart_bms_id}_max_balance_trigger_voltage)) id(${smart_bms_id}_max_balance_trigger_voltage) = id(bms${bms_id}_balance_trigger_voltage).state;
+
               // min_cell_voltage MIN
-              if (id(${bms_id}_min_cell_voltage).state < id(${smart_bms_id}_min_min_cell_voltage)) id(${smart_bms_id}_min_min_cell_voltage) = id(${bms_id}_min_cell_voltage).state;
-              
+              // min_voltage_cell MIN (cell number)
+              if (id(bms${bms_id}_min_cell_voltage).state < id(${smart_bms_id}_min_min_cell_voltage)) {
+                id(${smart_bms_id}_min_min_cell_voltage) = id(bms${bms_id}_min_cell_voltage).state;
+                id(${smart_bms_id}_min_min_voltage_cell) = id(bms${bms_id}_min_voltage_cell).state + (${bms_id} * 100);
+              }
+
               // max_cell_voltage MAX
-              if (id(${bms_id}_max_cell_voltage).state > id(${smart_bms_id}_max_max_cell_voltage)) id(${smart_bms_id}_max_max_cell_voltage) = id(${bms_id}_max_cell_voltage).state;
-              
+              // max_voltage_cell MAX (cell number)
+              if (id(bms${bms_id}_max_cell_voltage).state > id(${smart_bms_id}_max_max_cell_voltage)) {
+                id(${smart_bms_id}_max_max_cell_voltage) = id(bms${bms_id}_max_cell_voltage).state;
+                id(${smart_bms_id}_max_max_voltage_cell) = id(bms${bms_id}_max_voltage_cell).state + (${bms_id} * 100);
+              }
+
               // cell_ovp MIN
-              if (id(${bms_id}_cell_ovp).state < id(${smart_bms_id}_min_cell_ovp)) id(${smart_bms_id}_min_cell_ovp) = id(${bms_id}_cell_ovp).state;
+              if (id(bms${bms_id}_cell_ovp).state < id(${smart_bms_id}_min_cell_ovp)) id(${smart_bms_id}_min_cell_ovp) = id(bms${bms_id}_cell_ovp).state;
               
               // cell_ovpr MIN
-              if (id(${bms_id}_cell_ovpr).state < id(${smart_bms_id}_min_cell_ovpr)) id(${smart_bms_id}_min_cell_ovpr) = id(${bms_id}_cell_ovpr).state;
+              if (id(bms${bms_id}_cell_ovpr).state < id(${smart_bms_id}_min_cell_ovpr)) id(${smart_bms_id}_min_cell_ovpr) = id(bms${bms_id}_cell_ovpr).state;
               
               // cell_uvpr MAX
-              if (id(${bms_id}_cell_uvpr).state > id(${smart_bms_id}_max_cell_uvpr)) id(${smart_bms_id}_max_cell_uvpr) = id(${bms_id}_cell_uvpr).state;
+              if (id(bms${bms_id}_cell_uvpr).state > id(${smart_bms_id}_max_cell_uvpr)) id(${smart_bms_id}_max_cell_uvpr) = id(bms${bms_id}_cell_uvpr).state;
               
               // temperature_sensor_1 MAX
-              if (id(${bms_id}_temperature_sensor_1).state > id(${smart_bms_id}_max_temperature_sensor_1)) id(${smart_bms_id}_max_temperature_sensor_1) = id(${bms_id}_temperature_sensor_1).state;
+              if (id(bms${bms_id}_temperature_sensor_1).state > id(${smart_bms_id}_max_temperature_sensor_1)) id(${smart_bms_id}_max_temperature_sensor_1) = id(bms${bms_id}_temperature_sensor_1).state;
               
               // temperature_sensor_2 MAX
-              if (id(${bms_id}_temperature_sensor_2).state > id(${smart_bms_id}_max_temperature_sensor_2)) id(${smart_bms_id}_max_temperature_sensor_2) = id(${bms_id}_temperature_sensor_2).state;
+              if (id(bms${bms_id}_temperature_sensor_2).state > id(${smart_bms_id}_max_temperature_sensor_2)) id(${smart_bms_id}_max_temperature_sensor_2) = id(bms${bms_id}_temperature_sensor_2).state;
               
               // total_voltage TOTAL
-              id(${smart_bms_id}_total_total_voltage) += id(${bms_id}_total_voltage).state;
+              id(${smart_bms_id}_total_total_voltage) += id(bms${bms_id}_total_voltage).state;
               
               // current TOTAL
-              id(${smart_bms_id}_total_current) += id(${bms_id}_current).state;
+              id(${smart_bms_id}_total_current) += id(bms${bms_id}_current).state;
               
               // power TOTAL
-              id(${smart_bms_id}_total_power) += id(${bms_id}_power).state;
+              id(${smart_bms_id}_total_power) += id(bms${bms_id}_power).state;
               
               // soc TOTAL
-              id(${smart_bms_id}_total_soc) += id(${bms_id}_state_of_charge).state;
+              id(${smart_bms_id}_total_soc) += id(bms${bms_id}_state_of_charge).state;
               
               // capacity_remaining_ah TOTAL
-              id(${smart_bms_id}_total_capacity_remaining_ah) += id(${bms_id}_capacity_remaining_ah).state;
+              id(${smart_bms_id}_total_capacity_remaining_ah) += id(bms${bms_id}_capacity_remaining_ah).state;
               
               // charging_cycles MEAN
-              id(${smart_bms_id}_total_charging_cycles) += id(${bms_id}_charging_cycles).state;
+              id(${smart_bms_id}_total_charging_cycles) += id(bms${bms_id}_charging_cycles).state;
 
               // equalizing_counter TOTAL
-              if (id(${bms_id}_equalizing).state) id(${smart_bms_id}_equalizing_counter) += 1;
+              if (id(bms${bms_id}_equalizing).state) id(${smart_bms_id}_equalizing_counter) += 1;
 
               // bms_switch_charging_counter TOTAL
-              if (id(${bms_id}_switch_charging).state) id(${smart_bms_id}_bms_switch_charging_counter) += 1;
+              if (id(bms${bms_id}_switch_charging).state) id(${smart_bms_id}_bms_switch_charging_counter) += 1;
 
               // bms_switch_discharging_counter TOTAL
-              if (id(${bms_id}_switch_discharging).state) id(${smart_bms_id}_bms_switch_discharging_counter) += 1;
+              if (id(bms${bms_id}_switch_discharging).state) id(${smart_bms_id}_bms_switch_discharging_counter) += 1;
+
+              // errors_bitmask bitwise OR (16bit)
+              uint16_t bms_errors_bitmask = id(bms${bms_id}_errors_bitmask).state;
+              id(${smart_bms_id}_bitwise_errors_bitmask) |= bms_errors_bitmask;
 
               // BMS combined counter
               id(${smart_bms_id}_combined_bms_counter) += 1;
             }
           }
           // Uncombine Datas
-          else if (id(${bms_id}_combined)){
+          else if (id(bms${bms_id}_combined)){
 
             // BMS counter
             id(${smart_bms_id}_bms_counter) -= 1;
             
             // max_charge_current TOTAL
-            id(${smart_bms_id}_total_max_charge_current) -= id(${bms_id}_max_charge_current).state;
+            id(${smart_bms_id}_total_max_charge_current) -= id(bms${bms_id}_max_charge_current).state;
             
             // max_discharge_current TOTAL
-            id(${smart_bms_id}_total_max_discharge_current) -= id(${bms_id}_max_discharge_current).state;
+            id(${smart_bms_id}_total_max_discharge_current) -= id(bms${bms_id}_max_discharge_current).state;
             
             // battery_capacity TOTAL
-            id(${smart_bms_id}_total_battery_capacity) -= id(${bms_id}_battery_capacity).state;
+            id(${smart_bms_id}_total_battery_capacity) -= id(bms${bms_id}_battery_capacity).state;
 
             // Uncombined
-            id(${bms_id}_combined) = false;
+            id(bms${bms_id}_combined) = false;
           }

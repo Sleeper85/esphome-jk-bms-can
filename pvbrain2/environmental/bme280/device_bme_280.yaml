@@ -1,0 +1,26 @@
+sensor:
+  - platform: bme280_i2c
+    temperature:
+      name: ${name}_${bme_280_name}_temperature
+      accuracy_decimals: 1
+      oversampling: 16x
+      id: ${bme_280_name}_temperature
+    pressure:
+      name: ${name}_${bme_280_name}_pression
+      accuracy_decimals: 1
+      id: ${bme_280_name}_pression
+    humidity:
+      name: ${name}_${bme_280_name}_humidite
+      accuracy_decimals: 1
+      id: ${bme_280_name}_humidite
+    address: ${bme_280_address}
+    update_interval: ${bme_update_interval}
+    i2c_id: ${bme_280_i2c_bus}
+
+# https://esphome.io/components/sensor/absolute_humidity.html?highlight=absolute_humidity
+  - platform: absolute_humidity
+    name: ${name}_${bme_280_name}_humidite_absolue
+    id: ${bme_280_name}_humidite_absolue
+    equation: Wobus #Tetens #Buck
+    temperature: ${bme_280_name}_temperature
+    humidity: ${bme_280_name}_humidite
