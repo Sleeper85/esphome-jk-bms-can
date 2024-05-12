@@ -1,0 +1,6 @@
+sensor:
+  - platform: dallas
+    name: ${name}_${dallas_name}
+    id: ${dallas_name} 
+    address: ${dallas_address}
+   # update_interval: ${dallas_update_interval}

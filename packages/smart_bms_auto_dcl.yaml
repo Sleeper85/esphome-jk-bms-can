@@ -1,9 +1,9 @@
-# Updated : 2024.04.09
-# Version : 1.1
-# Owner   : MrPablo
+# Updated : 2024.05.12
+# Version : 1.1.1
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
-# This YAML is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
@@ -37,7 +37,7 @@ esphome:
 
 switch:
   - platform: template
-    name: ${smart_bms_name} Automatic Discharge Current
+    name: ${name} ${smart_bms_name} Automatic Discharge Current
     id: ${smart_bms_id}_switch_auto_dcl
     optimistic: true
     entity_category: config
@@ -49,7 +49,7 @@ sensor:
   # First, an initial discharge current is calculated based upon the minimum cell voltage but only if the Auto Discharge Current switch is enabled.
   - platform: copy
     source_id: ${smart_bms_id}_min_cell_voltage
-    name: ${smart_bms_name} Initial Discharge Current
+    name: ${name} ${smart_bms_name} Initial Discharge Current
     id: auto_dcl_initial
     unit_of_measurement: A
     device_class: current
@@ -62,7 +62,7 @@ sensor:
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial discharge current values.
   - platform: copy
     source_id: auto_dcl_initial
-    name: ${smart_bms_name} Moving Average Discharge Current
+    name: ${name} ${smart_bms_name} Moving Average Discharge Current
     id:  auto_dcl_moving_average
     unit_of_measurement: A
     device_class: current
@@ -76,7 +76,7 @@ sensor:
   # This means that cell voltage drops will be reacted to quickly, but increased cell voltages will not, preventing oscillation of requested current.
   - platform: copy
     source_id: auto_dcl_initial
-    name: ${smart_bms_name} Auto Discharge Current
+    name: ${name} ${smart_bms_name} Auto Discharge Current
     id: auto_dcl
     unit_of_measurement: A
     device_class: current

@@ -1,0 +1,31 @@
+# Updated : 2024.05.12
+# Version : 1.1
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+
+esphome:
+  # Dual IO uses 2 lines for data
+  # Standard uses a single line for data
+  # The firmware flash only works in "dio" mode for my ESP32-S3 "N16R8", otherwise endless loop and reboot
+  platformio_options:
+    board_build.flash_mode: dio
+
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 16MB # ajust according to your ESP32-S3 version
+  framework:
+    type: esp-idf
+
+uart:
+  # UART 0 : uart used for ESP32 flashing and logs, can be released if necessary (tx_pin: 43, rx_pin: 44)
+  # UART 1 : JK-BMS 1
+  - id: uart_esp_1
+    tx_pin: 17
+    rx_pin: 18
+    baud_rate: 115200
+    rx_buffer_size: 384
+  # UART 2 : JK-BMS 2
+  - id: uart_esp_2
+    tx_pin: 15
+    rx_pin: 16
+    baud_rate: 115200
+    rx_buffer_size: 384

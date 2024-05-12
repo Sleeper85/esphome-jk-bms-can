@@ -1,9 +1,9 @@
-# Updated : 2024.04.05
+# Updated : 2024.05.12
 # Version : 1.18.1
-# Owner   : Sleeper85
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
-# This YAML is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
@@ -14,6 +14,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+# TODO !
+# Victron min max voltage cell CAN ID 0x374 and 0x375
 
 globals:
   - id: ${canbus_id}_ack_counter
@@ -27,7 +30,7 @@ globals:
 
 select:
   - platform: template
-    name: ${canbus_name} BMS Name
+    name: ${name} ${canbus_name} BMS Name
     id: ${canbus_id}_bms_name
     options:
       - "GENERAL"
@@ -44,7 +47,7 @@ select:
           format: "Chosen option: %s"
           args: ["x.c_str()"]
   - platform: template
-    name: ${canbus_name} Protocol
+    name: ${name} ${canbus_name} Protocol
     id: ${canbus_id}_protocol
     options:
       - "GENERAL"
@@ -71,12 +74,12 @@ light:
   - platform: binary
     output: led
     id: ${canbus_id}_status_led
-    name: "${canbus_name} Status LED"
+    name: "${name} ${canbus_name} Status LED"
     internal: true
 
 binary_sensor:
   - platform: template
-    name: "${canbus_name} Status"
+    name: "${name} ${canbus_name} Status"
     id: ${canbus_id}_status
     entity_category: diagnostic
 
@@ -174,45 +177,45 @@ interval:
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
                       // JK-BMS alarm ?
-                      if (id(bms1_errors_bitmask).state > 1) {
-                         uint16_t jk_errormask = id(bms1_errors_bitmask).state;
+                      if (id(${smart_bms_id}_errors_bitmask).state > 1) {
+                         uint16_t errors_bitmask = id(${smart_bms_id}_errors_bitmask).state;
 
-                         if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {                 // Hight.Voltage.Alarm JK bit 2,7,10
+                         if ((errors_bitmask & 0x04) | (errors_bitmask & 0x80) | (errors_bitmask & 0x400)) {           // Hight.Voltage.Alarm JK bit 2,7,10
                             can_mesg[0] = 0x02;                                                                        // byte0_bit1 (0x02 = bin 10)
                             id(${smart_bms_id}_alarm_status) = "OVP";
                             ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
                          }
-                         if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {                                         // Low.Voltage.Alarm JK bit 3,11 
+                         if ((errors_bitmask & 0x08) | (errors_bitmask & 0x800)) {                                     // Low.Voltage.Alarm JK bit 3,11 
                             can_mesg[0] = can_mesg[0] | 0x04;                                                          // byte0_bit2 (0x04 = bin 100)
                             id(${smart_bms_id}_alarm_status) = "UVP";
                             ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
                          }
-                         if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {                 // Hight.Temp.Alarm JK bit 1,4,8
+                         if ((errors_bitmask & 0x02) | (errors_bitmask & 0x10) | (errors_bitmask & 0x100)) {           // Hight.Temp.Alarm JK bit 1,4,8
                             can_mesg[0] = can_mesg[0] | 0x08;                                                          // byte0_bit3 (0x08 = bin 1000)
                             id(${smart_bms_id}_alarm_status) = "OTP";
                             ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
                          }
-                         if ((jk_errormask & 0x200)) {                                                                 // Low.Temp.Alarm JK bit 9
+                         if ((errors_bitmask & 0x200)) {                                                               // Low.Temp.Alarm JK bit 9
                             can_mesg[0] = can_mesg[0] | 0x10;                                                          // byte0_bit4 (0x10 = bin 10000)
                             id(${smart_bms_id}_alarm_status) = "UTP";
                             ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[0] : %x", can_mesg[0]);
                          }
-                         if ((jk_errormask & 0x40)) {                                                                  // Discharge.Over.Current JK bit 6
+                         if ((errors_bitmask & 0x40)) {                                                                // Discharge.Over.Current JK bit 6
                             can_mesg[0] = can_mesg[0] | 0x80;                                                          // byte0_bit7 (0x80 = bin 10000000)
                             id(${smart_bms_id}_alarm_status) = "DOCP";
                             ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[0] : %x", can_mesg[0]);
                          }
-                         if ((jk_errormask & 0x20)) {                                                                  // Charge.Over.Current JK bit 5
+                         if ((errors_bitmask & 0x20)) {                                                                // Charge.Over.Current JK bit 5
                             can_mesg[1] = 0x01;                                                                        // byte1_bit0 (0x01 = bin 1)
                             id(${smart_bms_id}_alarm_status) = "COCP";
                             ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[1] : %x", can_mesg[1]);
                          }
-                         if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {                                      // BMS internal error JK bit 12,13
+                         if ((errors_bitmask & 0x1000) | (errors_bitmask & 0x2000)) {                                  // BMS internal error JK bit 12,13
                             can_mesg[1] = can_mesg[1] | 0x08;                                                          // byte1_bit3 (0x08 = bin 1000)
                             id(${smart_bms_id}_alarm_status) = "BMS";
                             ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[1] : %x", can_mesg[1]);
                          }
-                         if ((jk_errormask & 0x80)) {                                                                  // Cell Imbalance JK bit 7
+                         if ((errors_bitmask & 0x80)) {                                                                // Cell Imbalance JK bit 7
                             can_mesg[1] = can_mesg[1] | 0x10;                                                          // byte1_bit4 (0x10 = bin 10000)
                             ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[1] : %x", can_mesg[1]);
                          }
@@ -254,45 +257,45 @@ interval:
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
                       // JK-BMS alarm ?
-                      if (id(bms1_errors_bitmask).state > 1) {
-                         uint16_t jk_errormask = id(bms1_errors_bitmask).state;
+                      if (id(${smart_bms_id}_errors_bitmask).state > 1) {
+                         uint16_t errors_bitmask = id(${smart_bms_id}_errors_bitmask).state;
 
-                         if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) {                 // Hight.Voltage.Alarm JK bit 2,7,10
+                         if ((errors_bitmask & 0x04) | (errors_bitmask & 0x80) | (errors_bitmask & 0x400)) {           // Hight.Voltage.Alarm JK bit 2,7,10
                             can_mesg[0] = 0x04;                                                                        // byte0_bit2 (0x04 = bin 100)
                             id(${smart_bms_id}_alarm_status) = "OVP";
                             ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
                          }
-                         if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) {                                         // Low.Voltage.Alarm JK bit 3,11
+                         if ((errors_bitmask & 0x08) | (errors_bitmask & 0x800)) {                                     // Low.Voltage.Alarm JK bit 3,11
                             can_mesg[0] = can_mesg[0] | 0x10;                                                          // byte0_bit4 (0x10 = bin 10000)
                             id(${smart_bms_id}_alarm_status) = "UVP";
                             ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
                          }
-                         if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) {                 // Hight.Temp.Alarm JK bit 1,4,8
+                         if ((errors_bitmask & 0x02) | (errors_bitmask & 0x10) | (errors_bitmask & 0x100)) {           // Hight.Temp.Alarm JK bit 1,4,8
                             can_mesg[0] = can_mesg[0] | 0x40;                                                          // byte0_bit6 (0x40 = bin 1000000)
                             id(${smart_bms_id}_alarm_status) = "OTP";
                             ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
                          }
-                         if ((jk_errormask & 0x200)) {                                                                 // Low.Temp.Alarm JK bit 9
+                         if ((errors_bitmask & 0x200)) {                                                               // Low.Temp.Alarm JK bit 9
                             can_mesg[1] = 0x01;                                                                        // byte1_bit0 (0x01 = bin 1)
                             id(${smart_bms_id}_alarm_status) = "UTP";
                             ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[1] : %x", can_mesg[1]);
                          }
-                         if ((jk_errormask & 0x40)) {                                                                  // Discharge.Over.Current JK bit 6
+                         if ((errors_bitmask & 0x40)) {                                                                // Discharge.Over.Current JK bit 6
                             can_mesg[1] = can_mesg[1] | 0x40;                                                          // byte1_bit6 (0x40 = bin 1000000)
                             id(${smart_bms_id}_alarm_status) = "DOCP";
                             ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[1] : %x", can_mesg[1]);
                          }
-                         if ((jk_errormask & 0x20)) {                                                                  // Charge.Over.Current JK bit 5
+                         if ((errors_bitmask & 0x20)) {                                                                // Charge.Over.Current JK bit 5
                             can_mesg[2] = 0x01;                                                                        // byte2_bit0 (0x01 = bin 1)
                             id(${smart_bms_id}_alarm_status) = "COCP";
                             ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[2] : %x", can_mesg[2]);
                          }
-                         if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) {                                      // BMS.Internal.Error JK bit 12,13
+                         if ((errors_bitmask & 0x1000) | (errors_bitmask & 0x2000)) {                                  // BMS.Internal.Error JK bit 12,13
                             can_mesg[2] = can_mesg[2] | 0x40;                                                          // byte2_bit6 (0x40 = bin 1000000)
                             id(${smart_bms_id}_alarm_status) = "BMS";
                             ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[2] : %x", can_mesg[2]);
                          }
-                         if ((jk_errormask & 0x80)) {                                                                  // Cell.Imbalance JK bit 7
+                         if ((errors_bitmask & 0x80)) {                                                                // Cell.Imbalance JK bit 7
                             can_mesg[3] = 0x01;                                                                        // byte3_bit0 (0x01 = bin 1)
                             ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[3] : %x", can_mesg[3]);
                          }
@@ -462,10 +465,10 @@ interval:
                         
                         can_mesg[1] = 0x00;
                         can_mesg[3] = 0x00;
-                        can_mesg[4] = uint16_t(id(bms1_max_voltage_cell).state) & 0xff;
-                        can_mesg[5] = uint16_t(id(bms1_max_voltage_cell).state) >> 8 & 0xff;
-                        can_mesg[6] = uint16_t(id(bms1_min_voltage_cell).state) & 0xff;
-                        can_mesg[7] = uint16_t(id(bms1_min_voltage_cell).state) >> 8 & 0xff;
+                        can_mesg[4] = uint16_t(id(${smart_bms_id}_max_voltage_cell).state) & 0xff;
+                        can_mesg[5] = uint16_t(id(${smart_bms_id}_max_voltage_cell).state) >> 8 & 0xff;
+                        can_mesg[6] = uint16_t(id(${smart_bms_id}_min_voltage_cell).state) & 0xff;
+                        can_mesg[7] = uint16_t(id(${smart_bms_id}_min_voltage_cell).state) >> 8 & 0xff;
                         ESP_LOGI("main", "send can id: 0x371 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                         return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                         
@@ -527,7 +530,7 @@ interval:
                       can_id: 0x374
                       data: !lambda |-
                         
-                        int cell_id = id(bms1_min_voltage_cell).state;
+                        int cell_id = id(${smart_bms_id}_min_voltage_cell).state;
 
                         ESP_LOGI("main", "send can id: 0x374 [ASCII] Min cell voltage ID : %i", cell_id);
 
@@ -557,7 +560,7 @@ interval:
                       can_id: 0x375
                       data: !lambda |-
                         
-                        int cell_id = id(bms1_max_voltage_cell).state;
+                        int cell_id = id(${smart_bms_id}_max_voltage_cell).state;
 
                         ESP_LOGI("main", "send can id: 0x375 [ASCII] Max cell voltage ID : %i", cell_id);
 

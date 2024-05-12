@@ -1,6 +1,6 @@
-# Updated : 2024.04.09
+# Updated : 2024.05.12
 # Version : 1.1
-# Owner   : Arzaman
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -10,6 +10,14 @@ esp32:
 
 logger:
   hardware_uart: USB_SERIAL_JTAG
+
+uart:
+  # UART 1 : JK-BMS 1
+  - id: uart_esp_1
+    tx_pin: 1
+    rx_pin: 2
+    baud_rate: 115200
+    rx_buffer_size: 384
 
 esphome:
   on_boot:

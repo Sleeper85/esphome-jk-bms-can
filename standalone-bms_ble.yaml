@@ -1,11 +1,12 @@
-# Updated : 2024.04.05
-# Owner   : Sleeper85
+# Updated   : 2024.05.12
+# Version   : 1.1
+# GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
 # Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
 
 # JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
 
-# esp32_wire_jk-bms-can.yaml is free software: you can redistribute it
-# and/or modify it under the terms of the GNU General Public License
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
@@ -18,7 +19,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
 substitutions:
-  name: jk-bms-can-dev
+  name: jk-bms-wire-can
 
 logger:
   #level: INFO
@@ -58,43 +59,31 @@ captive_portal:
 # | Packages                             |
 # +--------------------------------------+
 packages:
+  # Board : uncomment your board
+  device_board: !include packages/board_esp32-devkit-v1.yaml
+  # device_board: !include packages/board_esp32-s3-devkitc-1.yaml
+  # device_board: !include packages/board_atom-s3-lite.yaml
+  # device_board: !include packages/board_atom-s3-display.yaml
+  
   device_base: !include packages/device_base.yaml
-  device_board: !include packages/device_esp32-devkit-v1.yaml
-  fake_bms1: !include packages/bms_jk-bms_fake_traffic_bms1.yaml
-  fake_bms2: !include packages/bms_jk-bms_fake_traffic_bms2.yaml
 
   bms1: !include
-    file: packages/bms_jk-bms_wire.yaml
+    file: packages/bms_jk-bms_ble.yaml
     vars:
       # Smart BMS ID
       smart_bms_id: 'smartbms1'
       # BMS vars
-      bms_id: 'bms1'
+      bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
-      bms_suffix: ''
       bms_update_interval: "3s"
-      bms_tx_pin: 17
-      bms_rx_pin: 16
-  
-  bms2: !include
-    file: packages/bms_jk-bms_wire.yaml
-    vars:
-      # Smart BMS ID
-      smart_bms_id: 'smartbms1'
-      # BMS vars
-      bms_id: 'bms2'
-      bms_name: 'JK-BMS 2'
-      bms_suffix: ''
-      bms_update_interval: "3s"
-      bms_tx_pin: 19
-      bms_rx_pin: 18
+      bms_ble_protocol_version: JK02_32S
+      bms_ble_mac_address: C8:47:8C:10:7E:AB
 
   smartbms1: !include
     file: packages/smart_bms.yaml
     vars:
       smart_bms_id: 'smartbms1'
       smart_bms_name: 'Smart BMS 1'
-      smart_bms_suffix: ''
       smart_bms_update_interval: "1s"
       # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.
       smart_bms_input_number_mode: 'slider'
@@ -126,7 +115,6 @@ packages:
       # CANBUS vars
       canbus_id: 'canbus1'
       canbus_name: 'CANBUS'
-      canbus_suffix: ''
       canbus_tx_pin: 23
       canbus_rx_pin: 22
       canbus_status_led: 2

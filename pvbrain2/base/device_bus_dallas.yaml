@@ -1,0 +1,3 @@
+dallas:
+  - id: dallas_hub
+    pin: GPIO47
