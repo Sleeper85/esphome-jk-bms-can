@@ -24,15 +24,17 @@ esphome:
 
 packages:
   # BUS
-  # bus_i2c0: used for devices BME280 or BMP280 and SX1509
-  # bus_i2c0: !include device_bus_i2c0.yaml
-  # bus_dallas: !include device_bus_dallas.yaml
+  bus_i2c0: !include device_bus_i2c0.yaml
+  bus_spi1: !include device_bus_spi1.yaml
+  bus_dallas: !include device_bus_dallas.yaml
 
   # Devices
   # device_uart_esp: !include device_uart_esp.yaml
   device_wk2168_spi: !include device_wk2168_spi.yaml
   # device_wk2168_i2c: !include device_wk2168_i2c.yaml
   # device_sx1509: !include device_sx1509.yaml
+  # device_canbus_node1: !include device_canbus_esp32can.yaml
+  # device_canbus_node2: !include device_canbus_mcp2515.yaml
 
 time:
 # https://esphome.io/components/time/homeassistant
@@ -65,7 +67,7 @@ light:
 # https://esphome.io/components/light/esp32_rmt_led_strip
   - platform: esp32_rmt_led_strip
     id: on_board_light_io48
-    name: ${name}_on_board_light_io48
+    name: ${name} On board light
     rgb_order: GRB
     pin: GPIO48
     num_leds: 1

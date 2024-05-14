@@ -21,3 +21,17 @@ uart:
     rx_pin: 18
     baud_rate: 115200
     rx_buffer_size: 384
+
+# ESP LED
+output:
+  - platform: gpio
+    pin: 2
+    id: on_board_led
+    inverted: true
+
+light:
+  - platform: binary
+    output: on_board_led
+    id: on_board_light
+    name: "${name} On board light"
+    internal: true
