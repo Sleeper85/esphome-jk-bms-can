@@ -114,7 +114,7 @@ packages:
       bms_uart_id: uart_esp_2
 
   smartbms1: !include
-    file: packages/smart_bms.yaml
+    file: packages/smartbms.yaml
     vars:
       smart_bms_id: 'smartbms1'
       smart_bms_name: 'Smart BMS 1'
@@ -142,7 +142,7 @@ packages:
       smart_bms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
 
   canbus1: !include
-    file: packages/smart_bms_canbus.yaml
+    file: packages/smartbms_canbus.yaml
     vars:
       # Smart BMS ID
       smart_bms_id: 'smartbms1'
