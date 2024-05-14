@@ -19,11 +19,11 @@
 # | Packages                             |
 # +--------------------------------------+
 packages:
-  smart_bms_combine: !include smart_bms_combine.yaml
+  smartbms_combine: !include smartbms_combine.yaml
   # If not necessary, the following packages can be commented out
-  smart_bms_auto_cvl: !include smart_bms_auto_cvl.yaml
-  smart_bms_auto_ccl: !include smart_bms_auto_ccl.yaml
-  smart_bms_auto_dcl: !include smart_bms_auto_dcl.yaml
+  smartbms_auto_cvl: !include smartbms_auto_cvl.yaml
+  smartbms_auto_ccl: !include smartbms_auto_ccl.yaml
+  smartbms_auto_dcl: !include smartbms_auto_dcl.yaml
 
 substitutions:
   # End of charge (EOC) will be triggered if current and max cell voltage meet cut-off thresholds, plus the cycle count exceeds the below threshold.
