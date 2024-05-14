@@ -1,0 +1,8 @@
+# Inverter response simulation
+interval:
+  - interval: 1s
+    then:
+    - canbus.send:
+        canbus_id: canbus_node2
+        can_id: 0x305
+        data: [0, 0, 0, 0, 0, 0, 0, 0]

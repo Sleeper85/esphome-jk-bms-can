@@ -8,6 +8,14 @@ esphome:
   # The firmware flash only works in "dio" mode for my ESP32-S3 "N16R8", otherwise endless loop and reboot
   platformio_options:
     board_build.flash_mode: dio
+  on_boot:
+    then:
+      - light.turn_on:
+          id: on_board_light
+          red: 50%
+          blue: 50%
+          green: 0%
+          brightness: 50%
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -29,3 +37,32 @@ uart:
     rx_pin: 16
     baud_rate: 115200
     rx_buffer_size: 384
+
+canbus:
+  # CANBUS NODE 1
+  - platform: esp32_can
+    id: canbus_node1
+    tx_pin: 38
+    rx_pin: 39
+    can_id: 1
+    bit_rate: 500kbps
+  # CANBUS NODE 2
+  - platform: mcp2515
+    id: canbus_node2
+    spi_id: spi1_bus
+    cs_pin: 21
+    can_id: 2
+    bit_rate: 500kbps
+
+light:
+  # https://esphome.io/components/light/esp32_rmt_led_strip
+  - platform: esp32_rmt_led_strip
+    id: on_board_light
+    name: ${name}_on_board_light
+    rgb_order: GRB
+    pin: 48
+    num_leds: 1
+    rmt_channel: 0
+    chipset: ws2812
+    entity_category: config
+    internal: true

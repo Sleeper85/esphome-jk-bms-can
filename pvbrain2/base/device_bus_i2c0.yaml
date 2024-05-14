@@ -1,3 +1,4 @@
+# Used for the two SX1509 and BME280/BMP280
 i2c:  
   - id: i2c0_bus
     sda: GPIO08 

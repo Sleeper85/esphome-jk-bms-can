@@ -1,4 +1,4 @@
-# Updated   : 2024.05.12
+# Updated   : 2024.05.14
 # Version   : 1.1
 # GitHub    : https://github.com/SeByDocKy/pvbrain2
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
@@ -85,6 +85,10 @@ packages:
   # PVbrain2 packages
   pvbrain2_base: !include pvbrain2/base/device_base.yaml
 
+  fake_bms1: !include packages/bms_jk-bms_fake_traffic_bms1.yaml
+  fake_bms2: !include packages/bms_jk-bms_fake_traffic_bms2.yaml
+  fake_inverter: !include packages/canbus_fake_inverter.yaml
+
   # BMS2CAN packages
 
   bms1: !include
@@ -138,15 +142,14 @@ packages:
       smart_bms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
 
   canbus1: !include
-    file: packages/canbus.yaml
+    file: packages/smart_bms_canbus.yaml
     vars:
       # Smart BMS ID
       smart_bms_id: 'smartbms1'
       # CANBUS vars
       canbus_id: 'canbus1'
-      canbus_name: 'CANBUS'
-      canbus_tx_pin: 38
-      canbus_rx_pin: 39
-      canbus_status_led: 48 # RGB LED
-      # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after sending 30 CAN IDs.
+      canbus_name: 'CANBUS 1'
+      canbus_node_id: 'canbus_node1'
+      canbus_light_id: 'on_board_light'
+      # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after 30 loops.
       canbus_max_no_ack: "30"
