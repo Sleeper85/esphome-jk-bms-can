@@ -2,6 +2,7 @@
  ############# ESP32 S3 UART ############    
 
 uart:
+  # Set logger baud_rate: to 0 for prevent boot loop
   - id: uart_esp_0
     tx_pin: GPIO43
     rx_pin: GPIO44

@@ -1,4 +1,4 @@
-# Updated : 2024.05.12
+# Updated : 2024.05.15
 # Version : 1.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -33,12 +33,12 @@ substitutions:
 esphome:
   on_boot:
     then:
-      - switch.turn_on: ${smart_bms_id}_switch_auto_dcl
+      - switch.turn_on: ${smartbms_id}_switch_auto_dcl
 
 switch:
   - platform: template
-    name: ${name} ${smart_bms_name} Automatic Discharge Current
-    id: ${smart_bms_id}_switch_auto_dcl
+    name: ${name} ${smartbms_name} Automatic Discharge Current
+    id: ${smartbms_id}_switch_auto_dcl
     optimistic: true
     entity_category: config
 
@@ -48,8 +48,8 @@ sensor:
   # +--------------------------------------+
   # First, an initial discharge current is calculated based upon the minimum cell voltage but only if the Auto Discharge Current switch is enabled.
   - platform: copy
-    source_id: ${smart_bms_id}_min_cell_voltage
-    name: ${name} ${smart_bms_name} Initial Discharge Current
+    source_id: ${smartbms_id}_min_cell_voltage
+    name: ${name} ${smartbms_name} Initial Discharge Current
     id: auto_dcl_initial
     unit_of_measurement: A
     device_class: current
@@ -57,12 +57,12 @@ sensor:
     filters:
     - lambda: !lambda |-
               // Auto Discharge Current function
-              if (id(${smart_bms_id}_min_cell_voltage).state < id(${smart_bms_id}_cell_uvpr).state) return 0.0;
-              else return max(0.0,(- pow(${discharge_a_factor_curve_end}, pow( max(0.0, ((x - ${discharge_knee_v}) / (id(${smart_bms_id}_cell_uvpr).state - ${discharge_knee_v}))),${discharge_a_factor_curve_shape}))+2) * id(${smart_bms_id}_discharging_current).state);
+              if (id(${smartbms_id}_min_cell_voltage).state < id(${smartbms_id}_cell_uvpr).state) return 0.0;
+              else return max(0.0,(- pow(${discharge_a_factor_curve_end}, pow( max(0.0, ((x - ${discharge_knee_v}) / (id(${smartbms_id}_cell_uvpr).state - ${discharge_knee_v}))),${discharge_a_factor_curve_shape}))+2) * id(${smartbms_id}_discharging_current).state);
   # Second, an exponential moving average is calculated. This will be used to smooth the transition between different initial discharge current values.
   - platform: copy
     source_id: auto_dcl_initial
-    name: ${name} ${smart_bms_name} Moving Average Discharge Current
+    name: ${name} ${smartbms_name} Moving Average Discharge Current
     id:  auto_dcl_moving_average
     unit_of_measurement: A
     device_class: current
@@ -76,7 +76,7 @@ sensor:
   # This means that cell voltage drops will be reacted to quickly, but increased cell voltages will not, preventing oscillation of requested current.
   - platform: copy
     source_id: auto_dcl_initial
-    name: ${name} ${smart_bms_name} Auto Discharge Current
+    name: ${name} ${smartbms_name} Auto Discharge Current
     id: auto_dcl
     unit_of_measurement: A
     device_class: current
@@ -84,6 +84,6 @@ sensor:
     internal: true
     filters:
     - lambda: !lambda |-
-              if (id(${smart_bms_id}_switch_auto_dcl).state) id(${smart_bms_id}_auto_dcl) = (round(min(id(auto_dcl_moving_average).state, x) * 10) / 10);
-              else id(${smart_bms_id}_auto_dcl) = -1.0; // Auto DCL not used
+              if (id(${smartbms_id}_switch_auto_dcl).state) id(${smartbms_id}_auto_dcl) = (round(min(id(auto_dcl_moving_average).state, x) * 10) / 10);
+              else id(${smartbms_id}_auto_dcl) = -1.0; // Auto DCL not used
               return (round(min(id(auto_dcl_moving_average).state, x) * 10) / 10);
