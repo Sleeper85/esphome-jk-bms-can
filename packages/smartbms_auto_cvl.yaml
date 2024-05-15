@@ -1,4 +1,4 @@
-# Updated : 2024.05.12
+# Updated : 2024.05.15
 # Version : 2.2.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -29,12 +29,12 @@ substitutions:
 esphome:
   on_boot:
     then:
-      - switch.turn_on: ${smart_bms_id}_switch_auto_cvl
+      - switch.turn_on: ${smartbms_id}_switch_auto_cvl
 
 switch:
   - platform: template
-    name: ${name} ${smart_bms_name} Automatic Charge Voltage
-    id: ${smart_bms_id}_switch_auto_cvl
+    name: ${name} ${smartbms_name} Automatic Charge Voltage
+    id: ${smartbms_id}_switch_auto_cvl
     optimistic: true
     entity_category: config
 
@@ -43,9 +43,9 @@ sensor:
   # | Auto Charge Voltage Control          |
   # +--------------------------------------+
   - platform: template
-    name: ${name} ${smart_bms_name} Auto Charge Voltage
+    name: ${name} ${smartbms_name} Auto Charge Voltage
     id: auto_cvl
-    update_interval: ${smart_bms_update_interval}
+    update_interval: ${smartbms_update_interval}
     unit_of_measurement: V
     device_class: voltage
     internal: true
@@ -54,13 +54,13 @@ sensor:
 
             double static integral = 0.0;                                             // Integral term initialization
             double static prev_integral = 0.0;                                        // Prior Integral term initialization
-            double cell_bulk_v = (id(${smart_bms_id}_bulk_voltage).state / id(${smart_bms_id}_cell_count).state);
-            double balance_delta = id(${smart_bms_id}_balance_trigger_voltage).state;
+            double cell_bulk_v = (id(${smartbms_id}_bulk_voltage).state / id(${smartbms_id}_cell_count).state);
+            double balance_delta = id(${smartbms_id}_balance_trigger_voltage).state;
             double max_allowed_voltage = cell_bulk_v + balance_delta;
-            double max_cell_v = id(${smart_bms_id}_max_cell_voltage).state;
-            double max_CVL = id(${smart_bms_id}_bulk_voltage).state;                  // Maximum CVL
-            double min_CVL = id(${smart_bms_id}_float_voltage).state;                 // Minimum CVL
-            double CVL = id(${smart_bms_id}_bulk_voltage).state;                      // Starting CVL
+            double max_cell_v = id(${smartbms_id}_max_cell_voltage).state;
+            double max_CVL = id(${smartbms_id}_bulk_voltage).state;                  // Maximum CVL
+            double min_CVL = id(${smartbms_id}_float_voltage).state;                 // Minimum CVL
+            double CVL = id(${smartbms_id}_bulk_voltage).state;                      // Starting CVL
 
             double kp = ${charge_v_kp};                                               // Proportional gain, adjust as needed
             double ki = ${charge_v_ki};                                               // Integral gain, adjust as needed
@@ -69,9 +69,9 @@ sensor:
             double output = 0.0;                                                      // Starting output
 
             // Check feature enabled
-            if (!id(${smart_bms_id}_switch_auto_cvl).state){
-              id(${smart_bms_id}_auto_cvl) = -1.0;
-              return id(${smart_bms_id}_bulk_voltage).state;
+            if (!id(${smartbms_id}_switch_auto_cvl).state){
+              id(${smartbms_id}_auto_cvl) = -1.0;
+              return id(${smartbms_id}_bulk_voltage).state;
             } else {
               // PI Algorithm
               error = cell_bulk_v - max_cell_v;

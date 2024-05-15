@@ -1,0 +1,41 @@
+# Updated : 2024.05.15
+# Version : 1.0.1
+# GitHub  : https://github.com/SeByDocKy/pvbrain2
+
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 16MB # ajust according to your ESP32-S3 version
+  framework:
+    type: esp-idf
+
+esphome:
+  name: ${name}
+  # friendly_name: ${name}
+  # comment: 'Solar system braining and more !'
+  # area: 'Local Technique'
+  project:
+    name: esphome.pvbrain2
+    version: "1.0.1"
+  min_version: 2024.3.0
+  # Standard uses a single line for data, Dual IO uses 2 lines for data.
+  platformio_options:
+    board_build.flash_mode: dio # Needed to flash the ESP32-S3 N16R8
+  on_boot:
+    then:
+      - light.turn_on:
+          id: on_board_light_io48
+          red: 50%
+          blue: 50%
+          green: 0%
+          brightness: 50%
+
+  # The following option is required for ESP32 S3 with memory > 16MB, eg. the N32R8V
+  # platformio_options:
+  #   board_build.arduino.memory_type: opi_opi
+  #   board_build.flash_mode: dio
+  #   board_upload.maximum_ram_size: 524288
+  #   board_build.partitions: large_littlefs_32MB.csv
+  #   build_flags:
+  #     -DBOARD_HAS_PSRAM
+  #     -DARDUINO_USB_CDC_ON_BOOT=1
+  #     -mfix-esp32-psram-cache-issue
