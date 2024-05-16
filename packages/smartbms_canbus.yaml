@@ -1,5 +1,5 @@
-# Updated : 2024.05.15
-# Version : 1.18.1
+# Updated : 2024.05.16
+# Version : 2.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -14,9 +14,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
-
-# TODO !
-# Victron min max voltage cell CAN ID 0x374 and 0x375
 
 globals:
   - id: ${canbus_id}_ack_counter
@@ -134,98 +131,36 @@ interval:
                     data: !lambda |-
                       
                       // +---------------------------+
-                      // | JK-BMS errors bitmask     |
-                      // +---------------------------+
-                      
-                      // 0x8B 0x00 0x00: Battery warning message              0000 0000 0000 0000
-                      //
-                      // Bit 0    Low capacity                                1 (alarm), 0 (normal)    warning
-                      // Bit 1    Power tube overtemperature                  1 (alarm), 0 (normal)    alarm
-                      // Bit 2    Charging overvoltage                        1 (alarm), 0 (normal)    alarm
-                      // Bit 3    Discharging undervoltage                    1 (alarm), 0 (normal)    alarm
-                      // Bit 4    Battery over temperature                    1 (alarm), 0 (normal)    alarm
-                      // Bit 5    Charging overcurrent                        1 (alarm), 0 (normal)    alarm
-                      // Bit 6    Discharging overcurrent                     1 (alarm), 0 (normal)    alarm
-                      // Bit 7    Cell pressure difference                    1 (alarm), 0 (normal)    alarm
-                      // Bit 8    Overtemperature alarm in the battery box    1 (alarm), 0 (normal)    alarm
-                      // Bit 9    Battery low temperature                     1 (alarm), 0 (normal)    alarm
-                      // Bit 10   Cell overvoltage                            1 (alarm), 0 (normal)    alarm
-                      // Bit 11   Cell undervoltage                           1 (alarm), 0 (normal)    alarm
-                      // Bit 12   309_A protection                            1 (alarm), 0 (normal)    alarm
-                      // Bit 13   309_A protection                            1 (alarm), 0 (normal)    alarm
-                      // Bit 14   Reserved
-                      // Bit 15   Reserved
-                      //
-                      // Examples:
-                      // 0x0001 = 00000000 00000001: Low capacity alarm
-                      // 0x0002 = 00000000 00000010: MOS tube over-temperature alarm
-                      // 0x0003 = 00000000 00000011: Low capacity alarm AND power tube over-temperature alarm
-                      
-                      // +---------------------------+
                       // | Protection : byte 0 and 1 |
                       // +---------------------------+
                       
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-                      // JK-BMS alarm ?
-                      if (id(${smartbms_id}_errors_bitmask).state > 1) {
-                         uint16_t errors_bitmask = id(${smartbms_id}_errors_bitmask).state;
+                      // Smart BMS alarm ?
+                      if (id(${smartbms_id}_alarm).state != "NoAlarm") {
 
-                         if ((errors_bitmask & 0x04) | (errors_bitmask & 0x80) | (errors_bitmask & 0x400)) {           // Hight.Voltage.Alarm JK bit 2,7,10
-                            can_mesg[0] = 0x02;                                                                        // byte0_bit1 (0x02 = bin 10)
-                            id(${smartbms_id}_alarm_status) = "OVP";
-                            ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
-                         }
-                         if ((errors_bitmask & 0x08) | (errors_bitmask & 0x800)) {                                     // Low.Voltage.Alarm JK bit 3,11 
-                            can_mesg[0] = can_mesg[0] | 0x04;                                                          // byte0_bit2 (0x04 = bin 100)
-                            id(${smartbms_id}_alarm_status) = "UVP";
-                            ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
-                         }
-                         if ((errors_bitmask & 0x02) | (errors_bitmask & 0x10) | (errors_bitmask & 0x100)) {           // Hight.Temp.Alarm JK bit 1,4,8
-                            can_mesg[0] = can_mesg[0] | 0x08;                                                          // byte0_bit3 (0x08 = bin 1000)
-                            id(${smartbms_id}_alarm_status) = "OTP";
-                            ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
-                         }
-                         if ((errors_bitmask & 0x200)) {                                                               // Low.Temp.Alarm JK bit 9
-                            can_mesg[0] = can_mesg[0] | 0x10;                                                          // byte0_bit4 (0x10 = bin 10000)
-                            id(${smartbms_id}_alarm_status) = "UTP";
-                            ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[0] : %x", can_mesg[0]);
-                         }
-                         if ((errors_bitmask & 0x40)) {                                                                // Discharge.Over.Current JK bit 6
-                            can_mesg[0] = can_mesg[0] | 0x80;                                                          // byte0_bit7 (0x80 = bin 10000000)
-                            id(${smartbms_id}_alarm_status) = "DOCP";
-                            ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[0] : %x", can_mesg[0]);
-                         }
-                         if ((errors_bitmask & 0x20)) {                                                                // Charge.Over.Current JK bit 5
-                            can_mesg[1] = 0x01;                                                                        // byte1_bit0 (0x01 = bin 1)
-                            id(${smartbms_id}_alarm_status) = "COCP";
-                            ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[1] : %x", can_mesg[1]);
-                         }
-                         if ((errors_bitmask & 0x1000) | (errors_bitmask & 0x2000)) {                                  // BMS internal error JK bit 12,13
-                            can_mesg[1] = can_mesg[1] | 0x08;                                                          // byte1_bit3 (0x08 = bin 1000)
-                            id(${smartbms_id}_alarm_status) = "BMS";
-                            ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[1] : %x", can_mesg[1]);
-                         }
-                         if ((errors_bitmask & 0x80)) {                                                                // Cell Imbalance JK bit 7
-                            can_mesg[1] = can_mesg[1] | 0x10;                                                          // byte1_bit4 (0x10 = bin 10000)
-                            ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[1] : %x", can_mesg[1]);
-                         }
+                         if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x02;   // Over Voltage Protection
+                         if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x04;   // Under Voltage Protection
+                         if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x08;   // Over Temp Protection
+                         if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Temp Protection
+                         if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[0] = can_mesg[0] | 0x80;  // Discharge Over Current Protection
+                         if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[1] = can_mesg[1] | 0x80;  // Charge Over Current Protection
+                         if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[1] = can_mesg[1] | 0x08;   // BMS Internal Error
+                         if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[1] = can_mesg[1] | 0x10;   // UnBalanced Cell
                       }
-                      // No Alarm
-                      else id(${smartbms_id}_alarm_status) = "NoAlarm";
-
+                      
                       // +---------------------------+
                       // | Warning : byte 2 and 3    |
                       // +---------------------------+
                       
-                      can_mesg[2] = 0x00;               // byte2 (JK-BMS infos not available)
-                      can_mesg[3] = 0x00;               // byte3 (JK-BMS infos not available)
+                      can_mesg[2] = 0x00;               // byte2 (BMS infos not available)
+                      can_mesg[3] = 0x00;               // byte3 (BMS infos not available)
                       
                       // +---------------------------+
                       // | Flags : byte 4 to 7       |
                       // +---------------------------+
                                         
-                      can_mesg[4] = id(${smartbms_id}_battery_module).state;     // byte4 - Module in parallel (max 8)
+                      can_mesg[4] = id(${smartbms_id}_battery_module).state;      // byte4 - Module in parallel (max 8)
                       can_mesg[5] = 0x00;                                         // byte5
                       can_mesg[6] = 0x00;                                         // byte6
                       can_mesg[7] = 0x00;                                         // byte7 - DIP switches 1,3 10000100 0x84                      
@@ -248,53 +183,19 @@ interval:
                       
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-                      // JK-BMS alarm ?
-                      if (id(${smartbms_id}_errors_bitmask).state > 1) {
-                         uint16_t errors_bitmask = id(${smartbms_id}_errors_bitmask).state;
+                      // Smart BMS alarm ?
+                      if (id(${smartbms_id}_alarm).state != "NoAlarm") {
 
-                         if ((errors_bitmask & 0x04) | (errors_bitmask & 0x80) | (errors_bitmask & 0x400)) {           // Hight.Voltage.Alarm JK bit 2,7,10
-                            can_mesg[0] = 0x04;                                                                        // byte0_bit2 (0x04 = bin 100)
-                            id(${smartbms_id}_alarm_status) = "OVP";
-                            ESP_LOGI("main", "Hight.Voltage.Alarm JK bit 2,7,10 - can_msg[0] : %x", can_mesg[0]);
-                         }
-                         if ((errors_bitmask & 0x08) | (errors_bitmask & 0x800)) {                                     // Low.Voltage.Alarm JK bit 3,11
-                            can_mesg[0] = can_mesg[0] | 0x10;                                                          // byte0_bit4 (0x10 = bin 10000)
-                            id(${smartbms_id}_alarm_status) = "UVP";
-                            ESP_LOGI("main", "Low.Voltage.Alarm JK bit 3,11 - can_msg[0] : %x", can_mesg[0]);
-                         }
-                         if ((errors_bitmask & 0x02) | (errors_bitmask & 0x10) | (errors_bitmask & 0x100)) {           // Hight.Temp.Alarm JK bit 1,4,8
-                            can_mesg[0] = can_mesg[0] | 0x40;                                                          // byte0_bit6 (0x40 = bin 1000000)
-                            id(${smartbms_id}_alarm_status) = "OTP";
-                            ESP_LOGI("main", "Hight.Temp.Alarm JK bit 1,4,8 - can_msg[0] : %x", can_mesg[0]);
-                         }
-                         if ((errors_bitmask & 0x200)) {                                                               // Low.Temp.Alarm JK bit 9
-                            can_mesg[1] = 0x01;                                                                        // byte1_bit0 (0x01 = bin 1)
-                            id(${smartbms_id}_alarm_status) = "UTP";
-                            ESP_LOGI("main", "Low.Temp.Alarm JK bit 9 - can_msg[1] : %x", can_mesg[1]);
-                         }
-                         if ((errors_bitmask & 0x40)) {                                                                // Discharge.Over.Current JK bit 6
-                            can_mesg[1] = can_mesg[1] | 0x40;                                                          // byte1_bit6 (0x40 = bin 1000000)
-                            id(${smartbms_id}_alarm_status) = "DOCP";
-                            ESP_LOGI("main", "Discharge.Over.Current JK bit 6 - can_msg[1] : %x", can_mesg[1]);
-                         }
-                         if ((errors_bitmask & 0x20)) {                                                                // Charge.Over.Current JK bit 5
-                            can_mesg[2] = 0x01;                                                                        // byte2_bit0 (0x01 = bin 1)
-                            id(${smartbms_id}_alarm_status) = "COCP";
-                            ESP_LOGI("main", "Charge.Over.Current JK bit 5 - can_msg[2] : %x", can_mesg[2]);
-                         }
-                         if ((errors_bitmask & 0x1000) | (errors_bitmask & 0x2000)) {                                  // BMS.Internal.Error JK bit 12,13
-                            can_mesg[2] = can_mesg[2] | 0x40;                                                          // byte2_bit6 (0x40 = bin 1000000)
-                            id(${smartbms_id}_alarm_status) = "BMS";
-                            ESP_LOGI("main", "BMS internal error JK bit 12,13 - can_msg[2] : %x", can_mesg[2]);
-                         }
-                         if ((errors_bitmask & 0x80)) {                                                                // Cell.Imbalance JK bit 7
-                            can_mesg[3] = 0x01;                                                                        // byte3_bit0 (0x01 = bin 1)
-                            ESP_LOGI("main", "Cell Imbalance JK bit 7 - can_msg[3] : %x", can_mesg[3]);
-                         }
+                         if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x04;   // Over Voltage Protection
+                         if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Voltage Protection
+                         if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x40;   // Over Temp Protection
+                         if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[1] = can_mesg[1] | 0x01;   // Under Temp Protection
+                         if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[1] = can_mesg[1] | 0x40;  // Discharge Over Current Protection
+                         if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[2] = can_mesg[2] | 0x01;  // Charge Over Current Protection
+                         if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[2] = can_mesg[2] | 0x40;   // BMS Internal Error
+                         if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[3] = can_mesg[3] | 0x01;   // UnBalanced Cell
                       }
-                      // No Alarm
-                      else id(${smartbms_id}_alarm_status) = "NoAlarm";
-                      
+                     
                       ESP_LOGI("main", "send can id: 0x35A hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                       
@@ -485,7 +386,7 @@ interval:
                       // Byte [06:07] : Nbr. of battery modules offline
                       
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-                      can_mesg[0] = 0x01;
+                      can_mesg[0] = id(${smartbms_id}_battery_module).state;
                       
                       ESP_LOGI("main", "send can id: 0x372 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
@@ -532,26 +433,14 @@ interval:
                       data: !lambda |-
                         
                         int cell_id = id(${smartbms_id}_min_voltage_cell).state;
+                        // init 8 bytes char array values
+                        char can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
+                        // save int cell_id to 8 bytes char array
+                        snprintf(can_mesg, 8, "%d", cell_id);
 
-                        ESP_LOGI("main", "send can id: 0x374 [ASCII] Min cell voltage ID : %i", cell_id);
-
-                        if (cell_id == 1) return {0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 2) return {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 3) return {0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 4) return {0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 5) return {0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 6) return {0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 7) return {0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 8) return {0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 9) return {0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 10) return {0x31, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 11) return {0x31, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 12) return {0x31, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 13) return {0x31, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 14) return {0x31, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 15) return {0x31, 0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 16) return {0x31, 0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else return {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        ESP_LOGI("main", "send can id: 0x374 [ASCII] Min cell voltage ID : %d", cell_id);
+                        ESP_LOGI("main", "send can id: 0x374 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                        return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
 
             - if: # 0x375 - Max cell voltage ID [ASCII] ( Victron )
                 condition:
@@ -563,26 +452,14 @@ interval:
                       data: !lambda |-
                         
                         int cell_id = id(${smartbms_id}_max_voltage_cell).state;
+                        // init 8 bytes char array values
+                        char can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
+                        // save int cell_id to 8 bytes char array
+                        snprintf(can_mesg, 8, "%d", cell_id);
 
-                        ESP_LOGI("main", "send can id: 0x375 [ASCII] Max cell voltage ID : %i", cell_id);
-
-                        if (cell_id == 1) return {0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 2) return {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 3) return {0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 4) return {0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 5) return {0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 6) return {0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 7) return {0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 8) return {0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 9) return {0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 10) return {0x31, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 11) return {0x31, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 12) return {0x31, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 13) return {0x31, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 14) return {0x31, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 15) return {0x31, 0x35, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else if (cell_id == 16) return {0x31, 0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-                        else return {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+                        ESP_LOGI("main", "send can id: 0x375 [ASCII] Max cell voltage ID : %d", cell_id);
+                        ESP_LOGI("main", "send can id: 0x375 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                        return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
 
             - if: # 0x376 - Min cell temperature ID [ASCII] ( Victron )
                 condition:
@@ -659,13 +536,13 @@ interval:
                         
                         //                SMA                 Victron
                         // Byte [00:01] : Bat-Type            Product ID
-                        // Byte [02:03] : BMS Version         Firmware version (1.18 => HEX [01:12])
+                        // Byte [02:03] : BMS Version         Firmware version (2.1 => HEX [02:01])
                         // Byte [04:05] : Bat-Capacity        Available Capacity Ah
                         // Byte [06:07] : Manufacturer ID     Hardware version
                         
                         uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-                        can_mesg[2] = 0x01;
-                        can_mesg[3] = 0x12;
+                        can_mesg[2] = 0x02;
+                        can_mesg[3] = 0x01;
                         can_mesg[4] = uint16_t(id(${smartbms_id}_battery_capacity).state) & 0xff;
                         can_mesg[5] = uint16_t(id(${smartbms_id}_battery_capacity).state) >> 8 & 0xff;
                         

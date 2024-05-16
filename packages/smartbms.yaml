@@ -1,4 +1,4 @@
-# Updated : 2024.05.15
+# Updated : 2024.05.16
 # Version : 1.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -55,10 +55,6 @@ globals:
     type: std::string
     restore_value: no
     initial_value: '"Wait"'
-  - id: ${smartbms_id}_alarm_status
-    type: std::string
-    restore_value: no
-    initial_value: '"NoAlarm"'
   - id: ${smartbms_id}_auto_cvl
     type: float
     restore_value: no
@@ -208,6 +204,11 @@ sensor:
     unit_of_measurement: V
     device_class: voltage
     update_interval: ${smartbms_update_interval}
+    accuracy_decimals: 1
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.1
     lambda: |-
       // Bulk
       if (id(${smartbms_id}_charging_instruction).state == "Bulk"){
@@ -227,13 +228,18 @@ sensor:
     unit_of_measurement: A
     device_class: current
     update_interval: ${smartbms_update_interval}
+    accuracy_decimals: 1
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.1
     lambda: |-
       // Charging Allowed
       if ((id(${smartbms_id}_charging_instruction).state == "Bulk") | (id(${smartbms_id}_charging_instruction).state == "Float")){
         if(id(${smartbms_id}_auto_ccl) == -1.0) return id(${smartbms_id}_charging_current).state; // Auto CCL not used
         else return id(${smartbms_id}_auto_ccl);
       }
-      // Stop Charging
+      // Charging Not Allowed
       else return 0;
   # +--------------------------------------+
   # |  Requested Discharge Voltage  (DVL)  |
@@ -244,6 +250,11 @@ sensor:
     unit_of_measurement: V
     device_class: voltage
     update_interval: ${smartbms_update_interval}
+    accuracy_decimals: 1
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.1
     lambda: return (id(${smartbms_id}_cell_uvpr).state * id(${smartbms_id}_cell_count).state);
   # +--------------------------------------+
   # |  Requested Discharge Current  (DCL)  |
@@ -254,6 +265,11 @@ sensor:
     unit_of_measurement: A
     device_class: current
     update_interval: ${smartbms_update_interval}
+    accuracy_decimals: 1
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.1
     lambda: |-
       // Discharging Allowed
       if (id(${smartbms_id}_discharging_instruction).state == true){
@@ -270,19 +286,27 @@ sensor:
     id: ${smartbms_id}_battery_module
     device_class: battery
     update_interval: ${smartbms_update_interval}
-    lambda: |-
-      int batt_capacity = id(${smartbms_id}_battery_capacity).state;
-      int batt_module;
-      if (batt_capacity == 0) batt_module = 0;
-      else if (batt_capacity <= 100) batt_module = 1;
-      else if (batt_capacity <= 200) batt_module = 2;
-      else if (batt_capacity <= 300) batt_module = 3;
-      else if (batt_capacity <= 400) batt_module = 4;
-      else if (batt_capacity <= 500) batt_module = 5;
-      else if (batt_capacity <= 600) batt_module = 6;
-      else if (batt_capacity <= 700) batt_module = 7;
-      else batt_module = 8;
-      return batt_module;
+    accuracy_decimals: 0
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: return id(${smartbms_id}_bms_counter);
+
+      # Converting total battery Ah into number of PYLON modules
+      #int batt_capacity = id(${smartbms_id}_battery_capacity).state;
+      #int batt_module;
+      #if (batt_capacity == 0) batt_module = 0;
+      #else if (batt_capacity <= 100) batt_module = 1;
+      #else if (batt_capacity <= 200) batt_module = 2;
+      #else if (batt_capacity <= 300) batt_module = 3;
+      #else if (batt_capacity <= 400) batt_module = 4;
+      #else if (batt_capacity <= 500) batt_module = 5;
+      #else if (batt_capacity <= 600) batt_module = 6;
+      #else if (batt_capacity <= 700) batt_module = 7;
+      #else batt_module = 8;
+      #return batt_module;
+
   # +--------------------------------------+
   # | Battery State of Charge (SOC)        |
   # +--------------------------------------+
@@ -292,6 +316,11 @@ sensor:
     unit_of_measurement: "%"
     device_class: battery
     update_interval: ${smartbms_update_interval}
+    accuracy_decimals: 0
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
     lambda: |-
       float soc = id(${smartbms_id}_state_of_charge).state;
       float min_cell_v = id(${smartbms_id}_min_cell_voltage).state;
@@ -310,6 +339,11 @@ sensor:
     unit_of_measurement: "%"
     device_class: battery
     update_interval: ${smartbms_update_interval}
+    accuracy_decimals: 0
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
     lambda: return round(((id(${smartbms_id}_charging_cycles).state/${smartbms_max_cycles})-1)*-100);
 
 text_sensor:
@@ -336,10 +370,10 @@ text_sensor:
       
       // Warning : information from JK BMS is not available immediately after boot
       
-      // JK-BMS Alarm !
-      if (id(bms1_errors_bitmask).state > 1) id(${smartbms_id}_charge_status) = "Alarm";
-      // JK-BMS Alarm ended
-      else if ((id(${smartbms_id}_charge_status) == "Alarm") & (id(bms1_errors_bitmask).state < 2)) {
+      // Smart BMS Alarm ?
+      if (id(${smartbms_id}_alarm).state != "NoAlarm") id(${smartbms_id}_charge_status) = "Alarm";
+      // Smart BMS Alarm ended ?
+      else if ((id(${smartbms_id}_charge_status) == "Alarm") & (id(${smartbms_id}_alarm).state == "NoAlarm")) {
         if (id(${smartbms_id}_eoc) == true) id(${smartbms_id}_charge_status) = "EOC";
         else id(${smartbms_id}_charge_status) = "Wait";
       }
@@ -434,7 +468,7 @@ text_sensor:
     update_interval: ${smartbms_update_interval}
     lambda: |-
       // Alarm > Stop Charging
-      if ((id(${smartbms_id}_alarm_status) == "OVP") | (id(${smartbms_id}_alarm_status) == "UTP") | (id(${smartbms_id}_alarm_status) == "COCP") | (id(${smartbms_id}_alarm_status) == "OTP") | (id(${smartbms_id}_alarm_status) == "BMS")){
+      if ((id(${smartbms_id}_alarm).state == "OVP") | (id(${smartbms_id}_alarm).state == "UTP") | (id(${smartbms_id}_alarm).state == "COCP") | (id(${smartbms_id}_alarm).state == "OTP") | (id(${smartbms_id}_alarm).state == "BMS")){
         return {"Stop"};
       }
       // Bulk Charge
@@ -455,26 +489,83 @@ text_sensor:
       // Wait
       else return {"Stop"};
   # +--------------------------------------+
-  # | Smart BMS Alarm Logic                |
+  # | Smart BMS Alarm                      |
   # +--------------------------------------+
   - platform: template
     name: "${name} ${smartbms_name} Alarm"
-    id: ${smartbms_id}_smartbms_alarm
+    id: ${smartbms_id}_alarm
     update_interval: ${smartbms_update_interval}
     entity_category: diagnostic
     lambda: |-
-      // Over Temp Protection > Stop Charging and Discharging
-      if (max(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state) > ${smartbms_otp}){
-        id(${smartbms_id}_alarm_status) = "OTP";
+      // +---------------------------+
+      // | Smart BMS errors bitmask  |
+      // +---------------------------+
+      
+      // 0x8B 0x00 0x00: Battery warning message              0000 0000 0000 0000
+      //
+      // Bit 0    Low capacity                                1 (alarm), 0 (normal)    warning
+      // Bit 1    Power tube overtemperature                  1 (alarm), 0 (normal)    alarm
+      // Bit 2    Charging overvoltage                        1 (alarm), 0 (normal)    alarm
+      // Bit 3    Discharging undervoltage                    1 (alarm), 0 (normal)    alarm
+      // Bit 4    Battery over temperature                    1 (alarm), 0 (normal)    alarm
+      // Bit 5    Charging overcurrent                        1 (alarm), 0 (normal)    alarm
+      // Bit 6    Discharging overcurrent                     1 (alarm), 0 (normal)    alarm
+      // Bit 7    Cell pressure difference                    1 (alarm), 0 (normal)    alarm
+      // Bit 8    Overtemperature alarm in the battery box    1 (alarm), 0 (normal)    alarm
+      // Bit 9    Battery low temperature                     1 (alarm), 0 (normal)    alarm
+      // Bit 10   Cell overvoltage                            1 (alarm), 0 (normal)    alarm
+      // Bit 11   Cell undervoltage                           1 (alarm), 0 (normal)    alarm
+      // Bit 12   309_A protection                            1 (alarm), 0 (normal)    alarm
+      // Bit 13   309_A protection                            1 (alarm), 0 (normal)    alarm
+      // Bit 14   Reserved
+      // Bit 15   Reserved
+      //
+      // Examples:
+      // 0x0001 = 00000000 00000001: Low capacity alarm
+      // 0x0002 = 00000000 00000010: MOS tube over-temperature alarm
+      // 0x0003 = 00000000 00000011: Low capacity alarm AND power tube over-temperature alarm
+
+      // Preventive Alarm ? (React before a BMS alarm)
+      // Over Temp Protection
+      if (max(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state) > ${smartbms_otp}) {
+         return {"OTP"};
       }
-      // Under Temp Protection > Stop Charging
-      else if (min(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state) < ${smartbms_utp}){
-        id(${smartbms_id}_alarm_status) = "UTP";
+      // Under Temp Protection
+      else if (min(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state) < ${smartbms_utp}) {
+         return {"UTP"};
+      }
+      // Error Bitmask ?
+      else if (id(${smartbms_id}_errors_bitmask).state > 1) {
+         uint16_t errors_bitmask = id(${smartbms_id}_errors_bitmask).state;
+
+         if ((errors_bitmask & 0x04) | (errors_bitmask & 0x80) | (errors_bitmask & 0x400)) {           // Hight.Voltage.Alarm - bit 2,7,10
+            return {"OVP"};
+         }
+         if ((errors_bitmask & 0x08) | (errors_bitmask & 0x800)) {                                     // Low.Voltage.Alarm - bit 3,11
+            return {"UVP"};
+         }
+         if ((errors_bitmask & 0x02) | (errors_bitmask & 0x10) | (errors_bitmask & 0x100)) {           // Hight.Temp.Alarm - bit 1,4,8
+            return {"OTP"};
+         }
+         if ((errors_bitmask & 0x200)) {                                                               // Low.Temp.Alarm - bit 9
+            return {"UTP"};
+         }
+         if ((errors_bitmask & 0x40)) {                                                                // Discharge.Over.Current - bit 6
+            return {"DOCP"};
+         }
+         if ((errors_bitmask & 0x20)) {                                                                // Charge.Over.Current - bit 5
+            return {"COCP"};
+         }
+         if ((errors_bitmask & 0x1000) | (errors_bitmask & 0x2000)) {                                  // BMS.Internal.Error - bit 12,13
+            return {"BMS"};
+         }
+         if ((errors_bitmask & 0x80)) {                                                                // Unbalanced.Cell - bit 7
+            return {"UBC"};
+         }
+         else return {"NoAlarm"};
       }
       // No Alarm
-      else if (id(bms1_errors_bitmask).state < 2) id(${smartbms_id}_alarm_status) = "NoAlarm";
-      ESP_LOGI("main", "Alarm Status : %s", id(${smartbms_id}_alarm_status).c_str());
-      return id(${smartbms_id}_alarm_status);
+      else return {"NoAlarm"};
 
 binary_sensor:
   # +--------------------------------------+
@@ -485,7 +576,7 @@ binary_sensor:
     id: ${smartbms_id}_discharging_instruction
     lambda: |-
       // Alarm > Stop Discharging
-      if ((id(${smartbms_id}_alarm_status) == "UVP") | (id(${smartbms_id}_alarm_status) == "DOCP") | (id(${smartbms_id}_alarm_status) == "OTP") | (id(${smartbms_id}_alarm_status) == "BMS")) return false;
+      if ((id(${smartbms_id}_alarm).state == "UVP") | (id(${smartbms_id}_alarm).state == "DOCP") | (id(${smartbms_id}_alarm).state == "OTP") | (id(${smartbms_id}_alarm).state == "BMS")) return false;
       // BMS or ESP32 switch is OFF > Stop Discharging
       else if ((!id(${smartbms_id}_bms_switch_discharging).state) | (!id(${smartbms_id}_switch_discharging).state)) return false;
       // Battery voltage is low > Stop Discharging

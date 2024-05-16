@@ -1,4 +1,4 @@
-# Updated : 2024.05.15
+# Updated : 2024.05.16
 # Version : 1.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -24,7 +24,7 @@ globals:
 switch:
 # Combine Enable-Switch (user controlled switch to en/dis-able combine)
   - platform: template
-    name: "${name} ${bms_name} Combine Enable"
+    name: "${name} ${bms_name} Combine enabled"
     id: bms${bms_id}_switch_combine
     optimistic: true
     restore_mode: RESTORE_DEFAULT_ON
@@ -47,6 +47,7 @@ interval:
     then:
       - lambda: |-
           // Combine Datas
+          // BMS data can be combined
           if (id(bms${bms_id}_combine).state) {
 
             // Combine one time
@@ -142,6 +143,7 @@ interval:
             }
           }
           // Uncombine Datas
+          // BMS data cannot be combined
           else if (id(bms${bms_id}_combined)){
 
             // BMS counter
@@ -155,6 +157,16 @@ interval:
             
             // battery_capacity TOTAL
             id(${smartbms_id}_total_battery_capacity) -= id(bms${bms_id}_battery_capacity).state;
+
+            // MIN/MAX values, force other BMS to rewrite the correct value
+            id(${smartbms_id}_max_balance_trigger_voltage) = 0.0;
+            id(${smartbms_id}_min_min_cell_voltage) = 5.0;
+            id(${smartbms_id}_max_max_cell_voltage) = 0.0;
+            id(${smartbms_id}_min_cell_ovp) = 5.0;
+            id(${smartbms_id}_min_cell_ovpr) = 5.0;
+            id(${smartbms_id}_max_cell_uvpr) = 0.0;
+            id(${smartbms_id}_max_temperature_sensor_1) = 0.0;
+            id(${smartbms_id}_max_temperature_sensor_2) = 0.0;
 
             // Uncombined
             id(bms${bms_id}_combined) = false;

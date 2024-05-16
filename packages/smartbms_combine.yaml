@@ -1,4 +1,4 @@
-# Updated : 2024.05.15
+# Updated : 2024.05.16
 # Version : 1.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -204,7 +204,9 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 1
-    lambda: return id(${smartbms_id}_total_cell_count);
+    lambda: |-
+      if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_total_cell_count) = 0;
+      return id(${smartbms_id}_total_cell_count);
 
   # max_charge_current SUM
   - platform: template
@@ -300,18 +302,19 @@ sensor:
     filters:
       - or:
         - throttle: 10s
-        - delta: 0.001
+        - delta: 0.01
 
   # current SUM
   - platform: template
     id: ${smartbms_id}_current
     name: "${name} ${smartbms_name} Current (Σ)"
     update_interval: ${smartbms_update_interval}
+    accuracy_decimals: 1
     unit_of_measurement: A
     filters:
       - or:
         - throttle: 10s
-        - delta: 1
+        - delta: 0.1
 
   # power SUM
   - platform: template
@@ -335,7 +338,8 @@ sensor:
     filters:
       - or:
         - throttle: 10s
-        - delta: 0.001
+        - delta: 1
+    internal: true # source for ${smartbms_id}_battery_soc
 
   # capacity_remaining_ah SUM
   - platform: template
@@ -377,9 +381,9 @@ sensor:
       if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_min_cell_ovp) = 5.0;
       float min_cell_ovp = id(${smartbms_id}_min_cell_ovp);
       // sets the sliders max value to the BMS cell_ovp * cell_count
-      id(${smartbms_id}_bulk_voltage).traits.set_max_value(min_cell_ovp * id(${smartbms_id}_cell_count).state);
-      id(${smartbms_id}_float_voltage).traits.set_max_value(min_cell_ovp * id(${smartbms_id}_cell_count).state);
-      id(${smartbms_id}_rebulk_voltage).traits.set_max_value(min_cell_ovp * id(${smartbms_id}_cell_count).state);
+      // id(${smartbms_id}_bulk_voltage).traits.set_max_value(min_cell_ovp * id(${smartbms_id}_cell_count).state);
+      // id(${smartbms_id}_float_voltage).traits.set_max_value(min_cell_ovp * id(${smartbms_id}_cell_count).state);
+      // id(${smartbms_id}_rebulk_voltage).traits.set_max_value(min_cell_ovp * id(${smartbms_id}_cell_count).state);
       return min_cell_ovp;
 
   # cell_ovpr MIN
@@ -432,8 +436,12 @@ sensor:
     id: ${smartbms_id}_temperature_sensor_1
     name: "${name} ${smartbms_name} Temperature Sensor 1"
     update_interval: ${smartbms_update_interval}
-    accuracy_decimals: 2
+    accuracy_decimals: 1
     unit_of_measurement: °C
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.1
     lambda: |-
       if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_max_temperature_sensor_1) = 0.0;
       return id(${smartbms_id}_max_temperature_sensor_1);
@@ -443,8 +451,12 @@ sensor:
     id: ${smartbms_id}_temperature_sensor_2
     name: "${name} ${smartbms_name} Temperature Sensor 2"
     update_interval: ${smartbms_update_interval}
-    accuracy_decimals: 2
+    accuracy_decimals: 1
     unit_of_measurement: °C
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.1
     lambda: |-
       if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_max_temperature_sensor_2) = 0.0;
       return id(${smartbms_id}_max_temperature_sensor_2);
