@@ -1,4 +1,4 @@
-# Updated : 2024.05.15
+# Updated : 2024.05.16
 # Version : 2.2.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -45,7 +45,7 @@ sensor:
   - platform: template
     name: ${name} ${smartbms_name} Auto Charge Voltage
     id: auto_cvl
-    update_interval: ${smartbms_update_interval}
+    update_interval: 1s
     unit_of_measurement: V
     device_class: voltage
     internal: true

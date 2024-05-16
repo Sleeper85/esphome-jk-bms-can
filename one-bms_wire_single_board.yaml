@@ -19,7 +19,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
 substitutions:
-  name: jk-bms-ble-can
+  name: jk-bms-wire-can
 
 logger:
   #level: INFO
@@ -73,7 +73,7 @@ packages:
   device_base: !include packages/device_base.yaml
 
   bms1: !include
-    file: packages/bms_jk-bms_ble.yaml
+    file: packages/bms_jk-bms_uart.yaml
     vars:
       # Smart BMS ID
       smartbms_id: 'smartbms1'
@@ -81,21 +81,8 @@ packages:
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
       bms_update_interval: "3s"
-      bms_ble_protocol_version: JK02_32S
-      bms_ble_mac_address: C8:47:8C:10:7E:AB
+      bms_uart_id: uart_esp_1
   
-  bms2: !include
-    file: packages/bms_jk-bms_ble.yaml
-    vars:
-      # Smart BMS ID
-      smartbms_id: 'smartbms1'
-      # BMS vars
-      bms_id: '2' # must be a number
-      bms_name: 'JK-BMS 2'
-      bms_update_interval: "3s"
-      bms_ble_protocol_version: JK02_32S
-      bms_ble_mac_address: C8:47:8C:10:7E:AC
-
   smartbms1: !include
     file: packages/smartbms.yaml
     vars:
@@ -136,3 +123,4 @@ packages:
       canbus_light_id: 'esp_light'
       # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after 30 loops.
       canbus_max_no_ack: "30"
+

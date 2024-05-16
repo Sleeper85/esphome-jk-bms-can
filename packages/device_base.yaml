@@ -1,5 +1,5 @@
-# Updated : 2024.05.12
-# Version : 1.1
+# Updated : 2024.05.16
+# Version : 2.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -20,9 +20,9 @@ esphome:
   # friendly_name: ${name}
   # comment: 'Solar system braining and more !'
   # area: 'Technical local'
-  # project:
-  #   name: esphome.bms2can
-  #   version: "1.1.1"
+  project:
+    name: esphome.bms2can
+    version: "2.1.1"
   min_version: 2024.3.0
 
 time:
@@ -31,9 +31,17 @@ time:
     id: my_time
 
 button:
+  # https://esphome.io/components/button/restart
   - platform: restart
-    name: "${name} ESP32 Restart"
+    name: ${name} ESP32 Restart
     entity_category: config
+
+binary_sensor:
+  # https://esphome.io/components/binary_sensor/status  
+  - platform: status
+    name: ${name} ESP32 Online Status
+    id: esp32_online_status
+    entity_category: diagnostic
 
 sensor:
   # +--------------------------------------+
