@@ -23,7 +23,7 @@ esphome:
   project:
     name: esphome.smartbms
     version: "2.1.1"
-  min_version: 2024.3.0
+  min_version: 2023.9.0
 
 time:
   # https://esphome.io/components/time/homeassistant
