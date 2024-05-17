@@ -1,4 +1,4 @@
-# Updated : 2024.05.15
+# Updated : 2024.05.17
 # Version : 1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -27,7 +27,7 @@ uart:
     tx_pin: 1
     rx_pin: 2
     baud_rate: 115200
-    rx_buffer_size: 384
+    rx_buffer_size: 384 # 1000 with JK-BMS PB RS485
 
 canbus:
   # CANBUS NODE 1
@@ -44,7 +44,7 @@ light:
     id: esp_light
     name: ${name} ESP Light
     rgb_order: GRB
-    pin: 48
+    pin: 35
     num_leds: 1
     rmt_channel: 0
     chipset: ws2812
