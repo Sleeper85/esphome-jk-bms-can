@@ -72,6 +72,9 @@ packages:
   
   device_base: !include packages/base/device_base.yaml
 
+  # Max 3 BLE connections (see point 71. of the doc below)
+  # https://docs.espressif.com/projects/esp-faq/en/latest/software-framework/ble-bt.html
+
   bms1: !include
     file: packages/bms/bms_jk-bms_uart.yaml
     vars:
