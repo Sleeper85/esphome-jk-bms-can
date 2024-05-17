@@ -30,15 +30,11 @@ substitutions:
   # Discharge knee voltage, the point at which a cell will reduce in voltage more rapidly. For LiFePO4 cells, this is generally considered to be 3.1v.
   discharge_knee_v: "3.1"
 
-esphome:
-  on_boot:
-    then:
-      - switch.turn_on: ${smartbms_id}_switch_auto_dcl
-
 switch:
   - platform: template
     name: ${name} ${smartbms_name} Automatic Discharge Current
     id: ${smartbms_id}_switch_auto_dcl
+    restore_mode: RESTORE_DEFAULT_ON
     optimistic: true
     entity_category: config
 

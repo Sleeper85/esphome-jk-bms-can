@@ -1,4 +1,4 @@
-# Updated : 2024.05.16
+# Updated : 2024.05.17
 # Version : 2.2.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -26,15 +26,11 @@ substitutions:
   # The higher the setting, the more the correction response will be increased over time. Too high a value will cause oscillation.
   charge_v_ki: "0.5"
 
-esphome:
-  on_boot:
-    then:
-      - switch.turn_on: ${smartbms_id}_switch_auto_cvl
-
 switch:
   - platform: template
     name: ${name} ${smartbms_name} Automatic Charge Voltage
     id: ${smartbms_id}_switch_auto_cvl
+    restore_mode: RESTORE_DEFAULT_ON
     optimistic: true
     entity_category: config
 
@@ -45,7 +41,7 @@ sensor:
   - platform: template
     name: ${name} ${smartbms_name} Auto Charge Voltage
     id: auto_cvl
-    update_interval: 1s
+    update_interval: 1s # must have the same value as the "dt" variable in the lamda below
     unit_of_measurement: V
     device_class: voltage
     internal: true

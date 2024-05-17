@@ -1,4 +1,4 @@
-# Updated : 2024.05.16
+# Updated : 2024.05.17
 # Version : 1.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -123,7 +123,7 @@ globals:
 
 # Combine continuously
 interval:
-  - interval: 1s
+  - interval: ${smartbms_update_interval}
     then:
       - lambda: |-
           if (id(${smartbms_id}_combined_bms_counter) == id(${smartbms_id}_bms_counter)) {

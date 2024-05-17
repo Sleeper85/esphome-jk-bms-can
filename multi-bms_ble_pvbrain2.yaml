@@ -1,4 +1,4 @@
-# Updated   : 2024.05.15
+# Updated   : 2024.05.17
 # Version   : 1.1
 # GitHub    : https://github.com/SeByDocKy/pvbrain2
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
@@ -83,31 +83,31 @@ packages:
   device_base: !include pvbrain2/base/device_base.yaml
 
   bms1: !include
-    file: packages/bms_jk-bms_ble.yaml
+    file: packages/bms/bms_jk-bms_ble.yaml
     vars:
       # Smart BMS ID
       smartbms_id: 'smartbms1'
       # BMS vars
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
-      bms_update_interval: "3s"
-      bms_ble_protocol_version: JK02_32S
+      bms_update_interval: "1s"
+      bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
       bms_ble_mac_address: C8:47:8C:10:7E:AB
   
   bms2: !include
-    file: packages/bms_jk-bms_ble.yaml
+    file: packages/bms/bms_jk-bms_ble.yaml
     vars:
       # Smart BMS ID
       smartbms_id: 'smartbms1'
       # BMS vars
       bms_id: '2' # must be a number
       bms_name: 'JK-BMS 2'
-      bms_update_interval: "3s"
-      bms_ble_protocol_version: JK02_32S
+      bms_update_interval: "1s"
+      bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
       bms_ble_mac_address: C8:47:8C:10:7E:AC
 
   smartbms1: !include
-    file: packages/smartbms.yaml
+    file: packages/smartbms/smartbms.yaml
     vars:
       smartbms_id: 'smartbms1'
       smartbms_name: 'Smart BMS 1'
@@ -135,7 +135,7 @@ packages:
       smartbms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
 
   canbus1: !include
-    file: packages/smartbms_canbus.yaml
+    file: packages/smartbms/smartbms_canbus.yaml
     vars:
       # Smart BMS ID
       smartbms_id: 'smartbms1'
