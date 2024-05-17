@@ -21,7 +21,7 @@ esphome:
   # comment: 'Solar system braining and more !'
   # area: 'Technical local'
   project:
-    name: esphome.bms2can
+    name: esphome.smartbms
     version: "2.1.1"
   min_version: 2024.3.0
 
