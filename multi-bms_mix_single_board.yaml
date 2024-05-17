@@ -19,7 +19,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
 substitutions:
-  name: jk-bms-mix-can
+  name: smartbms
 
 logger:
   #level: INFO
