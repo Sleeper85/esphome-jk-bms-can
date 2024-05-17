@@ -62,6 +62,7 @@ packages:
   # Board : uncomment your board
   device_board: !include packages/board/board_esp32-devkit-v1.yaml
   # device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
+  # device_board: !include packages/board/board_atom-lite.yaml
   # device_board: !include packages/board/board_atom-s3-lite.yaml
   
   # device_board: !include
@@ -123,4 +124,3 @@ packages:
       canbus_light_id: 'esp_light'
       # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after 30 loops.
       canbus_max_no_ack: "30"
-
