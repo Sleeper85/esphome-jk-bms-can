@@ -1,4 +1,4 @@
-# Updated   : 2024.05.16
+# Updated   : 2024.05.17
 # Version   : 1.1
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
 # Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
@@ -60,20 +60,20 @@ captive_portal:
 # +--------------------------------------+
 packages:
   # Board : uncomment your board
-  device_board: !include packages/board_esp32-devkit-v1.yaml
-  # device_board: !include packages/board_esp32-s3-devkitc-1.yaml
-  # device_board: !include packages/board_atom-s3-lite.yaml
+  device_board: !include packages/board/board_esp32-devkit-v1.yaml
+  # device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
+  # device_board: !include packages/board/board_atom-s3-lite.yaml
   
   # device_board: !include
-  #   file: packages/board_atom-s3-display.yaml
+  #   file: packages/board/board_atom-s3-display.yaml
   #   vars:
   #     smartbms_id: 'smartbms1'
   #     canbus_id: 'canbus1'
   
-  device_base: !include packages/device_base.yaml
+  device_base: !include packages/base/device_base.yaml
 
   bms1: !include
-    file: packages/bms_jk-bms_ble.yaml
+    file: packages/bms/bms_jk-bms_ble.yaml
     vars:
       # Smart BMS ID
       smartbms_id: 'smartbms1'
@@ -81,11 +81,11 @@ packages:
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
       bms_update_interval: "3s"
-      bms_ble_protocol_version: JK02_32S
+      bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
       bms_ble_mac_address: C8:47:8C:10:7E:AB
   
   smartbms1: !include
-    file: packages/smartbms.yaml
+    file: packages/smartbms/smartbms.yaml
     vars:
       smartbms_id: 'smartbms1'
       smartbms_name: 'Smart BMS 1'
@@ -113,7 +113,7 @@ packages:
       smartbms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
 
   canbus1: !include
-    file: packages/smartbms_canbus.yaml
+    file: packages/smartbms/smartbms_canbus.yaml
     vars:
       # Smart BMS ID
       smartbms_id: 'smartbms1'

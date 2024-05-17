@@ -1,4 +1,4 @@
-# Updated : 2024.05.16
+# Updated : 2024.05.17
 # Version : 1.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -26,8 +26,8 @@ switch:
   - platform: template
     name: "${name} ${bms_name} Combine enabled"
     id: bms${bms_id}_switch_combine
-    optimistic: true
     restore_mode: RESTORE_DEFAULT_ON
+    optimistic: true
 
 binary_sensor:
 # Combine Availability (indicated, if the device is able to be included in combine)
@@ -43,7 +43,7 @@ binary_sensor:
     lambda: return ((id(bms${bms_id}_availability).state) && (id(bms${bms_id}_switch_combine).state));
 
 interval:
-  - interval: 1s
+  - interval: ${bms_update_interval}
     then:
       - lambda: |-
           // Combine Datas

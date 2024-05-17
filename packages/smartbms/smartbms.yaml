@@ -43,13 +43,6 @@ substitutions:
   # Under Temp Protection, Temp < UTP = Stop Charging
   smartbms_utp: "1.0"
 
-esphome:
-  on_boot:
-    then:
-      - switch.turn_on: ${smartbms_id}_switch_charging
-      - switch.turn_on: ${smartbms_id}_switch_discharging
-      - switch.turn_on: ${smartbms_id}_switch_float
-
 globals:
   - id: ${smartbms_id}_charge_status
     type: std::string
@@ -80,18 +73,22 @@ switch:
   - platform: template
     name: "${name} ${smartbms_name} Charge enabled"
     id: ${smartbms_id}_switch_charging
+    restore_mode: RESTORE_DEFAULT_ON
     optimistic: true
   - platform: template
     name: "${name} ${smartbms_name} Discharge enabled"
     id: ${smartbms_id}_switch_discharging
-    optimistic: true
-  - platform: template
-    name: "${name} ${smartbms_name} Force Bulk (top bal)"
-    id: ${smartbms_id}_switch_force_bulk
+    restore_mode: RESTORE_DEFAULT_ON
     optimistic: true
   - platform: template
     name: "${name} ${smartbms_name} Float charge enabled"
     id: ${smartbms_id}_switch_float
+    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: true
+  - platform: template
+    name: "${name} ${smartbms_name} Force Bulk (top bal)"
+    id: ${smartbms_id}_switch_force_bulk
+    restore_mode: RESTORE_DEFAULT_OFF
     optimistic: true
 
 number:

@@ -1,4 +1,4 @@
-# Updated   : 2024.05.15
+# Updated   : 2024.05.17
 # Version   : 1.1
 # GitHub    : https://github.com/SeByDocKy/pvbrain2
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
@@ -81,36 +81,36 @@ captive_portal:
 # +--------------------------------------+
 packages:
   # Fake packages
-  fake_bms1: !include packages/bms_jk-bms_fake_traffic_bms1.yaml
-  fake_bms2: !include packages/bms_jk-bms_fake_traffic_bms2.yaml
-  fake_inverter: !include packages/canbus_fake_inverter.yaml
+  fake_bms1: !include packages/fake/fake_bms_jk-bms_traffic_bms1.yaml
+  fake_bms2: !include packages/fake/fake_bms_jk-bms_traffic_bms2.yaml
+  fake_inverter: !include packages/fake/fake_canbus_inverter.yaml
 
   device_base: !include pvbrain2/base/device_base.yaml
 
   bms1: !include
-    file: packages/bms_jk-bms_uart.yaml
+    file: packages/bms/bms_jk-bms_uart.yaml
     vars:
       # Smart BMS ID
       smartbms_id: 'smartbms1'
       # BMS vars
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
-      bms_update_interval: "3s"
+      bms_update_interval: "1s"
       bms_uart_id: uart_${uart_hub_bus}_4
   
   bms2: !include
-    file: packages/bms_jk-bms_uart.yaml
+    file: packages/bms/bms_jk-bms_uart.yaml
     vars:
       # Smart BMS ID
       smartbms_id: 'smartbms1'
       # BMS vars
       bms_id: '2' # must be a number
       bms_name: 'JK-BMS 2'
-      bms_update_interval: "3s"
+      bms_update_interval: "1s"
       bms_uart_id: uart_${uart_hub_bus}_5
 
   smartbms1: !include
-    file: packages/smartbms.yaml
+    file: packages/smartbms/smartbms.yaml
     vars:
       smartbms_id: 'smartbms1'
       smartbms_name: 'Smart BMS 1'
@@ -138,7 +138,7 @@ packages:
       smartbms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
 
   canbus1: !include
-    file: packages/smartbms_canbus.yaml
+    file: packages/smartbms/smartbms_canbus.yaml
     vars:
       # Smart BMS ID
       smartbms_id: 'smartbms1'

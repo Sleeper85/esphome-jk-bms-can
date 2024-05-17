@@ -28,15 +28,11 @@ substitutions:
   # A factor above 1 will reduce current at a fast rate after the float voltage is reached, then slow as a cell reaches the BMS "cell_voltage_overvoltage_recovery".
   charge_a_factor_curve_shape: "1.8"
 
-esphome:
-  on_boot:
-    then:
-      - switch.turn_on: ${smartbms_id}_switch_auto_ccl
-
 switch:
   - platform: template
     name: ${name} ${smartbms_name} Automatic Charge Current
     id: ${smartbms_id}_switch_auto_ccl
+    restore_mode: RESTORE_DEFAULT_ON
     optimistic: true
     entity_category: config
 
