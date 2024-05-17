@@ -1,4 +1,4 @@
-# Updated : 2024.05.15
+# Updated : 2024.05.17
 # Version : 1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -14,7 +14,7 @@ uart:
     tx_pin: 17
     rx_pin: 16
     baud_rate: 115200
-    rx_buffer_size: 384
+    rx_buffer_size: 384 # 1000 with JK-BMS PB RS485
   # UART 2 : JK-BMS 2
   - id: uart_esp_2
     tx_pin: 19
