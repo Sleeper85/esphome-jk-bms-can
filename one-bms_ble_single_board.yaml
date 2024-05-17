@@ -62,6 +62,7 @@ packages:
   # Board : uncomment your board
   device_board: !include packages/board/board_esp32-devkit-v1.yaml
   # device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
+  # device_board: !include packages/board/board_atom-lite.yaml
   # device_board: !include packages/board/board_atom-s3-lite.yaml
   
   # device_board: !include
