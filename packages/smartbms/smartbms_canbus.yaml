@@ -1,4 +1,4 @@
-# Updated : 2024.05.16
+# Updated : 2024.05.17
 # Version : 2.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -30,7 +30,7 @@ select:
     name: ${name} ${canbus_name} BMS Name
     id: ${canbus_id}_bms_name
     options:
-      - "GENERAL"
+      - "SMARTBMS"
       - "PYLON"
       - "GOODWE"
       - "SEPLOS"
@@ -522,8 +522,8 @@ interval:
                       canbus_id: ${canbus_node_id}
                       can_id: 0x382
                       data: !lambda |-
-                        ESP_LOGI("main", "send can id: 0x382 [ASCII] Product : JK-BMS");
-                        return {0x4A, 0x4B, 0x2D, 0x42, 0x4D, 0x53, 0x00, 0x00}; // JK-BMS
+                        ESP_LOGI("main", "send can id: 0x382 [ASCII] Product : SMARTBMS");
+                        return {0x53, 0x4D, 0x41, 0x52, 0x54, 0x42, 0x4D, 0x53}; // SMARTBMS
 
             - if: # 0x35F - Battery information ( SMA, Victron )
                 condition:
@@ -559,8 +559,8 @@ interval:
                       data: !lambda |-
                         
                         if (id(${canbus_id}_bms_name).active_index() == 0){
-                           ESP_LOGI("main", "send can id: 0x35E ASCII : GENERAL");
-                           return {0x47, 0x45, 0x4E, 0x45, 0x52, 0x41, 0x4C, 0x20}; // GENERAL
+                           ESP_LOGI("main", "send can id: 0x35E ASCII : SMARTBMS");
+                           return {0x53, 0x4D, 0x41, 0x52, 0x54, 0x42, 0x4D, 0x53}; // SMARTBMS
                         }
                         if (id(${canbus_id}_bms_name).active_index() == 1){
                            ESP_LOGI("main", "send can id: 0x35E ASCII : PYLON");
