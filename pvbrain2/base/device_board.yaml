@@ -1,4 +1,4 @@
-# Updated : 2024.05.16
+# Updated : 2024.05.18
 # Version : 1.0.1
 # GitHub  : https://github.com/SeByDocKy/pvbrain2
 
@@ -16,10 +16,10 @@ esphome:
   project:
     name: esphome.pvbrain2
     version: "1.0.1"
-  min_version: 2024.3.0
+  min_version: 2024.5.0
   # Standard uses a single line for data, Dual IO uses 2 lines for data.
   platformio_options:
-    board_build.flash_mode: dio # Needed to flash the ESP32-S3 N16R8
+    board_build.flash_mode: dio # Needed to flash the ESP32-S3 and prevent reboot loop
 
   # The following option is required for ESP32 S3 with memory > 16MB, eg. the N32R8V
   # platformio_options:

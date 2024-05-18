@@ -9,6 +9,9 @@ esp32:
     type: esp-idf
 
 esphome:
+  # Standard uses a single line for data, Dual IO uses 2 lines for data.
+  platformio_options:
+    board_build.flash_mode: dio # Needed to flash the ESP32-S3 and prevent reboot loop
   on_boot:
     then:
       - light.turn_on:
@@ -17,6 +20,7 @@ esphome:
           blue: 50%
           green: 0%
           brightness: 50%
+
 
 logger:
   hardware_uart: USB_SERIAL_JTAG

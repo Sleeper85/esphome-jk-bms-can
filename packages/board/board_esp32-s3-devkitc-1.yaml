@@ -1,4 +1,4 @@
-# Updated : 2024.05.17
+# Updated : 2024.05.18
 # Version : 1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -9,11 +9,9 @@ esp32:
     type: esp-idf
 
 esphome:
-  # Dual IO uses 2 lines for data
-  # Standard uses a single line for data
-  # The firmware flash only works in "dio" mode for my ESP32-S3 "N16R8", otherwise endless loop and reboot
+  # Standard uses a single line for data, Dual IO uses 2 lines for data.
   platformio_options:
-    board_build.flash_mode: dio
+    board_build.flash_mode: dio # Needed to flash the ESP32-S3 and prevent reboot loop
   on_boot:
     then:
       - light.turn_on:
