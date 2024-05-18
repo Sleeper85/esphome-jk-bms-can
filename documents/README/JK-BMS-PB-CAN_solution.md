@@ -7,14 +7,14 @@
 ## ESP32 board
 
 - [Atom S3 - SKU:C123](https://docs.m5stack.com/en/core/AtomS3)
-- [Atom S3 board config file](../packages/board/board_atom-s3-display.yaml)
+- [Atom S3 board config file](../../packages/board/board_atom-s3-display.yaml)
 - [Atom S3 Lite - SKU:C124](https://docs.m5stack.com/en/core/AtomS3%20Lite)
-- [Atom S3 Lite board config file](../packages/board/board_atom-s3-lite.yaml)
+- [Atom S3 Lite board config file](../../packages/board/board_atom-s3-lite.yaml)
 - [Atomic CAN Base - SKU:A103](https://docs.m5stack.com/en/atom/Atomic%20CAN%20Base)
 
 ## RS485 board
 
-![Image](../images/MAX485_UART-RS485.jpg "MAX485 UART-RS485")
+![Image](../../images/MAX485_UART-RS485.jpg "MAX485 UART-RS485")
 
 ## Schematic and setup instructions
 
@@ -31,8 +31,8 @@
 |          |<-RJ45-P3---GND->|           |<-GND-------------GND->|          |<---GND
 └──────────┘                 └───────────┘                       └──────────┘
 ```
-- [RJ45 568A pinout](../images/RJ45-Pinout-T568A.jpg)
-- [RJ45 568B pinout](../images/RJ45-Pinout-T568B.jpg)
+- [RJ45 568A pinout](../../images/RJ45-Pinout-T568A.jpg)
+- [RJ45 568B pinout](../../images/RJ45-Pinout-T568B.jpg)
 
 ## BMS DIP switch config (mode 2)
 
