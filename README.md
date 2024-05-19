@@ -166,6 +166,16 @@ All JK-BMS models with software@ version `>=6.0` are using the implemented proto
 
 See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/syssi/esphome-jk-bms) repository for more information.
 
+## Supported CAN Transceiver
+
+| TJA1050 | TJA1051 | SN65HVD230 |
+| --- | --- | --- |
+| <img src="images/CAN_Transceiver_TJA1050.png" width="300"> | <img src="images/CAN_Transceiver_TJA1051.jpg" width="300"> | <img src="images/CAN_Transceiver_SN65HVD230.jpg" width="300"> |
+
+| Atomic CAN Base | MCP2515 |
+| --- | --- |
+| <img src="images/CAN_Transceiver_Atomic_CAN_Base.png" width="450"> | <img src="images/CAN_Transceiver_MCP2515.png" width="450"> |
+
 ## Requirements
 
 * [ESPHome 2022.11.0 or higher](https://github.com/esphome/esphome/releases).
@@ -173,7 +183,7 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 * NOTE: ESP32-S2 currently has issues with CAN BUS and does not work!
 * For 5V CAN bus : TJA1050 or TJA1051T CAN controller interface module and 4.7K resistor for 5v to 3.3v level shifing.
 * For 3.3V CAN bus : SN65HVD230 CAN controller interface module without 4.7K resistor
-* For Atom CAN bus : M5Stack ATOMIC CANBus Base (CA-IS3050G)
+* For Atom CAN bus : M5Stack ATOMIC CAN Base (CA-IS3050G)
 * Optional: 48V to 5V DC-DC converter to power the ESP32 from the JK-BMS VBAT pin (URB4805YMD-10WR3 or VRB4805S-6WR3)
 * Optional: JK RS485 Adaptor and RS484 to TTL3.3v Adaptor (see optional schematic below)
 
