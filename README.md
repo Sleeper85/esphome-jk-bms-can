@@ -154,7 +154,7 @@ The following are confirmed and known to work:
 | Solis | RHI-3.6K-48ES-5G | Working | [@cjdell](https://github.com/cjdell) | Pylon LV | PYLON | PYLON + | SN65HVD230 **3.3V** | --- |
 | Solis | S5-EH1P4.6K-L | Working | [@Baker0052](https://github.com/Baker0052) | Pylon LV | PYLON | PYLON + | --- | --- |
 | Solis | S5-EH1P6K-L | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | --- |
-| Solis | S5-EH1P6K-L | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | --- |
+| Solis | RHI-3.6K-48ES-5G | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | --- |
 | LuxPower | LXP SNA 5K | Working | [@shvmm](https://github.com/shvmm) | Li 02 | PYLON | PYLON + | SN65HVD230 **3.3V** | --- |
 | --- | Turbo Energy | Working | [@ibikku](https://github.com/ibikku) | --- | --- | --- | --- | --- |
 | SMA | Sunny Island  | --- | --- | --- | --- | --- | --- | --- |
@@ -162,7 +162,7 @@ The following are confirmed and known to work:
 
 ## Supported BMS
 
-<br>All JK-BMS models with software@ version `>=6.0` are using the implemented protocol and should be supported.
+All JK-BMS models with software@ version `>=6.0` are using the implemented protocol and should be supported.
 
 See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/syssi/esphome-jk-bms) repository for more information.
 
