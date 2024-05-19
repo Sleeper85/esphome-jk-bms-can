@@ -184,11 +184,11 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 
 If soldering or creating your own board seems complicated to you, know that it is possible to use the Atom CAN Kit from M5Stack.<br>
 
-**Recommended: Atom S3 Lite + Atomic CANbus Base**
+**Recommended: Atom S3 Lite + Atomic CAN Base**
 
-* [Atom S3 Lite (recommanded)](https://shop.m5stack.com/products/atoms3-lite-esp32s3-dev-kit)
-* [Atom Lite (not stable with BLE version)](https://shop.m5stack.com/products/atom-lite-esp32-development-kit)
-* [Atomic CANBus Base](https://shop.m5stack.com/products/atomic-canbus-base-ca-is3050g)
+- [Atom S3 - SKU:C123](https://docs.m5stack.com/en/core/AtomS3)
+- [Atom S3 Lite - SKU:C124](https://docs.m5stack.com/en/core/AtomS3%20Lite)
+- [Atomic CAN Base - SKU:A103](https://docs.m5stack.com/en/atom/Atomic%20CAN%20Base)
 
 ![Image](images/Atom_S3_Lite.png "M5Stack Atom S3 Lite")
 ![Image](images/Atomic_CANBus_Base_CA-IS3050G.png "M5Stack Atomic CANBus Base CA-IS3050G")
