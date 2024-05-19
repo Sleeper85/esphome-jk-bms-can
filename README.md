@@ -198,7 +198,7 @@ If soldering or creating your own board seems complicated to you, know that it i
 - [Atomic CAN Base - SKU:A103](https://docs.m5stack.com/en/atom/Atomic%20CAN%20Base)
 
 ![Image](images/Atom_S3_Lite.png "M5Stack Atom S3 Lite")
-![Image](images/Atomic_CANBus_Base_CA-IS3050G.png "M5Stack Atomic CANBus Base CA-IS3050G")
+![Image](images/CAN_Transceiver_Atomic_CAN_Base.png "M5Stack Atomic CAN Base CA-IS3050G")
 
 ## Build your own board
 
