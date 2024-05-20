@@ -23,13 +23,13 @@ esphome:
 
 uart:
   # UART 0 : uart used for ESP32 flashing and logs, can be released if necessary (tx_pin: 43, rx_pin: 44)
-  # UART 1 : BMS 1
+  # UART 1
   - id: uart_esp_1
     tx_pin: 17
     rx_pin: 18
     baud_rate: 115200
-    rx_buffer_size: 384 # 1000 with JK-BMS PB RS485
-  # UART 2 : BMS 2
+    rx_buffer_size: 384
+  # UART 2
   - id: uart_esp_2
     tx_pin: 15
     rx_pin: 16

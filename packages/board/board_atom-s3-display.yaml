@@ -1,7 +1,9 @@
-# Updated : 2024.05.17
+# Updated : 2024.05.19
 # Version : 1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
+# Atom S3 - SKU:C123
+# https://docs.m5stack.com/en/core/AtomS3
 esp32:
   board: esp32-s3-devkitc-1
   variant: esp32s3
@@ -28,7 +30,7 @@ uart:
     tx_pin: 1
     rx_pin: 2
     baud_rate: 115200
-    rx_buffer_size: 384 # 1000 with JK-BMS PB RS485
+    rx_buffer_size: 384
 
 canbus:
   # CANBUS NODE 1

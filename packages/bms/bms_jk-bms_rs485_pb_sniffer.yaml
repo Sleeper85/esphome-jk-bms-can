@@ -1,11 +1,18 @@
-# Updated : 2024.05.17
-# Version : 1.2.0
+# Updated : 2024.05.20
+# Version : 1.1
 # GitHub  : https://github.com/txubelaxu/esphome-jk-bms
 # Readme  : https://github.com/txubelaxu/esphome-jk-bms/blob/main/components/jk_rs485_bms/README.md
 
 external_components:
  - source: github://txubelaxu/esphome-jk-bms@main
    refresh: 0s
+
+logger:
+  tx_buffer_size: 1024
+
+uart:
+  - id: !extend uart_esp_1
+    rx_buffer_size: 1000
 
 jk_rs485_sniffer:
   - id: ${sniffer_id}

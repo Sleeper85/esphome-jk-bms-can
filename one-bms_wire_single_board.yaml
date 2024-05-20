@@ -1,5 +1,5 @@
-# Updated   : 2024.05.17
-# Version   : 1.1
+# Updated   : 2024.05.20
+# Version   : 1.2
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
 # Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
 
@@ -98,13 +98,12 @@ packages:
       smartbms_bulk_v: "55.2"
       # Rebulk voltage, voltage less than FLOAT at which BMS requests rebulk. (52.8V = 3.3V/Cell for 16S battery)
       smartbms_rebulk_v: "52.8"
-      # Max charging amps eg 100A (5000W), should be at least 10A less than BMS over charge current protection, 0.5C max.
-      smartbms_charge_a: "100"
-      # Max discharge amps eg 120A (6000W), should be at least 10A less than BMS over discharge current protection, 0.5C max.
-      smartbms_discharge_a: "120"
-      # Inverter offset, allows you to correct the inverter charging voltage.
+      # Absorption Offset V.
+      # https://github.com/Sleeper85/esphome-jk-bms-can/blob/main/documents/README/Cut-Off_Charging_Logic.md
+      smartbms_absorption_offset_v: "0.1"
+      # Inverter Offset V. allows you to correct the inverter charging voltage.
       # For example, with my Deye, if the requested charging voltage is 55.2v the Deye effective charging voltage will be 55.1V.
-      # An offset of 0.1 provides an effective charging voltage of 55.2V.
+      # An offset of 0.1V provides an effective charging voltage of 55.2V.
       smartbms_inverter_offset_v: "0.0"
       # Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
       smartbms_max_cycles: "6000.0"
