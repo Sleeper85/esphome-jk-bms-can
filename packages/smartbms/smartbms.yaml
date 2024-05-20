@@ -75,21 +75,31 @@ switch:
     id: ${smartbms_id}_switch_charging
     restore_mode: RESTORE_DEFAULT_ON
     optimistic: true
+    entity_category: config
   - platform: template
     name: "${name} ${smartbms_name} Discharge enabled"
     id: ${smartbms_id}_switch_discharging
     restore_mode: RESTORE_DEFAULT_ON
     optimistic: true
+    entity_category: config
   - platform: template
     name: "${name} ${smartbms_name} Float charge enabled"
     id: ${smartbms_id}_switch_float
     restore_mode: RESTORE_DEFAULT_ON
     optimistic: true
+    entity_category: config
+  - platform: template
+    name: "${name} ${smartbms_name} EOC Timer enabled"
+    id: ${smartbms_id}_switch_eoc_timer
+    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: true
+    entity_category: config
   - platform: template
     name: "${name} ${smartbms_name} Force Bulk (top bal)"
     id: ${smartbms_id}_switch_force_bulk
     restore_mode: RESTORE_DEFAULT_OFF
     optimistic: true
+    entity_category: config
 
 number:
   # +--------------------------------------+
@@ -99,8 +109,8 @@ number:
     name: "${name} ${smartbms_name} Bulk voltage"
     id: "${smartbms_id}_bulk_voltage"
     step: 0.1
-    min_value: 54.0
-    max_value: 58.4
+    min_value: 54.0 # LFP 3.375V * 16 cells
+    max_value: 60.2 # Li-ion 4.3V * 14 cells
     restore_value: true
     mode: "${smartbms_input_number_mode}"
     initial_value: "${smartbms_bulk_v}"
@@ -112,8 +122,8 @@ number:
     name: "${name} ${smartbms_name} Float voltage"
     id: "${smartbms_id}_float_voltage"
     step: 0.1
-    min_value: 52.8
-    max_value: 58.4
+    min_value: 52.8 # LFP 3.3V * 16 cells
+    max_value: 60.2 # Li-ion 4.3V * 14 cells
     restore_value: true
     mode: "${smartbms_input_number_mode}"
     initial_value: "${smartbms_float_v}"
@@ -125,8 +135,8 @@ number:
     name: "${name} ${smartbms_name} Rebulk V."
     id: "${smartbms_id}_rebulk_voltage"
     step: 0.1
-    min_value: 51.2
-    max_value: 53.6
+    min_value: 51.2 # LFP 3.2V * 16 cells
+    max_value: 54.6 # Li-ion 3.9V * 14 cells
     restore_value: true
     mode: "${smartbms_input_number_mode}"
     initial_value: "${smartbms_rebulk_v}"
@@ -134,6 +144,40 @@ number:
     icon: mdi:sine-wave
     optimistic: true
     entity_category: config
+  - platform: template
+    name: "${smartbms_name} Absorption Offset V."
+    id: "${smartbms_id}_absorption_offset_v"
+    step: 0.05
+    min_value: 0
+    max_value: 1
+    restore_value: true
+    mode: "${smartbms_input_number_mode}"
+    initial_value: "${smartbms_absorption_offset_v}"
+    unit_of_measurement: V
+    icon: mdi:sine-wave
+    optimistic: true
+    entity_category: config
+    internal: ${smartbms_absorption_offset_v_slider}
+  - platform: template
+    name: "${smartbms_name} Inverter Offset V."
+    id: "${smartbms_id}_inverter_offset_v"
+    step: 0.1
+    min_value: 0
+    max_value: 1
+    restore_value: true
+    mode: "${smartbms_input_number_mode}"
+    initial_value: "${smartbms_inverter_offset_v}"
+    unit_of_measurement: V
+    icon: mdi:sine-wave
+    optimistic: true
+    entity_category: config
+    internal: ${smartbms_inverter_offset_v_slider}
+
+script:
+  - id: ${smartbms_id}_script_eoc_timer
+    then:
+      - delay: ${smartbms_eoc_timer}min
+      - lambda: id(${smartbms_id}_charge_status) = "EOC";
 
 sensor:
   # +--------------------------------------+
@@ -170,13 +214,13 @@ sensor:
     lambda: |-
       // Bulk
       if (id(${smartbms_id}_charging_instruction).state == "Bulk"){
-        if(id(${smartbms_id}_auto_cvl) == -1.0) return (id(${smartbms_id}_bulk_voltage).state + ${smartbms_inverter_offset_v}); // Auto CVL not used
-        else return (id(${smartbms_id}_auto_cvl) + ${smartbms_inverter_offset_v});
+        if(id(${smartbms_id}_auto_cvl) == -1.0) return (id(${smartbms_id}_bulk_voltage).state + id(${smartbms_id}_inverter_offset_v).state); // Auto CVL not used
+        else return (id(${smartbms_id}_auto_cvl) + id(${smartbms_id}_inverter_offset_v).state);
       }
       // Float
-      else if (id(${smartbms_id}_charging_instruction).state == "Float") return (id(${smartbms_id}_float_voltage).state + ${smartbms_inverter_offset_v});
+      else if (id(${smartbms_id}_charging_instruction).state == "Float") return (id(${smartbms_id}_float_voltage).state + id(${smartbms_id}_inverter_offset_v).state);
       // Stop Charging
-      else return id(${smartbms_id}_rebulk_voltage).state;
+      else return (id(${smartbms_id}_rebulk_voltage).state + id(${smartbms_id}_inverter_offset_v).state);
   # +--------------------------------------+
   # |  Requested Charge Current  (CCL)     |
   # +--------------------------------------+
@@ -350,12 +394,12 @@ text_sensor:
         // Variables
         float cell_bulk_v = (id(${smartbms_id}_bulk_voltage).state / id(${smartbms_id}_cell_count).state);
         float cell_rebulk_v = (id(${smartbms_id}_rebulk_voltage).state / id(${smartbms_id}_cell_count).state);
-        float cell_absorption_offset_v = (${smartbms_absorption_offset_v} / id(${smartbms_id}_cell_count).state);
+        float cell_absorption_offset_v = (id(${smartbms_id}_absorption_offset_v).state / id(${smartbms_id}_cell_count).state);
         static int eoc_counter = 0;
         
         // Force Bulk Logic
         if (id(${smartbms_id}_switch_force_bulk).state) {
-          // Stop Force Bulk when cells equalizing (charging ends when cells are equalized)
+          // Stop Force Bulk when the BMS starts to equalize the cells
           if (id(${smartbms_id}_equalizing).state) {
             id(${smartbms_id}_charge_status) = "Balancing";
             id(${smartbms_id}_switch_force_bulk).turn_off();
@@ -384,12 +428,18 @@ text_sensor:
             // Stop Charging
             if ((id(${smartbms_id}_current).state <= cutoff_current) & (id(${smartbms_id}_max_cell_voltage).state >= cutoff_voltage)) {
             
+              // If the EOC Timer switch is enabled
+              if (id(${smartbms_id}_switch_eoc_timer).state) {
+                // The charging process ends at the latest at the end of this timer (30min by default)
+                if (!id(${smartbms_id}_script_eoc_timer).is_running()) id(${smartbms_id}_script_eoc_timer).execute();
+              }        
               // End Of Charge
               if (!id(${smartbms_id}_equalizing).state) {
                 eoc_counter += 1;
                 ESP_LOGI("main", "EOC Cycle Count : %i", eoc_counter);
                 if (eoc_counter > ${smartbms_eoc_cycle_threshold}) {
                   eoc_counter = 0;
+                  if (id(${smartbms_id}_script_eoc_timer).is_running()) id(${smartbms_id}_script_eoc_timer).stop();
                   id(${smartbms_id}_charge_status) = "EOC";
                 }
               }
