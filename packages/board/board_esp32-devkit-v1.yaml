@@ -1,4 +1,4 @@
-# Updated : 2024.05.17
+# Updated : 2024.05.19
 # Version : 1.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -9,13 +9,13 @@ esp32:
 
 uart:
   # UART 0 : uart used for ESP32 flashing and logs, can be released if necessary (tx_pin: 1, rx_pin: 3)
-  # UART 1 : JK-BMS 1
+  # UART 1
   - id: uart_esp_1
     tx_pin: 17
     rx_pin: 16
     baud_rate: 115200
-    rx_buffer_size: 384 # 1000 with JK-BMS PB RS485
-  # UART 2 : JK-BMS 2
+    rx_buffer_size: 384
+  # UART 2
   - id: uart_esp_2
     tx_pin: 19
     rx_pin: 18

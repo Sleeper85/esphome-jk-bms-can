@@ -1,4 +1,4 @@
-# Updated   : 2024.05.17
+# Updated   : 2024.05.20
 # Version   : 1.1
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
 # Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
@@ -73,14 +73,14 @@ packages:
   device_base: !include packages/base/device_base.yaml
 
   # The sniffer represents the ESP node connected to the JK-BMS PB RS485 bus
-  # The sniffer will automatically take the address 0x00 and act as master BMS (mode 2)
+  # If address 0x00 is not detected on the RS485 bus, the sniffer will act directly as a master BMS (mode 2, max 15 BMS)
   sniffer1: !include
     file: packages/bms/bms_jk-bms_rs485_pb_sniffer.yaml
     vars:
       sniffer_id: 'sniffer1'
       sniffer_protocol: 'JK02_32S'
       sniffer_uart_id: 'uart_esp_1'
-      sniffer_talk_pin: 8
+      sniffer_talk_pin: 8 # ESP32: 4, ESP32-S3: 8
 
   # Configure the DIP switches of your BMS from 0x01 to 0x0F (don't use the 0x00 address, maximum 15 BMS)
   bms1: !include
@@ -94,7 +94,7 @@ packages:
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
       bms_rs485_address: '0x01' # BMS 1 DIP switch
-      bms_update_interval: "3s"
+      bms_update_interval: '3s'
   
   bms2: !include
     file: packages/bms/bms_jk-bms_rs485_pb_bms.yaml
@@ -107,7 +107,7 @@ packages:
       bms_id: '2' # must be a number
       bms_name: 'JK-BMS 2'
       bms_rs485_address: '0x02' # BMS 2 DIP switch
-      bms_update_interval: "3s"
+      bms_update_interval: '3s'
 
   bms3: !include
     file: packages/bms/bms_jk-bms_rs485_pb_bms.yaml
@@ -120,7 +120,59 @@ packages:
       bms_id: '3' # must be a number
       bms_name: 'JK-BMS 3'
       bms_rs485_address: '0x03' # BMS 3 DIP switch
-      bms_update_interval: "3s"
+      bms_update_interval: '3s'
+
+  bms4: !include
+    file: packages/bms/bms_jk-bms_rs485_pb_bms.yaml
+    vars:
+      # Smart BMS ID
+      smartbms_id: 'smartbms1'
+      # Sniffer ID
+      sniffer_id: 'sniffer1'
+      # BMS vars
+      bms_id: '4' # must be a number
+      bms_name: 'JK-BMS 4'
+      bms_rs485_address: '0x04' # BMS 4 DIP switch
+      bms_update_interval: '3s'
+  
+  bms5: !include
+    file: packages/bms/bms_jk-bms_rs485_pb_bms.yaml
+    vars:
+      # Smart BMS ID
+      smartbms_id: 'smartbms1'
+      # Sniffer ID
+      sniffer_id: 'sniffer1'
+      # BMS vars
+      bms_id: '5' # must be a number
+      bms_name: 'JK-BMS 5'
+      bms_rs485_address: '0x05' # BMS 5 DIP switch
+      bms_update_interval: '3s'
+
+  bms6: !include
+    file: packages/bms/bms_jk-bms_rs485_pb_bms.yaml
+    vars:
+      # Smart BMS ID
+      smartbms_id: 'smartbms1'
+      # Sniffer ID
+      sniffer_id: 'sniffer1'
+      # BMS vars
+      bms_id: '6' # must be a number
+      bms_name: 'JK-BMS 6'
+      bms_rs485_address: '0x06' # BMS 6 DIP switch
+      bms_update_interval: '3s'
+
+  bms7: !include
+    file: packages/bms/bms_jk-bms_rs485_pb_bms.yaml
+    vars:
+      # Smart BMS ID
+      smartbms_id: 'smartbms1'
+      # Sniffer ID
+      sniffer_id: 'sniffer1'
+      # BMS vars
+      bms_id: '7' # must be a number
+      bms_name: 'JK-BMS 7'
+      bms_rs485_address: '0x07' # BMS 7 DIP switch
+      bms_update_interval: '3s'
 
   smartbms1: !include
     file: packages/smartbms/smartbms.yaml
@@ -136,13 +188,12 @@ packages:
       smartbms_bulk_v: "55.2"
       # Rebulk voltage, voltage less than FLOAT at which BMS requests rebulk. (52.8V = 3.3V/Cell for 16S battery)
       smartbms_rebulk_v: "52.8"
-      # Max charging amps eg 100A (5000W), should be at least 10A less than BMS over charge current protection, 0.5C max.
-      smartbms_charge_a: "100"
-      # Max discharge amps eg 120A (6000W), should be at least 10A less than BMS over discharge current protection, 0.5C max.
-      smartbms_discharge_a: "120"
-      # Inverter offset, allows you to correct the inverter charging voltage.
+      # Absorption Offset V.
+      # https://github.com/Sleeper85/esphome-jk-bms-can/blob/main/documents/README/Cut-Off_Charging_Logic.md
+      smartbms_absorption_offset_v: "0.1"
+      # Inverter Offset V. allows you to correct the inverter charging voltage.
       # For example, with my Deye, if the requested charging voltage is 55.2v the Deye effective charging voltage will be 55.1V.
-      # An offset of 0.1 provides an effective charging voltage of 55.2V.
+      # An offset of 0.1V provides an effective charging voltage of 55.2V.
       smartbms_inverter_offset_v: "0.0"
       # Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
       smartbms_max_cycles: "6000.0"

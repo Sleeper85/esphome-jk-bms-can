@@ -1,5 +1,5 @@
-# Updated : 2024.05.17
-# Version : 1.1.1
+# Updated : 2024.05.20
+# Version : 1.2
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -160,6 +160,7 @@ interval:
             
             // equalizing_counter
             if (id(${smartbms_id}_equalizing_counter) > 0) id(${smartbms_id}_equalizing).publish_state(true);
+            else id(${smartbms_id}_equalizing).publish_state(false);
             id(${smartbms_id}_equalizing_counter) = 0; // global var reset
 
             // bms_switch_charging_counter
@@ -173,6 +174,42 @@ interval:
             // errors_bitmask bitwise OR (16bit)
             id(${smartbms_id}_errors_bitmask).publish_state(id(${smartbms_id}_bitwise_errors_bitmask));
             id(${smartbms_id}_bitwise_errors_bitmask) = 0; // global var reset
+
+            // MIN/MAX values, force other BMS to rewrite the correct value
+            // id(${smartbms_id}_max_balance_trigger_voltage) = 0.0;
+
+            // balance_trigger_voltage MAX
+            if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_balance_trigger_voltage) > 0.0)) {
+              id(${smartbms_id}_balance_trigger_voltage).publish_state(id(${smartbms_id}_max_balance_trigger_voltage));
+            }
+            // min_cell_voltage MIN
+            if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_min_min_cell_voltage) < 5.0)) {
+              id(${smartbms_id}_min_cell_voltage).publish_state(id(${smartbms_id}_min_min_cell_voltage));
+            }
+            // max_cell_voltage MAX
+            if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_max_cell_voltage) > 0.0)) {
+              id(${smartbms_id}_max_cell_voltage).publish_state(id(${smartbms_id}_max_max_cell_voltage));
+            }
+            // cell_ovp MIN
+            if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_min_cell_ovp) < 5.0)) {
+              id(${smartbms_id}_cell_ovp).publish_state(id(${smartbms_id}_min_cell_ovp));
+            }
+            // cell_ovpr MIN
+            if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_min_cell_ovpr) < 5.0)) {
+              id(${smartbms_id}_cell_ovpr).publish_state(id(${smartbms_id}_min_cell_ovpr));
+            }
+            // cell_uvpr MAX
+            if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_cell_uvpr) > 0.0)) {
+              id(${smartbms_id}_cell_uvpr).publish_state(id(${smartbms_id}_max_cell_uvpr));
+            }
+            // temperature_sensor_1 MAX
+            if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_temperature_sensor_1) > -100.0)) {
+              id(${smartbms_id}_temperature_sensor_1).publish_state(id(${smartbms_id}_max_temperature_sensor_1));
+            }
+            // temperature_sensor_2 MAX
+            if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_temperature_sensor_2) > -100.0)) {
+              id(${smartbms_id}_temperature_sensor_2).publish_state(id(${smartbms_id}_max_temperature_sensor_2));
+            }
 
             // Reset combined_bms_counter (new cycle)
             // The bms are once again authorized to communicate their informations
@@ -273,9 +310,6 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 0.001
-    lambda: |-
-      if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_min_min_cell_voltage) = 5.0;
-      return id(${smartbms_id}_min_min_cell_voltage);
 
   # max_cell_voltage MAX
   - platform: template
@@ -288,9 +322,6 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 0.001
-    lambda: |-
-      if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_max_max_cell_voltage) = 0.0;
-      return id(${smartbms_id}_max_max_cell_voltage);
 
   # total_voltage MEAN
   - platform: template
@@ -377,14 +408,6 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 0.001
-    lambda: |-
-      if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_min_cell_ovp) = 5.0;
-      float min_cell_ovp = id(${smartbms_id}_min_cell_ovp);
-      // sets the sliders max value to the BMS cell_ovp * cell_count
-      // id(${smartbms_id}_bulk_voltage).traits.set_max_value(min_cell_ovp * id(${smartbms_id}_cell_count).state);
-      // id(${smartbms_id}_float_voltage).traits.set_max_value(min_cell_ovp * id(${smartbms_id}_cell_count).state);
-      // id(${smartbms_id}_rebulk_voltage).traits.set_max_value(min_cell_ovp * id(${smartbms_id}_cell_count).state);
-      return min_cell_ovp;
 
   # cell_ovpr MIN
   - platform: template
@@ -397,9 +420,6 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 0.001
-    lambda: |-
-      if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_min_cell_ovpr) = 5.0;
-      return id(${smartbms_id}_min_cell_ovpr);
 
   # cell_uvr MAX
   - platform: template
@@ -412,9 +432,6 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 0.001
-    lambda: |-
-      if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_max_cell_uvpr) = 0.0;
-      return id(${smartbms_id}_max_cell_uvpr);
 
   # balance_trigger_voltage MAX
   - platform: template
@@ -427,9 +444,6 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 0.001
-    lambda: |-
-      if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_max_balance_trigger_voltage) = 0.0;
-      return id(${smartbms_id}_max_balance_trigger_voltage);
 
   # temperature_sensor_1 MAX
   - platform: template
@@ -442,9 +456,6 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 0.1
-    lambda: |-
-      if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_max_temperature_sensor_1) = 0.0;
-      return id(${smartbms_id}_max_temperature_sensor_1);
 
   # temperature_sensor_2 MAX
   - platform: template
@@ -457,9 +468,6 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 0.1
-    lambda: |-
-      if (id(${smartbms_id}_bms_counter) == 0) id(${smartbms_id}_max_temperature_sensor_2) = 0.0;
-      return id(${smartbms_id}_max_temperature_sensor_2);
 
   # charging_cycles MEAN
   - platform: template

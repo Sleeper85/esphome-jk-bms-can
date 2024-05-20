@@ -1,5 +1,5 @@
-# Updated : 2024.05.17
-# Version : 1.1.1
+# Updated : 2024.05.20
+# Version : 1.2
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -165,8 +165,8 @@ interval:
             id(${smartbms_id}_min_cell_ovp) = 5.0;
             id(${smartbms_id}_min_cell_ovpr) = 5.0;
             id(${smartbms_id}_max_cell_uvpr) = 0.0;
-            id(${smartbms_id}_max_temperature_sensor_1) = 0.0;
-            id(${smartbms_id}_max_temperature_sensor_2) = 0.0;
+            id(${smartbms_id}_max_temperature_sensor_1) = -100.0;
+            id(${smartbms_id}_max_temperature_sensor_2) = -100.0;
 
             // Uncombined
             id(bms${bms_id}_combined) = false;
