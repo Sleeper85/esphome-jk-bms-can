@@ -1,4 +1,4 @@
-# Updated : 2024.05.17
+# Updated : 2024.05.21
 # Version : 2.2.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -30,7 +30,7 @@ switch:
   - platform: template
     name: ${name} ${smartbms_name} Automatic Charge Voltage
     id: ${smartbms_id}_switch_auto_cvl
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: RESTORE_DEFAULT_OFF
     optimistic: true
     entity_category: config
 

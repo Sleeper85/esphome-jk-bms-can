@@ -1,4 +1,4 @@
-# Updated   : 2024.05.20
+# Updated   : 2024.05.21
 # Version   : 1.1
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
 # Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
@@ -177,29 +177,34 @@ packages:
   smartbms1: !include
     file: packages/smartbms/smartbms.yaml
     vars:
+      # Please read the cut off charging logic to understand how the SmartBMS works
+      # https://github.com/Sleeper85/esphome-jk-bms-can/blob/main/documents/README/Cut-Off_Charging_Logic.md
       smartbms_id: 'smartbms1'
       smartbms_name: 'Smart BMS 1'
-      smartbms_update_interval: "1s"
+      smartbms_update_interval: '1s'
       # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.
       smartbms_input_number_mode: 'slider'
-      # Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6V = 3.35V/Cell for 16S battery)
-      smartbms_float_v: "53.6"
       # Bulk / Absorption Voltage : corresponds to the Bulk voltage that will be used to charge the battery. (55.2V = 3.45V/Cell for 16S battery)
-      smartbms_bulk_v: "55.2"
+      smartbms_bulk_v: '55.2'
+      # Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6V = 3.35V/Cell for 16S battery)
+      smartbms_float_v: '53.6'
       # Rebulk voltage, voltage less than FLOAT at which BMS requests rebulk. (52.8V = 3.3V/Cell for 16S battery)
-      smartbms_rebulk_v: "52.8"
+      smartbms_rebulk_v: '52.8'
+      # Allows the charging process to complete within 30 minutes even if the cells are still equalizing
+      # This timer can be deactivated with a switch
+      smartbms_eoc_timer: '30'
       # Absorption Offset V.
-      # https://github.com/Sleeper85/esphome-jk-bms-can/blob/main/documents/README/Cut-Off_Charging_Logic.md
-      smartbms_absorption_offset_v: "0.1"
+      smartbms_absorption_offset_v: '0.1'
+      smartbms_absorption_offset_v_slider: 'true' # true: the slider is hidden, false: the slider is available
       # Inverter Offset V. allows you to correct the inverter charging voltage.
-      # For example, with my Deye, if the requested charging voltage is 55.2v the Deye effective charging voltage will be 55.1V.
-      # An offset of 0.1V provides an effective charging voltage of 55.2V.
+      # Requested Charging Voltage = Bulk. V + Inverter Offset V.
       smartbms_inverter_offset_v: "0.0"
+      smartbms_inverter_offset_v_slider: 'true' # true: the slider is hidden, false: the slider is available
       # Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
-      smartbms_max_cycles: "6000.0"
+      smartbms_max_cycles: '6000.0'
       # Cutoff Charging Logic
-      smartbms_cutoff_cvmin: "3.37" # LFP 3.37 - Li-ion 3.90
-      smartbms_cutoff_cvmax: "3.65" # LFP 3.65 - Li-ion 4.20
+      smartbms_cutoff_cvmin: '3.37' # LFP 3.37 - Li-ion 3.90
+      smartbms_cutoff_cvmax: '3.65' # LFP 3.65 - Li-ion 4.20
 
   canbus1: !include
     file: packages/smartbms/smartbms_canbus.yaml
@@ -212,5 +217,4 @@ packages:
       canbus_node_id: 'canbus_node1'
       canbus_light_id: 'esp_light'
       # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after 30 loops.
-      canbus_max_no_ack: "30"
-
+      canbus_max_no_ack: '30'

@@ -1,4 +1,4 @@
-# Updated : 2024.05.20
+# Updated : 2024.05.21
 # Version : 1.2
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -34,7 +34,7 @@ switch:
   - platform: template
     name: ${name} ${smartbms_name} Automatic Discharge Current
     id: ${smartbms_id}_switch_auto_dcl
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: RESTORE_DEFAULT_OFF
     optimistic: true
     entity_category: config
 
