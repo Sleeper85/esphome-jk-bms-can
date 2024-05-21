@@ -1,4 +1,4 @@
-# Updated : 2024.05.20
+# Updated : 2024.05.21
 # Version : 1.2
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -43,7 +43,7 @@ binary_sensor:
     lambda: return ((id(bms${bms_id}_availability).state) && (id(bms${bms_id}_switch_combine).state));
 
 interval:
-  - interval: ${bms_update_interval}
+  - interval: ${bms_combine_interval}
     then:
       - lambda: |-
           // Combine Datas
