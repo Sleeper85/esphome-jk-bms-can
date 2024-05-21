@@ -1,4 +1,4 @@
-# Updated : 2024.05.20
+# Updated : 2024.05.21
 # Version : 1.2
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -175,40 +175,46 @@ interval:
             id(${smartbms_id}_errors_bitmask).publish_state(id(${smartbms_id}_bitwise_errors_bitmask));
             id(${smartbms_id}_bitwise_errors_bitmask) = 0; // global var reset
 
-            // MIN/MAX values, force other BMS to rewrite the correct value
-            // id(${smartbms_id}_max_balance_trigger_voltage) = 0.0;
-
+            // MIN/MAX values, force BMS to rewrite the correct value
             // balance_trigger_voltage MAX
             if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_balance_trigger_voltage) > 0.0)) {
               id(${smartbms_id}_balance_trigger_voltage).publish_state(id(${smartbms_id}_max_balance_trigger_voltage));
+              id(${smartbms_id}_max_balance_trigger_voltage) = 0.0; // global var reset
             }
             // min_cell_voltage MIN
             if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_min_min_cell_voltage) < 5.0)) {
               id(${smartbms_id}_min_cell_voltage).publish_state(id(${smartbms_id}_min_min_cell_voltage));
+              id(${smartbms_id}_min_min_cell_voltage) = 5.0; // global var reset
             }
             // max_cell_voltage MAX
             if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_max_cell_voltage) > 0.0)) {
               id(${smartbms_id}_max_cell_voltage).publish_state(id(${smartbms_id}_max_max_cell_voltage));
+              id(${smartbms_id}_max_max_cell_voltage) = 0.0; // global var reset
             }
             // cell_ovp MIN
             if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_min_cell_ovp) < 5.0)) {
               id(${smartbms_id}_cell_ovp).publish_state(id(${smartbms_id}_min_cell_ovp));
+              id(${smartbms_id}_min_cell_ovp) = 5.0; // global var reset
             }
             // cell_ovpr MIN
             if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_min_cell_ovpr) < 5.0)) {
               id(${smartbms_id}_cell_ovpr).publish_state(id(${smartbms_id}_min_cell_ovpr));
+              id(${smartbms_id}_min_cell_ovpr) = 5.0; // global var reset
             }
             // cell_uvpr MAX
             if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_cell_uvpr) > 0.0)) {
               id(${smartbms_id}_cell_uvpr).publish_state(id(${smartbms_id}_max_cell_uvpr));
+              id(${smartbms_id}_max_cell_uvpr) = 0.0; // global var reset
             }
             // temperature_sensor_1 MAX
             if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_temperature_sensor_1) > -100.0)) {
               id(${smartbms_id}_temperature_sensor_1).publish_state(id(${smartbms_id}_max_temperature_sensor_1));
+              id(${smartbms_id}_max_temperature_sensor_1) = -100.0; // global var reset
             }
             // temperature_sensor_2 MAX
             if ((id(${smartbms_id}_bms_counter) == 0) | (id(${smartbms_id}_max_temperature_sensor_2) > -100.0)) {
               id(${smartbms_id}_temperature_sensor_2).publish_state(id(${smartbms_id}_max_temperature_sensor_2));
+              id(${smartbms_id}_max_temperature_sensor_2) = -100.0; // global var reset
             }
 
             // Reset combined_bms_counter (new cycle)
