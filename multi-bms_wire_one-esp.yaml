@@ -73,7 +73,8 @@ packages:
       # BMS vars
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
-      bms_update_interval: "3s"
+      bms_update_interval: '3s'
+      bms_combine_interval: '1s'
       bms_uart_id: uart_esp_1
   
   bms2: !include
@@ -84,7 +85,8 @@ packages:
       # BMS vars
       bms_id: '2' # must be a number
       bms_name: 'JK-BMS 2'
-      bms_update_interval: "3s"
+      bms_update_interval: '3s'
+      bms_combine_interval: '1s'
       bms_uart_id: uart_esp_2
 
   smartbms1: !include

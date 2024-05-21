@@ -83,7 +83,8 @@ packages:
       # BMS vars
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
-      bms_update_interval: "3s"
+      bms_update_interval: '3s'
+      bms_combine_interval: '1s'
       bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
       bms_ble_mac_address: C8:47:8C:10:7E:AB
   
@@ -95,7 +96,8 @@ packages:
       # BMS vars
       bms_id: '2' # must be a number
       bms_name: 'JK-BMS 2'
-      bms_update_interval: "3s"
+      bms_update_interval: '3s'
+      bms_combine_interval: '1s'
       bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
       bms_ble_mac_address: C8:47:8C:10:7E:AC
 

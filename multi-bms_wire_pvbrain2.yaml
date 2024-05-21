@@ -80,11 +80,6 @@ captive_portal:
 # | Packages                             |
 # +--------------------------------------+
 packages:
-  # Fake packages
-  fake_bms1: !include packages/fake/fake_bms_jk-bms_traffic_bms1.yaml
-  fake_bms2: !include packages/fake/fake_bms_jk-bms_traffic_bms2.yaml
-  fake_inverter: !include packages/fake/fake_canbus_inverter.yaml
-
   device_base: !include pvbrain2/base/device_base.yaml
 
   bms1: !include
@@ -95,7 +90,8 @@ packages:
       # BMS vars
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
-      bms_update_interval: "1s"
+      bms_update_interval: '2s'
+      bms_combine_interval: '1s'
       bms_uart_id: uart_${uart_hub_bus}_4
   
   bms2: !include
@@ -106,7 +102,8 @@ packages:
       # BMS vars
       bms_id: '2' # must be a number
       bms_name: 'JK-BMS 2'
-      bms_update_interval: "1s"
+      bms_update_interval: '2s'
+      bms_combine_interval: '1s'
       bms_uart_id: uart_${uart_hub_bus}_5
 
   smartbms1: !include

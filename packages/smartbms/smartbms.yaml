@@ -145,7 +145,7 @@ number:
     optimistic: true
     entity_category: config
   - platform: template
-    name: "${smartbms_name} Absorption Offset V."
+    name: "${name} ${smartbms_name} Absorption Offset V."
     id: "${smartbms_id}_absorption_offset_v"
     step: 0.05
     min_value: 0
@@ -159,7 +159,7 @@ number:
     entity_category: config
     internal: ${smartbms_absorption_offset_v_slider}
   - platform: template
-    name: "${smartbms_name} Inverter Offset V."
+    name: "${name} ${smartbms_name} Inverter Offset V."
     id: "${smartbms_id}_inverter_offset_v"
     step: 0.1
     min_value: 0
