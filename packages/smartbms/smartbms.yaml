@@ -1,5 +1,5 @@
-# Updated : 2024.05.20
-# Version : 1.2
+# Updated : 2024.05.24
+# Version : 1.2.2
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -24,6 +24,8 @@ packages:
   smartbms_auto_cvl: !include smartbms_auto_cvl.yaml
   smartbms_auto_ccl: !include smartbms_auto_ccl.yaml
   smartbms_auto_dcl: !include smartbms_auto_dcl.yaml
+  # Custom user config
+  # smartbms_custom: !include smartbms_custom.yaml
 
 substitutions:
   # End of charge (EOC) will be triggered if current and max cell voltage meet cut-off thresholds, plus the cycle count exceeds the below threshold.
@@ -372,9 +374,9 @@ text_sensor:
       
       // Warning : information from JK BMS is not available immediately after boot
       
-      // Smart BMS Alarm ?
+      // SmartBMS Alarm ?
       if (id(${smartbms_id}_alarm).state != "NoAlarm") id(${smartbms_id}_charge_status) = "Alarm";
-      // Smart BMS Alarm ended ?
+      // SmartBMS Alarm ended ?
       else if ((id(${smartbms_id}_charge_status) == "Alarm") & (id(${smartbms_id}_alarm).state == "NoAlarm")) {
         if (id(${smartbms_id}_eoc) == true) id(${smartbms_id}_charge_status) = "EOC";
         else id(${smartbms_id}_charge_status) = "Wait";
@@ -496,81 +498,124 @@ text_sensor:
       }
       // Wait
       else return {"Stop"};
+
   # +--------------------------------------+
-  # | Smart BMS Alarm                      |
+  # | SmartBMS Alarm and Warning           |
   # +--------------------------------------+
+  # | Errors Bitmask (16bit)               |
+  # +--------------------------------------+
+      
+  # 0x8B 0x00 0x00: Battery warning message              0000 0000 0000 0000
+  #
+  # Bit 0    Low capacity                                1 (alarm), 0 (normal)    warning
+  # Bit 1    Power tube overtemperature                  1 (alarm), 0 (normal)    alarm
+  # Bit 2    Charging overvoltage                        1 (alarm), 0 (normal)    alarm
+  # Bit 3    Discharging undervoltage                    1 (alarm), 0 (normal)    alarm
+  # Bit 4    Battery over temperature                    1 (alarm), 0 (normal)    alarm
+  # Bit 5    Charging overcurrent                        1 (alarm), 0 (normal)    alarm
+  # Bit 6    Discharging overcurrent                     1 (alarm), 0 (normal)    alarm
+  # Bit 7    Cell pressure difference                    1 (alarm), 0 (normal)    alarm
+  # Bit 8    Overtemperature alarm in the battery box    1 (alarm), 0 (normal)    alarm
+  # Bit 9    Battery low temperature                     1 (alarm), 0 (normal)    alarm
+  # Bit 10   Cell overvoltage                            1 (alarm), 0 (normal)    alarm
+  # Bit 11   Cell undervoltage                           1 (alarm), 0 (normal)    alarm
+  # Bit 12   309_A protection                            1 (alarm), 0 (normal)    alarm
+  # Bit 13   309_A protection                            1 (alarm), 0 (normal)    alarm
+  # Bit 14   Reserved
+  # Bit 15   Reserved
+  #
+  # Examples:
+  # 0x0001 = 00000000 00000001: Low capacity alarm
+  # 0x0002 = 00000000 00000010: MOS tube over-temperature alarm
+  # 0x0003 = 00000000 00000011: Low capacity alarm AND power tube over-temperature alarm
+
+  # SmartBMS Protection Alarm (all-bms)
   - platform: template
     name: "${name} ${smartbms_name} Alarm"
     id: ${smartbms_id}_alarm
     update_interval: ${smartbms_update_interval}
     entity_category: diagnostic
     lambda: |-
-      // +---------------------------+
-      // | Smart BMS errors bitmask  |
-      // +---------------------------+
       
-      // 0x8B 0x00 0x00: Battery warning message              0000 0000 0000 0000
-      //
-      // Bit 0    Low capacity                                1 (alarm), 0 (normal)    warning
-      // Bit 1    Power tube overtemperature                  1 (alarm), 0 (normal)    alarm
-      // Bit 2    Charging overvoltage                        1 (alarm), 0 (normal)    alarm
-      // Bit 3    Discharging undervoltage                    1 (alarm), 0 (normal)    alarm
-      // Bit 4    Battery over temperature                    1 (alarm), 0 (normal)    alarm
-      // Bit 5    Charging overcurrent                        1 (alarm), 0 (normal)    alarm
-      // Bit 6    Discharging overcurrent                     1 (alarm), 0 (normal)    alarm
-      // Bit 7    Cell pressure difference                    1 (alarm), 0 (normal)    alarm
-      // Bit 8    Overtemperature alarm in the battery box    1 (alarm), 0 (normal)    alarm
-      // Bit 9    Battery low temperature                     1 (alarm), 0 (normal)    alarm
-      // Bit 10   Cell overvoltage                            1 (alarm), 0 (normal)    alarm
-      // Bit 11   Cell undervoltage                           1 (alarm), 0 (normal)    alarm
-      // Bit 12   309_A protection                            1 (alarm), 0 (normal)    alarm
-      // Bit 13   309_A protection                            1 (alarm), 0 (normal)    alarm
-      // Bit 14   Reserved
-      // Bit 15   Reserved
-      //
-      // Examples:
-      // 0x0001 = 00000000 00000001: Low capacity alarm
-      // 0x0002 = 00000000 00000010: MOS tube over-temperature alarm
-      // 0x0003 = 00000000 00000011: Low capacity alarm AND power tube over-temperature alarm
+      // Error Bitmask ?
+      if (id(${smartbms_id}_errors_bitmask_alarm).state > 1) {
+        uint16_t errors_bitmask = id(${smartbms_id}_errors_bitmask_alarm).state;
+        
+        if ((errors_bitmask & 0x04) | (errors_bitmask & 0x80) | (errors_bitmask & 0x400)) {    // Cell Over Voltage        bit 2,7,10
+          return {"OVP"};
+        }
+        if ((errors_bitmask & 0x08) | (errors_bitmask & 0x800)) {                              // Cell Under Voltage       bit 3,11
+          return {"UVP"};
+        }
+        if ((errors_bitmask & 0x02) | (errors_bitmask & 0x10) | (errors_bitmask & 0x100)) {    // Battery Over Temp        bit 1,4,8
+          return {"OTP"};
+        }
+        if ((errors_bitmask & 0x200)) {                                                        // Battery Under Temp       bit 9
+          return {"UTP"};
+        }
+        if ((errors_bitmask & 0x40)) {                                                         // Discharge Over Current   bit 6
+          return {"DOCP"};
+        }
+        if ((errors_bitmask & 0x20)) {                                                         // Charge Over Current      bit 5
+          return {"COCP"};
+        }
+        if ((errors_bitmask & 0x1000) | (errors_bitmask & 0x2000)) {                           // BMS Internal Error       bit 12,13
+          return {"BMS"};
+        }
+        if ((errors_bitmask & 0x80)) {                                                         // Unbalanced Cell          bit 7
+          return {"UBC"};
+        }
+        else return {"NoAlarm"};
+      }
+      // No Alarm
+      else return {"NoAlarm"};
 
-      // Preventive Alarm ? (React before a BMS alarm)
+  # SmartBMS Warning (one-bms)
+  - platform: template
+    name: "${name} ${smartbms_name} Warning"
+    id: ${smartbms_id}_warning
+    update_interval: ${smartbms_update_interval}
+    entity_category: diagnostic
+    lambda: |-
+      
+      // Preventive Warning ?
       // Over Temp Protection
       if (max(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state) > ${smartbms_otp}) {
-         return {"OTP"};
+        return {"OTP"};
       }
       // Under Temp Protection
       else if (min(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state) < ${smartbms_utp}) {
-         return {"UTP"};
+        return {"UTP"};
       }
       // Error Bitmask ?
-      else if (id(${smartbms_id}_errors_bitmask).state > 1) {
-         uint16_t errors_bitmask = id(${smartbms_id}_errors_bitmask).state;
-
-         if ((errors_bitmask & 0x04) | (errors_bitmask & 0x80) | (errors_bitmask & 0x400)) {           // Hight.Voltage.Alarm - bit 2,7,10
-            return {"OVP"};
-         }
-         if ((errors_bitmask & 0x08) | (errors_bitmask & 0x800)) {                                     // Low.Voltage.Alarm - bit 3,11
-            return {"UVP"};
-         }
-         if ((errors_bitmask & 0x02) | (errors_bitmask & 0x10) | (errors_bitmask & 0x100)) {           // Hight.Temp.Alarm - bit 1,4,8
-            return {"OTP"};
-         }
-         if ((errors_bitmask & 0x200)) {                                                               // Low.Temp.Alarm - bit 9
-            return {"UTP"};
-         }
-         if ((errors_bitmask & 0x40)) {                                                                // Discharge.Over.Current - bit 6
-            return {"DOCP"};
-         }
-         if ((errors_bitmask & 0x20)) {                                                                // Charge.Over.Current - bit 5
-            return {"COCP"};
-         }
-         if ((errors_bitmask & 0x1000) | (errors_bitmask & 0x2000)) {                                  // BMS.Internal.Error - bit 12,13
-            return {"BMS"};
-         }
-         if ((errors_bitmask & 0x80)) {                                                                // Unbalanced.Cell - bit 7
-            return {"UBC"};
-         }
-         else return {"NoAlarm"};
+      else if (id(${smartbms_id}_errors_bitmask_warning).state > 1) {
+        uint16_t errors_bitmask = id(${smartbms_id}_errors_bitmask_warning).state;
+        
+        if ((errors_bitmask & 0x04) | (errors_bitmask & 0x80) | (errors_bitmask & 0x400)) {    // Cell Over Voltage        bit 2,7,10
+          return {"OVP"};
+        }
+        if ((errors_bitmask & 0x08) | (errors_bitmask & 0x800)) {                              // Cell Under Voltage       bit 3,11
+          return {"UVP"};
+        }
+        if ((errors_bitmask & 0x02) | (errors_bitmask & 0x10) | (errors_bitmask & 0x100)) {    // Battery Over Temp        bit 1,4,8
+          return {"OTP"};
+        }
+        if ((errors_bitmask & 0x200)) {                                                        // Battery Under Temp       bit 9
+          return {"UTP"};
+        }
+        if ((errors_bitmask & 0x40)) {                                                         // Discharge Over Current   bit 6
+          return {"DOCP"};
+        }
+        if ((errors_bitmask & 0x20)) {                                                         // Charge Over Current      bit 5
+          return {"COCP"};
+        }
+        if ((errors_bitmask & 0x1000) | (errors_bitmask & 0x2000)) {                           // BMS Internal Error       bit 12,13
+          return {"BMS"};
+        }
+        if ((errors_bitmask & 0x80)) {                                                         // Unbalanced Cell          bit 7
+          return {"UBC"};
+        }
+        else return {"NoAlarm"};
       }
       // No Alarm
       else return {"NoAlarm"};

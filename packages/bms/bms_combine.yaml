@@ -1,5 +1,5 @@
-# Updated : 2024.05.21
-# Version : 1.2
+# Updated : 2024.05.24
+# Version : 1.2.2
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -134,10 +134,13 @@ interval:
               // bms_switch_discharging_counter TOTAL
               if (id(bms${bms_id}_switch_discharging).state) id(${smartbms_id}_bms_switch_discharging_counter) += 1;
 
-              // errors_bitmask bitwise OR (16bit)
+              // errors_bitmask (16bit)
               uint16_t bms_errors_bitmask = id(bms${bms_id}_errors_bitmask).state;
-              id(${smartbms_id}_bitwise_errors_bitmask) |= bms_errors_bitmask;
-
+              // Alarm - bitwise AND
+              id(${smartbms_id}_errors_bitmask_and_alarm) &= bms_errors_bitmask;
+              // Warning - bitwise OR
+              id(${smartbms_id}_errors_bitmask_or_warning) |= bms_errors_bitmask;
+              
               // BMS combined counter
               id(${smartbms_id}_combined_bms_counter) += 1;
             }

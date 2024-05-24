@@ -1,5 +1,5 @@
-# Updated : 2024.05.17
-# Version : 2.1.1
+# Updated : 2024.05.24
+# Version : 2.1.2
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -130,31 +130,39 @@ interval:
                     can_id: 0x359
                     data: !lambda |-
                       
-                      // +---------------------------+
-                      // | Protection : byte 0 and 1 |
-                      // +---------------------------+
-                      
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-                      // Smart BMS alarm ?
+                      // +---------------------------+
+                      // | Alarm : byte 0 and 1      |
+                      // +---------------------------+
+                      
+                      // SmartBMS alarm ?
                       if (id(${smartbms_id}_alarm).state != "NoAlarm") {
-
-                         if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x02;   // Over Voltage Protection
-                         if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x04;   // Under Voltage Protection
-                         if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x08;   // Over Temp Protection
-                         if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Temp Protection
-                         if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[0] = can_mesg[0] | 0x80;  // Discharge Over Current Protection
-                         if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[1] = can_mesg[1] | 0x80;  // Charge Over Current Protection
-                         if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[1] = can_mesg[1] | 0x08;   // BMS Internal Error
-                         if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[1] = can_mesg[1] | 0x10;   // UnBalanced Cell
+                        if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x02;   // Over Voltage Protection
+                        if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x04;   // Under Voltage Protection
+                        if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x08;   // Over Temp Protection
+                        if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Temp Protection
+                        if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[0] = can_mesg[0] | 0x80;  // Discharge Over Current Protection
+                        if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[1] = can_mesg[1] | 0x80;  // Charge Over Current Protection
+                        if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[1] = can_mesg[1] | 0x08;   // BMS Internal Error
+                        if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[1] = can_mesg[1] | 0x10;   // UnBalanced Cell
                       }
                       
                       // +---------------------------+
                       // | Warning : byte 2 and 3    |
                       // +---------------------------+
                       
-                      can_mesg[2] = 0x00;               // byte2 (BMS infos not available)
-                      can_mesg[3] = 0x00;               // byte3 (BMS infos not available)
+                      // SmartBMS warning ?
+                      if (id(${smartbms_id}_warning).state != "NoAlarm") {
+                        if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[2] = can_mesg[2] | 0x02;   // Over Voltage Protection
+                        if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[2] = can_mesg[2] | 0x04;   // Under Voltage Protection
+                        if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[2] = can_mesg[2] | 0x08;   // Over Temp Protection
+                        if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[2] = can_mesg[2] | 0x10;   // Under Temp Protection
+                        if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[2] = can_mesg[2] | 0x80;  // Discharge Over Current Protection
+                        if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[3] = can_mesg[3] | 0x80;  // Charge Over Current Protection
+                        if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[3] = can_mesg[3] | 0x08;   // BMS Internal Error
+                        if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[3] = can_mesg[3] | 0x10;   // UnBalanced Cell
+                      }
                       
                       // +---------------------------+
                       // | Flags : byte 4 to 7       |
@@ -177,25 +185,40 @@ interval:
                     can_id: 0x35A
                     data: !lambda |-
                       
+                      uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
+                      
                       // +---------------------------+
-                      // | Protection : byte 0,1,2,3 |
+                      // | Alarm : byte 0 to 3       |
                       // +---------------------------+
                       
-                      uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-
-                      // Smart BMS alarm ?
+                      // SmartBMS alarm ?
                       if (id(${smartbms_id}_alarm).state != "NoAlarm") {
-
-                         if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x04;   // Over Voltage Protection
-                         if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Voltage Protection
-                         if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x40;   // Over Temp Protection
-                         if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[1] = can_mesg[1] | 0x01;   // Under Temp Protection
-                         if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[1] = can_mesg[1] | 0x40;  // Discharge Over Current Protection
-                         if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[2] = can_mesg[2] | 0x01;  // Charge Over Current Protection
-                         if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[2] = can_mesg[2] | 0x40;   // BMS Internal Error
-                         if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[3] = can_mesg[3] | 0x01;   // UnBalanced Cell
+                        if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x04;   // Over Voltage Protection
+                        if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Voltage Protection
+                        if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x40;   // Over Temp Protection
+                        if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[1] = can_mesg[1] | 0x01;   // Under Temp Protection
+                        if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[1] = can_mesg[1] | 0x40;  // Discharge Over Current Protection
+                        if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[2] = can_mesg[2] | 0x01;  // Charge Over Current Protection
+                        if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[2] = can_mesg[2] | 0x40;   // BMS Internal Error
+                        if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[3] = can_mesg[3] | 0x01;   // UnBalanced Cell
                       }
-                     
+                      
+                      // +---------------------------+
+                      // | Warning : byte 4 to 7     |
+                      // +---------------------------+
+                      
+                      // SmartBMS warning ?
+                      if (id(${smartbms_id}_warning).state != "NoAlarm") {
+                        if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[4] = can_mesg[4] | 0x04;   // Over Voltage Protection
+                        if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[4] = can_mesg[4] | 0x10;   // Under Voltage Protection
+                        if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[4] = can_mesg[4] | 0x40;   // Over Temp Protection
+                        if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[5] = can_mesg[5] | 0x01;   // Under Temp Protection
+                        if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[5] = can_mesg[5] | 0x40;  // Discharge Over Current Protection
+                        if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[6] = can_mesg[6] | 0x01;  // Charge Over Current Protection
+                        if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[6] = can_mesg[6] | 0x40;   // BMS Internal Error
+                        if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[7] = can_mesg[7] | 0x01;   // UnBalanced Cell
+                      }
+                      
                       ESP_LOGI("main", "send can id: 0x35A hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                       

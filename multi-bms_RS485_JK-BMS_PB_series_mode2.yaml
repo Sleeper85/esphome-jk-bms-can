@@ -1,5 +1,5 @@
-# Updated   : 2024.05.21
-# Version   : 1.1
+# Updated   : 2024.05.24
+# Version   : 1.1.2
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
 # Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
 
@@ -82,7 +82,7 @@ packages:
       sniffer_uart_id: 'uart_esp_1'
       sniffer_talk_pin: 8 # ESP32: 4, ESP32-S3: 8
 
-  # Configure the DIP switches of your BMS from 0x01 to 0x0F (don't use the 0x00 address, maximum 15 BMS)
+  # Mode2 : configure the DIP switches of your BMS from 0x01 to 0x0F (don't use the 0x00 address, maximum 15 BMS)
   bms1: !include
     file: packages/bms/bms_jk-bms_rs485_pb_bms.yaml
     vars:
@@ -94,7 +94,7 @@ packages:
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
       bms_rs485_address: '0x01' # BMS 1 DIP switch
-      bms_update_interval: '2s'
+      bms_update_interval: '3s' # going below '3s' can cause problems
       bms_combine_interval: '1s'
   
   bms2: !include
@@ -108,7 +108,7 @@ packages:
       bms_id: '2' # must be a number
       bms_name: 'JK-BMS 2'
       bms_rs485_address: '0x02' # BMS 2 DIP switch
-      bms_update_interval: '2s'
+      bms_update_interval: '3s' # going below '3s' can cause problems
       bms_combine_interval: '1s'
 
   bms3: !include
@@ -122,7 +122,7 @@ packages:
       bms_id: '3' # must be a number
       bms_name: 'JK-BMS 3'
       bms_rs485_address: '0x03' # BMS 3 DIP switch
-      bms_update_interval: '2s'
+      bms_update_interval: '3s' # going below '3s' can cause problems
       bms_combine_interval: '1s'
 
   bms4: !include
@@ -136,7 +136,7 @@ packages:
       bms_id: '4' # must be a number
       bms_name: 'JK-BMS 4'
       bms_rs485_address: '0x04' # BMS 4 DIP switch
-      bms_update_interval: '2s'
+      bms_update_interval: '3s' # going below '3s' can cause problems
       bms_combine_interval: '1s'
   
   bms5: !include
@@ -150,7 +150,7 @@ packages:
       bms_id: '5' # must be a number
       bms_name: 'JK-BMS 5'
       bms_rs485_address: '0x05' # BMS 5 DIP switch
-      bms_update_interval: '2s'
+      bms_update_interval: '3s' # going below '3s' can cause problems
       bms_combine_interval: '1s'
 
   bms6: !include
@@ -164,7 +164,7 @@ packages:
       bms_id: '6' # must be a number
       bms_name: 'JK-BMS 6'
       bms_rs485_address: '0x06' # BMS 6 DIP switch
-      bms_update_interval: '2s'
+      bms_update_interval: '3s' # going below '3s' can cause problems
       bms_combine_interval: '1s'
 
   bms7: !include
@@ -178,7 +178,7 @@ packages:
       bms_id: '7' # must be a number
       bms_name: 'JK-BMS 7'
       bms_rs485_address: '0x07' # BMS 7 DIP switch
-      bms_update_interval: '2s'
+      bms_update_interval: '3s' # going below '3s' can cause problems
       bms_combine_interval: '1s'
 
   smartbms1: !include
