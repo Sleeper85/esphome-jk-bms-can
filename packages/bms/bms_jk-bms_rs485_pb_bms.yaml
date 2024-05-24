@@ -1,5 +1,5 @@
-# Updated : 2024.05.20
-# Version : 1.1
+# Updated : 2024.05.24
+# Version : 1.1.2
 # GitHub  : https://github.com/txubelaxu/esphome-jk-bms
 # Readme  : https://github.com/txubelaxu/esphome-jk-bms/blob/main/components/jk_rs485_bms/README.md
 
@@ -190,22 +190,22 @@ sensor:
       name: "${name} ${bms_name} cell voltage 15"
     cell_voltage_16:
       name: "${name} ${bms_name} cell voltage 16"
-    cell_voltage_17:
-      name: "${name} ${bms_name} cell voltage 17"
-    cell_voltage_18:
-      name: "${name} ${bms_name} cell voltage 18"
-    cell_voltage_19:
-      name: "${name} ${bms_name} cell voltage 19"
-    cell_voltage_20:
-      name: "${name} ${bms_name} cell voltage 20"
-    cell_voltage_21:
-      name: "${name} ${bms_name} cell voltage 21"
-    cell_voltage_22:
-      name: "${name} ${bms_name} cell voltage 22"
-    cell_voltage_23:
-      name: "${name} ${bms_name} cell voltage 23"
-    cell_voltage_24:
-      name: "${name} ${bms_name} cell voltage 24"
+    # cell_voltage_17:
+    #   name: "${name} ${bms_name} cell voltage 17"
+    # cell_voltage_18:
+    #   name: "${name} ${bms_name} cell voltage 18"
+    # cell_voltage_19:
+    #   name: "${name} ${bms_name} cell voltage 19"
+    # cell_voltage_20:
+    #   name: "${name} ${bms_name} cell voltage 20"
+    # cell_voltage_21:
+    #   name: "${name} ${bms_name} cell voltage 21"
+    # cell_voltage_22:
+    #   name: "${name} ${bms_name} cell voltage 22"
+    # cell_voltage_23:
+    #   name: "${name} ${bms_name} cell voltage 23"
+    # cell_voltage_24:
+    #   name: "${name} ${bms_name} cell voltage 24"
     cell_resistance_01:
       name: "${name} ${bms_name} cell resistance 01"
     cell_resistance_02:
@@ -238,22 +238,22 @@ sensor:
       name: "${name} ${bms_name} cell resistance 15"
     cell_resistance_16:
       name: "${name} ${bms_name} cell resistance 16"
-    cell_resistance_17:
-      name: "${name} ${bms_name} cell resistance 17"
-    cell_resistance_18:
-      name: "${name} ${bms_name} cell resistance 18"
-    cell_resistance_19:
-      name: "${name} ${bms_name} cell resistance 19"
-    cell_resistance_20:
-      name: "${name} ${bms_name} cell resistance 20"
-    cell_resistance_21:
-      name: "${name} ${bms_name} cell resistance 21"
-    cell_resistance_22:
-      name: "${name} ${bms_name} cell resistance 22"
-    cell_resistance_23:
-      name: "${name} ${bms_name} cell resistance 23"
-    cell_resistance_24:
-      name: "${name} ${bms_name} cell resistance 24"
+    # cell_resistance_17:
+    #   name: "${name} ${bms_name} cell resistance 17"
+    # cell_resistance_18:
+    #   name: "${name} ${bms_name} cell resistance 18"
+    # cell_resistance_19:
+    #   name: "${name} ${bms_name} cell resistance 19"
+    # cell_resistance_20:
+    #   name: "${name} ${bms_name} cell resistance 20"
+    # cell_resistance_21:
+    #   name: "${name} ${bms_name} cell resistance 21"
+    # cell_resistance_22:
+    #   name: "${name} ${bms_name} cell resistance 22"
+    # cell_resistance_23:
+    #   name: "${name} ${bms_name} cell resistance 23"
+    # cell_resistance_24:
+    #   name: "${name} ${bms_name} cell resistance 24"
     battery_voltage:
       id: bms${bms_id}_total_voltage
       name: "${name} ${bms_name} battery voltage"

@@ -1,5 +1,5 @@
-# Updated : 2024.05.21
-# Version : 1.2
+# Updated : 2024.05.24
+# Version : 1.2.2
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -24,7 +24,11 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
-  - id: ${smartbms_id}_bitwise_errors_bitmask
+  - id: ${smartbms_id}_errors_bitmask_and_alarm
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: ${smartbms_id}_errors_bitmask_or_warning
     type: int
     restore_value: no
     initial_value: '0'
@@ -171,9 +175,13 @@ interval:
             if (id(${smartbms_id}_bms_switch_discharging_counter) > 0) id(${smartbms_id}_bms_switch_discharging).publish_state(true);
             id(${smartbms_id}_bms_switch_discharging_counter) = 0; // global var reset
 
-            // errors_bitmask bitwise OR (16bit)
-            id(${smartbms_id}_errors_bitmask).publish_state(id(${smartbms_id}_bitwise_errors_bitmask));
-            id(${smartbms_id}_bitwise_errors_bitmask) = 0; // global var reset
+            // errors_bitmask (16bit)
+            // Alarm - bitwise AND
+            id(${smartbms_id}_errors_bitmask_alarm).publish_state(id(${smartbms_id}_errors_bitmask_and_alarm));
+            id(${smartbms_id}_errors_bitmask_and_alarm) = 0xFFFF; // global var reset (all bits set to 1)
+            // Warning - bitwise OR
+            id(${smartbms_id}_errors_bitmask_warning).publish_state(id(${smartbms_id}_errors_bitmask_or_warning));
+            id(${smartbms_id}_errors_bitmask_or_warning) = 0; // global var reset (all bits set to 0)
 
             // MIN/MAX values, force BMS to rewrite the correct value
             // balance_trigger_voltage MAX
@@ -486,10 +494,21 @@ sensor:
         - throttle: 10s
         - delta: 1
 
-  # errors_bitmask bitwise OR (16bit)
+  # Alarm - errors_bitmask bitwise AND (16bit)
   - platform: template
-    id: ${smartbms_id}_errors_bitmask
-    name: "${name} ${smartbms_name} Errors Bitmask"
+    id: ${smartbms_id}_errors_bitmask_alarm
+    name: "${name} ${smartbms_name} Errors Bitmask Alarm"
+    update_interval: ${smartbms_update_interval}
+    accuracy_decimals: 0
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+
+  # Warning - errors_bitmask bitwise OR (16bit)
+  - platform: template
+    id: ${smartbms_id}_errors_bitmask_warning
+    name: "${name} ${smartbms_name} Errors Bitmask Warning"
     update_interval: ${smartbms_update_interval}
     accuracy_decimals: 0
     filters:
