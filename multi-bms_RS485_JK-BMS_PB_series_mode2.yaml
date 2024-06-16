@@ -1,4 +1,4 @@
-# Updated   : 2024.05.24
+# Updated   : 2024.06.16
 # Version   : 1.1.2
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
 # Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
@@ -80,7 +80,7 @@ packages:
       sniffer_id: 'sniffer1'
       sniffer_protocol: 'JK02_32S'
       sniffer_uart_id: 'uart_esp_1'
-      sniffer_talk_pin: 8 # ESP32: 4, ESP32-S3: 8
+      sniffer_talk_pin: 8 # ESP32: 4, ESP32-S3: 8, ESP32-C3: 10
 
   # Mode2 : configure the DIP switches of your BMS from 0x01 to 0x0F (don't use the 0x00 address, maximum 15 BMS)
   bms1: !include
