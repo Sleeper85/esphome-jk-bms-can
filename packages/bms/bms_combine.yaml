@@ -1,5 +1,5 @@
-# Updated : 2024.05.24
-# Version : 1.2.2
+# Updated : 2024.06.16
+# Version : 1.2.3
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -160,16 +160,6 @@ interval:
             
             // battery_capacity TOTAL
             id(${smartbms_id}_total_battery_capacity) -= id(bms${bms_id}_battery_capacity).state;
-
-            // MIN/MAX values, force other BMS to rewrite the correct value
-            id(${smartbms_id}_max_balance_trigger_voltage) = 0.0;
-            id(${smartbms_id}_min_min_cell_voltage) = 5.0;
-            id(${smartbms_id}_max_max_cell_voltage) = 0.0;
-            id(${smartbms_id}_min_cell_ovp) = 5.0;
-            id(${smartbms_id}_min_cell_ovpr) = 5.0;
-            id(${smartbms_id}_max_cell_uvpr) = 0.0;
-            id(${smartbms_id}_max_temperature_sensor_1) = -100.0;
-            id(${smartbms_id}_max_temperature_sensor_2) = -100.0;
 
             // Uncombined
             id(bms${bms_id}_combined) = false;
