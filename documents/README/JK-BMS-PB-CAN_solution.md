@@ -25,7 +25,7 @@ The board below is of better quality, it has galvanic isolation and does not req
 
 ![Image](../../images/ADUM3201_B0505XT_TTL_to_RS485_isolation_high_speed_dual_board.png "ADUM3201 B0505XT TTL to RS485")
 
-[ADUM3201 B0505XT TTL to RS485 (Aliexpress link)](https://www.aliexpress.com/item/1005004945951447.html)
+[ADUM3201 B0505XT TTL to RS485 high speed dual version (Aliexpress link)](https://www.aliexpress.com/item/1005004945951447.html)
 
 ## Schematic and setup instructions
 
