@@ -14,7 +14,18 @@
 
 ## RS485 board
 
+This board is the one used by [@txubelaxu](https://github.com/txubelaxu) the developer of the RS485 component for the new JK-BMS PB series.<br>
+This board is certainly not the best, it does not have galvanic isolation and requires a TALK PIN.
+
 ![Image](../../images/MAX485_UART-RS485.jpg "MAX485 UART-RS485")
+
+### RS485 isolated board
+
+The board below is of better quality, it has galvanic isolation and does not require a TALK PIN but it has not yet been tested with the [@txubelaxu](https://github.com/txubelaxu) component.
+
+![Image](../../images/ADUM3201_B0505XT_TTL_to_RS485_isolation_high_speed_dual_board.png "ADUM3201 B0505XT TTL to RS485")
+
+[ADUM3201 B0505XT TTL to RS485 (Aliexpress link)](https://www.aliexpress.com/item/1005004945951447.html)
 
 ## Schematic and setup instructions
 
