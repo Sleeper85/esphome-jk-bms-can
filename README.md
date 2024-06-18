@@ -137,28 +137,30 @@ Inverters supporting CAN PYLON/Goodwe/SMA/Victron Low Voltage protocol should wo
 
 The following are confirmed and known to work:
 
-| Brand | Model | Satus | Reported by | Inverter battery | CAN name | CAN protocol | CAN board | Remarks |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Deye | SUN-6K-SG03LP1-EU | Working | [@Sleeper85](https://github.com/Sleeper85) | Lithium 00 | PYLON | PYLON 1.2 | TJA1051T | --- |
-| Deye | SUN-5K-SG03LP1-EU | Working | [@vdiex](https://github.com/vdiex) | Lithium 00 | PYLON | PYLON 1.2 | --- | --- |
-| Deye | SUN-12K-SG04LP3-EU | Working | [@lucize](https://github.com/lucize) | Lithium 00 | PYLON | PYLON 1.2 | --- | --- |
-| Deye | SUN-3.6K-SG03LP1-EU | Working | [@Der_Hannes](https://diysolarforum.com/members/der_hannes.16949/) | Lithium 00 | PYLON | PYLON 1.2 | SN65HVD230 **3.3V** | --- |
-| Goodwe | 3648-ES (GW5048-ES) | Working | [@jirdol](https://github.com/jirdol) | --- | GOODWE | PYLON + | --- | --- |
-| Goodwe | GW5000S-BP | Working | [@Uksa007](https://github.com/Uksa007) | Goodwe LX U5.4-L | GOODWE | PYLON + | --- | --- |
-| Goodwe | GW5000S-BP & GW3600S-BP | Working | [@OselDusan7](https://github.com/OselDusan7) | --- | GOODWE | PYLON + | --- | --- |
-| Sofar | ME 3000-SP | Working | [@starman](https://diysolarforum.com/members/starman.65151/) | --- | --- | --- | --- | --- |
-| Sofar | HYD 5000-ES | Working | [@Paulfrench35](https://diysolarforum.com/members/paulfrench35.78523/) | --- | --- | --- | --- | --- |
-| Sofar | HYD 5000-EP | Working | [@tonystrullu](https://diysolarforum.com/members/tonystrullu.91283/) | --- | --- | --- | --- | --- |
-| Growatt | SPF 5000ES | Working | [@Paulfrench35](https://diysolarforum.com/members/paulfrench35.78523/) | CAN L52 | PYLON | PYLON 1.2 | --- | --- |
-| Growatt | SPF 5000ES | Working | [@cjdell](https://github.com/cjdell) | CAN L52 | PYLON | PYLON 1.2 | --- | --- |
-| Solis | RHI-3.6K-48ES-5G | Working | [@cjdell](https://github.com/cjdell) | Pylon LV | PYLON | PYLON + | SN65HVD230 **3.3V** | --- |
-| Solis | S5-EH1P4.6K-L | Working | [@Baker0052](https://github.com/Baker0052) | Pylon LV | PYLON | PYLON + | --- | --- |
-| Solis | S5-EH1P6K-L | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | --- |
-| Solis | RHI-3.6K-48ES-5G | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | --- |
-| LuxPower | LXP SNA 5K | Working | [@shvmm](https://github.com/shvmm) | Li 02 | PYLON | PYLON + | SN65HVD230 **3.3V** | --- |
-| --- | Turbo Energy | Working | [@ibikku](https://github.com/ibikku) | --- | --- | --- | --- | --- |
-| SMA | Sunny Island  | --- | --- | --- | --- | --- | --- | --- |
-| Victron | --- | --- | --- | --- | --- | --- | --- | --- |
+| Brand | Model | Satus | Reported by | Inverter battery | BMS | ESP32 board | CAN name | CAN protocol | CAN board | Multi-BMS | Remarks |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Deye | SUN-6K-SG03LP1-EU | Working | [@Sleeper85](https://github.com/Sleeper85) | Lithium 00 | JK-B* | ESP32 DevKit V1 | PYLON | PYLON 1.2 | TJA1051T | no | --- |
+| Deye | SUN-5K-SG03LP1-EU | Working | [@vdiex](https://github.com/vdiex) | Lithium 00 | JK-B* | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
+| Deye | SUN-12K-SG04LP3-EU | Working | [@lucize](https://github.com/lucize) | Lithium 00 | JK-B* | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
+| Deye | SUN-3.6K-SG03LP1-EU | Working | [@Der_Hannes](https://diysolarforum.com/members/der_hannes.16949/) | Lithium 00 | JK-B* | ESP32 DevKit V1 | PYLON | PYLON 1.2 | SN65HVD230 **3.3V** | no | --- |
+| Deye | SUN-5K-SG03LP1-EU | Working | [@arzaman](https://github.com/arzaman) | Lithium 00 | JK-B* | Atom S3 | PYLON | PYLON 1.2 | Atomic CAN base | no | --- |
+| Deye | SUN-5K-SG03LP1-EU (3) | Working | [@widget4145](https://diysolarforum.com/members/widget4145.110784/) | Lithium 00 | JK-PB* (7) | Atom S3 Lite | PYLON | PYLON 1.2 | Atomic CAN base | yes | --- |
+| Goodwe | 3648-ES (GW5048-ES) | Working | [@jirdol](https://github.com/jirdol) | --- | JK-B* | ESP32 DevKit V1 | GOODWE | PYLON + | --- | no | --- |
+| Goodwe | GW5000S-BP | Working | [@Uksa007](https://github.com/Uksa007) | Goodwe LX U5.4-L | JK-B* | ESP32 DevKit V1 | GOODWE | PYLON + | --- | no | --- |
+| Goodwe | GW5000S-BP & GW3600S-BP | Working | [@OselDusan7](https://github.com/OselDusan7) | --- | JK-B* | ESP32 DevKit V1 | GOODWE | PYLON + | --- | no | --- |
+| Sofar | ME 3000-SP | Working | [@starman](https://diysolarforum.com/members/starman.65151/) | --- | JK-B* | ESP32 DevKit V1 | --- | --- | --- | no | --- |
+| Sofar | HYD 5000-ES | Working | [@Paulfrench35](https://diysolarforum.com/members/paulfrench35.78523/) | --- | JK-B* | ESP32 DevKit V1 | --- | --- | --- | no | --- |
+| Sofar | HYD 5000-EP | Working | [@tonystrullu](https://diysolarforum.com/members/tonystrullu.91283/) | --- | JK-B* | ESP32 DevKit V1 | --- | --- | --- | no | --- |
+| Growatt | SPF 5000ES | Working | [@Paulfrench35](https://diysolarforum.com/members/paulfrench35.78523/) | CAN L52 | JK-B* | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
+| Growatt | SPF 5000ES | Working | [@cjdell](https://github.com/cjdell) | CAN L52 | JK-B* | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
+| Solis | RHI-3.6K-48ES-5G | Working | [@cjdell](https://github.com/cjdell) | Pylon LV | JK-B* | ESP32 DevKit V1 | PYLON | PYLON + | SN65HVD230 **3.3V** | no | --- |
+| Solis | S5-EH1P4.6K-L | Working | [@Baker0052](https://github.com/Baker0052) | Pylon LV | JK-B* | ESP32 DevKit V1 | PYLON | PYLON + | SN65HVD230 **3.3V** | no | --- |
+| Solis | S5-EH1P6K-L | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | JK-B* | ESP32 DevKit V1 | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | no | --- |
+| Solis | RHI-3.6K-48ES-5G | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | JK-B* | ESP32 DevKit V1 | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | no | --- |
+| LuxPower | LXP SNA 5K | Working | [@shvmm](https://github.com/shvmm) | Li 02 | JK-B* | ESP32 DevKit V1 | PYLON | PYLON + | SN65HVD230 **3.3V** | no | --- |
+| --- | Turbo Energy | Working | [@ibikku](https://github.com/ibikku) | --- | JK-B* | ESP32 DevKit V1 | --- | --- | --- | no | --- |
+| SMA | Sunny Island  | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Victron | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 ## Supported BMS
 
