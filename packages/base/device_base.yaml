@@ -50,27 +50,29 @@ sensor:
   - platform: uptime
     name: ${name} Uptime Sensor
     id: uptime_sensor
-    update_interval: 60s
+    update_interval: 5s
     entity_category: diagnostic
+    icon: mdi:clock-start
     on_raw_value:
       then:
         - text_sensor.template.publish:
             id: uptime_human
             state: !lambda |-
-              int seconds = round(id(uptime_sensor).raw_state);
-              int days = seconds / (24 * 3600);
-              seconds = seconds % (24 * 3600);
-              int hours = seconds / 3600;
-              seconds = seconds % 3600;
-              int minutes = seconds /  60;
-              seconds = seconds % 60;
-              return (
-                (days ? to_string(days) + "d " : "") +
-                (hours ? to_string(hours) + "h " : "") +
-                (minutes ? to_string(minutes) + "m " : "") +
-                (to_string(seconds) + "s")
-              ).c_str();
+              char buf[10];
+              int uptime_sec = round(id(uptime_sensor).raw_state);
+              int days = (int)(uptime_sec / 86400);
+              int hours = (int)((uptime_sec % 86400) / 3600);
+              int minutes = (int)((uptime_sec % 3600) / 60);
+              int seconds = (int)(uptime_sec % 60);
 
+              return(
+                (
+                  (days ? sprintf(buf, "%02dd ", days), std::string(buf) : "") +
+                  (hours ? sprintf(buf, "%02dh ", hours), std::string(buf) : "") +
+                  (minutes ? sprintf(buf, "%02dm ", minutes), std::string(buf) : "") +
+                  (sprintf(buf, "%02ds", seconds), std::string(buf))
+                ).c_str()
+              );  
 text_sensor:
   # +--------------------------------------+
   # | Uptime Human Readable                |
