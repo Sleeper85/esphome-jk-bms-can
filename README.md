@@ -134,27 +134,38 @@ wifi:
 * V1.13.2 uksa007   : Send Max Temperature of T1, T2 to inverter
 * V1.13.1 uksa007   : Fix compile issues with new version of ESPhome 2023.4.0, set rebulk offset to 2.5
 
-## Supported devices
+## Supported inverter
 
-Inverters supporting CAN Pylon/Goodwe Low Voltage protocol should work, check your inverter manual to confirm.
+Inverters supporting CAN PYLON/Goodwe/SMA/Victron Low Voltage protocol should work, check your inverter manual to confirm.
 
 The following are confirmed and known to work:
-* Deye SUN-6k-SG03LP1-EU (reported by [@Sleeper85](https://github.com/Sleeper85/esphome-jk-bms-can) using the battery mode 'Lithium 00')
-* Deye SUN-5k-SG03LP1-EU (reported by [@vdiex](https://github.com/Uksa007/esphome-jk-bms-can/discussions/1#discussioncomment-4481364))
-* Deye SUN-12K-SG04LP3-EU (reported by [@lucize](https://github.com/Uksa007/esphome-jk-bms-can/discussions/25#discussioncomment-5890844))
-* Goodwe 3648-ES (GW5048-ES) (reported by [@jirdol](https://github.com/Uksa007/esphome-jk-bms-can/discussions/1#discussioncomment-5498743))
-* Goodwe GW5000S-BP (reported by [@Uksa007](https://github.com/Uksa007/esphome-jk-bms-can/discussions/2#discussion-4469605) using the "Goodwe LX U5.4-L * 3" battery profile)
-* Goodwe GW5000S-BP & GW3600S-BP (reported by [@OselDusan7](https://github.com/Sleeper85/esphome-jk-bms-can/discussions/4#discussion-6022729))
-* Sofar ME 3000-SP (reported by [@starman](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-755539))
-* Sofar HYD 5000-ES (reported by [@Paulfrench35](https://diysolarforum.com/members/paulfrench35.78523/))
-* Sofar HYD 5000-EP (reported by [@tonystrullu](https://diysolarforum.com/members/tonystrullu.91283/))
-* Turbo Energy (reported by [@ibikku](https://github.com/Uksa007/esphome-jk-bms-can/discussions/13#discussion-4823950))
-* Growatt SPF 5000ES (reported by [@Paulfrench35](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/page-21#post-965233) using L52 CAN protocol)
-* Solis RHI-3.6K-48ES-5G with **3.3V CAN transceiver SN65HVD230** (reported by [@cjdell](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-967308) using "Pylon LV" setting on inverter)
-* LuxPower SNA 5k (reported by [@shvm](https://diysolarforum.com/threads/jk-bms-can-bus-comms-now-possible-for-inverters-that-support-goodwe-and-pylontech-batteries.48963/post-984782) using CAN protocol "PYLON +", battery brand 2 (PYLON) in the inverter settings and SN65HVD230 chip)
 
+| Brand | Model | Satus | Reported by | Inverter battery | CAN name | CAN protocol | CAN board | Remarks |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Deye | SUN-6K-SG03LP1-EU | Working | [@Sleeper85](https://github.com/Sleeper85) | Lithium 00 | PYLON | PYLON 1.2 | TJA1051T | --- |
+| Deye | SUN-5K-SG03LP1-EU | Working | [@vdiex](https://github.com/vdiex) | Lithium 00 | PYLON | PYLON 1.2 | --- | --- |
+| Deye | SUN-12K-SG04LP3-EU | Working | [@lucize](https://github.com/lucize) | Lithium 00 | PYLON | PYLON 1.2 | --- | --- |
+| Deye | SUN-3.6K-SG03LP1-EU | Working | [@Der_Hannes](https://diysolarforum.com/members/der_hannes.16949/) | Lithium 00 | PYLON | PYLON 1.2 | SN65HVD230 **3.3V** | --- |
+| Goodwe | 3648-ES (GW5048-ES) | Working | [@jirdol](https://github.com/jirdol) | --- | GOODWE | PYLON + | --- | --- |
+| Goodwe | GW5000S-BP | Working | [@Uksa007](https://github.com/Uksa007) | Goodwe LX U5.4-L | GOODWE | PYLON + | --- | --- |
+| Goodwe | GW5000S-BP & GW3600S-BP | Working | [@OselDusan7](https://github.com/OselDusan7) | --- | GOODWE | PYLON + | --- | --- |
+| Sofar | ME 3000-SP | Working | [@starman](https://diysolarforum.com/members/starman.65151/) | --- | --- | --- | --- | --- |
+| Sofar | HYD 5000-ES | Working | [@Paulfrench35](https://diysolarforum.com/members/paulfrench35.78523/) | --- | --- | --- | --- | --- |
+| Sofar | HYD 5000-EP | Working | [@tonystrullu](https://diysolarforum.com/members/tonystrullu.91283/) | --- | --- | --- | --- | --- |
+| Growatt | SPF 5000ES | Working | [@Paulfrench35](https://diysolarforum.com/members/paulfrench35.78523/) | CAN L52 | PYLON | PYLON 1.2 | --- | --- |
+| Growatt | SPF 5000ES | Working | [@cjdell](https://github.com/cjdell) | CAN L52 | PYLON | PYLON 1.2 | --- | --- |
+| Solis | RHI-3.6K-48ES-5G | Working | [@cjdell](https://github.com/cjdell) | Pylon LV | PYLON | PYLON + | SN65HVD230 **3.3V** | --- |
+| Solis | S5-EH1P4.6K-L | Working | [@Baker0052](https://github.com/Baker0052) | Pylon LV | PYLON | PYLON + | --- | --- |
+| Solis | S5-EH1P6K-L | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | --- |
+| Solis | RHI-3.6K-48ES-5G | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | --- |
+| LuxPower | LXP SNA 5K | Working | [@shvmm](https://github.com/shvmm) | Li 02 | PYLON | PYLON + | SN65HVD230 **3.3V** | --- |
+| --- | Turbo Energy | Working | [@ibikku](https://github.com/ibikku) | --- | --- | --- | --- | --- |
+| SMA | Sunny Island  | --- | --- | --- | --- | --- | --- | --- |
+| Victron | --- | --- | --- | --- | --- | --- | --- | --- |
 
-<br>All JK-BMS models with software@ version `>=6.0` are using the implemented protocol and should be supported.
+## Supported BMS
+
+All JK-BMS models with software@ version `>=6.0` are using the implemented protocol and should be supported.
 
 See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/syssi/esphome-jk-bms) repository for more information.
 
@@ -173,11 +184,11 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 
 If soldering or creating your own board seems complicated to you, know that it is possible to use the Atom CAN Kit from M5Stack.<br>
 
-**Recommended: Atom S3 Lite + Atomic CANbus Base**
+**Recommended: Atom S3 Lite + Atomic CAN Base**
 
-* [Atom S3 Lite (recommanded)](https://shop.m5stack.com/products/atoms3-lite-esp32s3-dev-kit)
-* [Atom Lite (not stable with BLE version)](https://shop.m5stack.com/products/atom-lite-esp32-development-kit)
-* [Atomic CANBus Base](https://shop.m5stack.com/products/atomic-canbus-base-ca-is3050g)
+- [Atom S3 - SKU:C123](https://docs.m5stack.com/en/core/AtomS3)
+- [Atom S3 Lite - SKU:C124](https://docs.m5stack.com/en/core/AtomS3%20Lite)
+- [Atomic CAN Base - SKU:A103](https://docs.m5stack.com/en/atom/Atomic%20CAN%20Base)
 
 ![Image](images/Atom_S3_Lite.png "M5Stack Atom S3 Lite")
 ![Image](images/Atomic_CANBus_Base_CA-IS3050G.png "M5Stack Atomic CANBus Base CA-IS3050G")
