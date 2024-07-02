@@ -436,3 +436,5 @@ text_sensor:
       name: "${name} ${bms_name} network nodes available"
     info_device_serial_number:
       name: "${name} ${bms_name} info device serial number"
+    info_device_setup_passcode:
+      name: "${name} ${bms_name} info device setup passcode"         
