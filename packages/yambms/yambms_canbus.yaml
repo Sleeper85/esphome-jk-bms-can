@@ -1,5 +1,5 @@
-# Updated : 2024.05.24
-# Version : 2.1.2
+# Updated : 2024.07.09
+# Version : 2.2.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
 # This YAML is free software: you can redistribute it and/or
@@ -137,15 +137,15 @@ interval:
                       // +---------------------------+
                       
                       // SmartBMS alarm ?
-                      if (id(${smartbms_id}_alarm).state != "NoAlarm") {
-                        if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x02;   // Over Voltage Protection
-                        if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x04;   // Under Voltage Protection
-                        if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x08;   // Over Temp Protection
-                        if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Temp Protection
-                        if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[0] = can_mesg[0] | 0x80;  // Discharge Over Current Protection
-                        if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[1] = can_mesg[1] | 0x80;  // Charge Over Current Protection
-                        if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[1] = can_mesg[1] | 0x08;   // BMS Internal Error
-                        if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[1] = can_mesg[1] | 0x10;   // UnBalanced Cell
+                      if (id(${yambms_id}_alarm).state != "NoAlarm") {
+                        if (id(${yambms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x02;   // Over Voltage Protection
+                        if (id(${yambms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x04;   // Under Voltage Protection
+                        if (id(${yambms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x08;   // Over Temp Protection
+                        if (id(${yambms_id}_alarm).state == "UTP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Temp Protection
+                        if (id(${yambms_id}_alarm).state == "DOCP") can_mesg[0] = can_mesg[0] | 0x80;  // Discharge Over Current Protection
+                        if (id(${yambms_id}_alarm).state == "COCP") can_mesg[1] = can_mesg[1] | 0x80;  // Charge Over Current Protection
+                        if (id(${yambms_id}_alarm).state == "BMS") can_mesg[1] = can_mesg[1] | 0x08;   // BMS Internal Error
+                        if (id(${yambms_id}_alarm).state == "UBC") can_mesg[1] = can_mesg[1] | 0x10;   // UnBalanced Cell
                       }
                       
                       // +---------------------------+
@@ -153,22 +153,22 @@ interval:
                       // +---------------------------+
                       
                       // SmartBMS warning ?
-                      if (id(${smartbms_id}_warning).state != "NoAlarm") {
-                        if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[2] = can_mesg[2] | 0x02;   // Over Voltage Protection
-                        if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[2] = can_mesg[2] | 0x04;   // Under Voltage Protection
-                        if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[2] = can_mesg[2] | 0x08;   // Over Temp Protection
-                        if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[2] = can_mesg[2] | 0x10;   // Under Temp Protection
-                        if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[2] = can_mesg[2] | 0x80;  // Discharge Over Current Protection
-                        if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[3] = can_mesg[3] | 0x80;  // Charge Over Current Protection
-                        if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[3] = can_mesg[3] | 0x08;   // BMS Internal Error
-                        if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[3] = can_mesg[3] | 0x10;   // UnBalanced Cell
+                      if (id(${yambms_id}_warning).state != "NoAlarm") {
+                        if (id(${yambms_id}_alarm).state == "OVP") can_mesg[2] = can_mesg[2] | 0x02;   // Over Voltage Protection
+                        if (id(${yambms_id}_alarm).state == "UVP") can_mesg[2] = can_mesg[2] | 0x04;   // Under Voltage Protection
+                        if (id(${yambms_id}_alarm).state == "OTP") can_mesg[2] = can_mesg[2] | 0x08;   // Over Temp Protection
+                        if (id(${yambms_id}_alarm).state == "UTP") can_mesg[2] = can_mesg[2] | 0x10;   // Under Temp Protection
+                        if (id(${yambms_id}_alarm).state == "DOCP") can_mesg[2] = can_mesg[2] | 0x80;  // Discharge Over Current Protection
+                        if (id(${yambms_id}_alarm).state == "COCP") can_mesg[3] = can_mesg[3] | 0x80;  // Charge Over Current Protection
+                        if (id(${yambms_id}_alarm).state == "BMS") can_mesg[3] = can_mesg[3] | 0x08;   // BMS Internal Error
+                        if (id(${yambms_id}_alarm).state == "UBC") can_mesg[3] = can_mesg[3] | 0x10;   // UnBalanced Cell
                       }
                       
                       // +---------------------------+
                       // | Flags : byte 4 to 7       |
                       // +---------------------------+
                                         
-                      can_mesg[4] = id(${smartbms_id}_battery_module).state;      // byte4 - Module in parallel (max 8)
+                      can_mesg[4] = id(${yambms_id}_battery_module).state;      // byte4 - Module in parallel (max 8)
                       can_mesg[5] = 0x00;                                         // byte5
                       can_mesg[6] = 0x00;                                         // byte6
                       can_mesg[7] = 0x00;                                         // byte7 - DIP switches 1,3 10000100 0x84                      
@@ -192,15 +192,15 @@ interval:
                       // +---------------------------+
                       
                       // SmartBMS alarm ?
-                      if (id(${smartbms_id}_alarm).state != "NoAlarm") {
-                        if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x04;   // Over Voltage Protection
-                        if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Voltage Protection
-                        if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x40;   // Over Temp Protection
-                        if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[1] = can_mesg[1] | 0x01;   // Under Temp Protection
-                        if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[1] = can_mesg[1] | 0x40;  // Discharge Over Current Protection
-                        if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[2] = can_mesg[2] | 0x01;  // Charge Over Current Protection
-                        if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[2] = can_mesg[2] | 0x40;   // BMS Internal Error
-                        if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[3] = can_mesg[3] | 0x01;   // UnBalanced Cell
+                      if (id(${yambms_id}_alarm).state != "NoAlarm") {
+                        if (id(${yambms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x04;   // Over Voltage Protection
+                        if (id(${yambms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Voltage Protection
+                        if (id(${yambms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x40;   // Over Temp Protection
+                        if (id(${yambms_id}_alarm).state == "UTP") can_mesg[1] = can_mesg[1] | 0x01;   // Under Temp Protection
+                        if (id(${yambms_id}_alarm).state == "DOCP") can_mesg[1] = can_mesg[1] | 0x40;  // Discharge Over Current Protection
+                        if (id(${yambms_id}_alarm).state == "COCP") can_mesg[2] = can_mesg[2] | 0x01;  // Charge Over Current Protection
+                        if (id(${yambms_id}_alarm).state == "BMS") can_mesg[2] = can_mesg[2] | 0x40;   // BMS Internal Error
+                        if (id(${yambms_id}_alarm).state == "UBC") can_mesg[3] = can_mesg[3] | 0x01;   // UnBalanced Cell
                       }
                       
                       // +---------------------------+
@@ -208,15 +208,15 @@ interval:
                       // +---------------------------+
                       
                       // SmartBMS warning ?
-                      if (id(${smartbms_id}_warning).state != "NoAlarm") {
-                        if (id(${smartbms_id}_alarm).state == "OVP") can_mesg[4] = can_mesg[4] | 0x04;   // Over Voltage Protection
-                        if (id(${smartbms_id}_alarm).state == "UVP") can_mesg[4] = can_mesg[4] | 0x10;   // Under Voltage Protection
-                        if (id(${smartbms_id}_alarm).state == "OTP") can_mesg[4] = can_mesg[4] | 0x40;   // Over Temp Protection
-                        if (id(${smartbms_id}_alarm).state == "UTP") can_mesg[5] = can_mesg[5] | 0x01;   // Under Temp Protection
-                        if (id(${smartbms_id}_alarm).state == "DOCP") can_mesg[5] = can_mesg[5] | 0x40;  // Discharge Over Current Protection
-                        if (id(${smartbms_id}_alarm).state == "COCP") can_mesg[6] = can_mesg[6] | 0x01;  // Charge Over Current Protection
-                        if (id(${smartbms_id}_alarm).state == "BMS") can_mesg[6] = can_mesg[6] | 0x40;   // BMS Internal Error
-                        if (id(${smartbms_id}_alarm).state == "UBC") can_mesg[7] = can_mesg[7] | 0x01;   // UnBalanced Cell
+                      if (id(${yambms_id}_warning).state != "NoAlarm") {
+                        if (id(${yambms_id}_alarm).state == "OVP") can_mesg[4] = can_mesg[4] | 0x04;   // Over Voltage Protection
+                        if (id(${yambms_id}_alarm).state == "UVP") can_mesg[4] = can_mesg[4] | 0x10;   // Under Voltage Protection
+                        if (id(${yambms_id}_alarm).state == "OTP") can_mesg[4] = can_mesg[4] | 0x40;   // Over Temp Protection
+                        if (id(${yambms_id}_alarm).state == "UTP") can_mesg[5] = can_mesg[5] | 0x01;   // Under Temp Protection
+                        if (id(${yambms_id}_alarm).state == "DOCP") can_mesg[5] = can_mesg[5] | 0x40;  // Discharge Over Current Protection
+                        if (id(${yambms_id}_alarm).state == "COCP") can_mesg[6] = can_mesg[6] | 0x01;  // Charge Over Current Protection
+                        if (id(${yambms_id}_alarm).state == "BMS") can_mesg[6] = can_mesg[6] | 0x40;   // BMS Internal Error
+                        if (id(${yambms_id}_alarm).state == "UBC") can_mesg[7] = can_mesg[7] | 0x01;   // UnBalanced Cell
                       }
                       
                       ESP_LOGI("main", "send can id: 0x35A hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
@@ -238,14 +238,14 @@ interval:
                       
                       uint8_t can_mesg[8];
                       
-                      can_mesg[0] = uint16_t(id(${smartbms_id}_requested_charge_voltage).state * 10) & 0xff;
-                      can_mesg[1] = uint16_t(id(${smartbms_id}_requested_charge_voltage).state * 10) >> 8 & 0xff;
-                      can_mesg[2] = uint16_t(id(${smartbms_id}_requested_charge_current).state * 10) & 0xff;
-                      can_mesg[3] = uint16_t(id(${smartbms_id}_requested_charge_current).state * 10) >> 8 & 0xff;
-                      can_mesg[4] = uint16_t(id(${smartbms_id}_requested_discharge_current).state * 10) & 0xff;
-                      can_mesg[5] = uint16_t(id(${smartbms_id}_requested_discharge_current).state * 10) >> 8 & 0xff;
-                      can_mesg[6] = uint16_t(id(${smartbms_id}_requested_discharge_voltage).state * 10) & 0xff;
-                      can_mesg[7] = uint16_t(id(${smartbms_id}_requested_discharge_voltage).state * 10) >> 8 & 0xff;
+                      can_mesg[0] = uint16_t(id(${yambms_id}_requested_charge_voltage).state * 10) & 0xff;
+                      can_mesg[1] = uint16_t(id(${yambms_id}_requested_charge_voltage).state * 10) >> 8 & 0xff;
+                      can_mesg[2] = uint16_t(id(${yambms_id}_requested_charge_current).state * 10) & 0xff;
+                      can_mesg[3] = uint16_t(id(${yambms_id}_requested_charge_current).state * 10) >> 8 & 0xff;
+                      can_mesg[4] = uint16_t(id(${yambms_id}_requested_discharge_current).state * 10) & 0xff;
+                      can_mesg[5] = uint16_t(id(${yambms_id}_requested_discharge_current).state * 10) >> 8 & 0xff;
+                      can_mesg[6] = uint16_t(id(${yambms_id}_requested_discharge_voltage).state * 10) & 0xff;
+                      can_mesg[7] = uint16_t(id(${yambms_id}_requested_discharge_voltage).state * 10) >> 8 & 0xff;
                       
                       ESP_LOGI("main", "send can id: 0x351 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
@@ -266,14 +266,14 @@ interval:
 
                       uint8_t can_mesg[8];
 
-                      can_mesg[0] = uint16_t(id(${smartbms_id}_battery_soc).state) & 0xff;
-                      can_mesg[1] = uint16_t(id(${smartbms_id}_battery_soc).state) >> 8 & 0xff;
-                      can_mesg[2] = uint16_t(id(${smartbms_id}_battery_soh).state) & 0xff;
-                      can_mesg[3] = uint16_t(id(${smartbms_id}_battery_soh).state) >> 8 & 0xff;
-                      can_mesg[4] = uint16_t(id(${smartbms_id}_battery_soc).state * 100) & 0xff;
-                      can_mesg[5] = uint16_t(id(${smartbms_id}_battery_soc).state * 100) >> 8 & 0xff;
-                      can_mesg[6] = uint16_t(id(${smartbms_id}_capacity_remaining_ah).state * 10) & 0xff;
-                      can_mesg[7] = uint16_t(id(${smartbms_id}_capacity_remaining_ah).state * 10) >> 8 & 0xff;
+                      can_mesg[0] = uint16_t(id(${yambms_id}_battery_soc).state) & 0xff;
+                      can_mesg[1] = uint16_t(id(${yambms_id}_battery_soc).state) >> 8 & 0xff;
+                      can_mesg[2] = uint16_t(id(${yambms_id}_battery_soh).state) & 0xff;
+                      can_mesg[3] = uint16_t(id(${yambms_id}_battery_soh).state) >> 8 & 0xff;
+                      can_mesg[4] = uint16_t(id(${yambms_id}_battery_soc).state * 100) & 0xff;
+                      can_mesg[5] = uint16_t(id(${yambms_id}_battery_soc).state * 100) >> 8 & 0xff;
+                      can_mesg[6] = uint16_t(id(${yambms_id}_capacity_remaining_ah).state * 10) & 0xff;
+                      can_mesg[7] = uint16_t(id(${yambms_id}_capacity_remaining_ah).state * 10) >> 8 & 0xff;
 
                       ESP_LOGI("main", "send can id: 0x355 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
@@ -294,14 +294,14 @@ interval:
 
                       uint8_t can_mesg[8];
 
-                      can_mesg[0] = uint16_t(id(${smartbms_id}_total_voltage).state * 100) & 0xff;
-                      can_mesg[1] = uint16_t(id(${smartbms_id}_total_voltage).state * 100) >> 8 & 0xff;
-                      can_mesg[2] = int16_t(id(${smartbms_id}_current).state * 10) & 0xff;
-                      can_mesg[3] = int16_t(id(${smartbms_id}_current).state * 10) >> 8 & 0xff;
-                      can_mesg[4] = int16_t(((id(${smartbms_id}_temperature_sensor_1).state + id(${smartbms_id}_temperature_sensor_2).state) / 2) * 10) & 0xff;
-                      can_mesg[5] = int16_t(((id(${smartbms_id}_temperature_sensor_1).state + id(${smartbms_id}_temperature_sensor_2).state) / 2) * 10) >> 8 & 0xff;
-                      can_mesg[6] = uint16_t(id(${smartbms_id}_charging_cycles).state) & 0xff;
-                      can_mesg[7] = uint16_t(id(${smartbms_id}_charging_cycles).state) >> 8 & 0xff;
+                      can_mesg[0] = uint16_t(id(${yambms_id}_total_voltage).state * 100) & 0xff;
+                      can_mesg[1] = uint16_t(id(${yambms_id}_total_voltage).state * 100) >> 8 & 0xff;
+                      can_mesg[2] = int16_t(id(${yambms_id}_current).state * 10) & 0xff;
+                      can_mesg[3] = int16_t(id(${yambms_id}_current).state * 10) >> 8 & 0xff;
+                      can_mesg[4] = int16_t(((id(${yambms_id}_temperature_sensor_1).state + id(${yambms_id}_temperature_sensor_2).state) / 2) * 10) & 0xff;
+                      can_mesg[5] = int16_t(((id(${yambms_id}_temperature_sensor_1).state + id(${yambms_id}_temperature_sensor_2).state) / 2) * 10) >> 8 & 0xff;
+                      can_mesg[6] = uint16_t(id(${yambms_id}_charging_cycles).state) & 0xff;
+                      can_mesg[7] = uint16_t(id(${yambms_id}_charging_cycles).state) >> 8 & 0xff;
 
                       ESP_LOGI("main", "send can id: 0x356 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
@@ -321,12 +321,12 @@ interval:
                       // +--------------------------------+
                       // | Byte0_Bit7 : Charge enable     |
                       // +--------------------------------+
-                      if ((id(${smartbms_id}_charging_instruction).state == "Bulk") | (id(${smartbms_id}_charging_instruction).state == "Float")) can_mesg[0] = 0x80;
+                      if ((id(${yambms_id}_charging_instruction).state == "Bulk") | (id(${yambms_id}_charging_instruction).state == "Float")) can_mesg[0] = 0x80;
 
                       // +--------------------------------+
                       // | Byte0_Bit6 : Discharge enable  |
                       // +--------------------------------+
-                      if (id(${smartbms_id}_discharging_instruction).state == true) can_mesg[0] = can_mesg[0] | 0x40;
+                      if (id(${yambms_id}_discharging_instruction).state == true) can_mesg[0] = can_mesg[0] | 0x40;
 
                       ESP_LOGI("main", "send can id: 0x35C hex: %x %x", can_mesg[0], can_mesg[1]);
                       return {can_mesg[0], can_mesg[1]};
@@ -345,13 +345,13 @@ interval:
                       // Byte [04:05] : Max cell voltage
                       // Byte [06:07] : Min cell voltage
                       
-                      int max_cell_voltage_i = id(${smartbms_id}_max_cell_voltage).state * 100.0;
-                      int min_cell_voltage_i = id(${smartbms_id}_min_cell_voltage).state * 100.0;
+                      int max_cell_voltage_i = id(${yambms_id}_max_cell_voltage).state * 100.0;
+                      int min_cell_voltage_i = id(${yambms_id}_min_cell_voltage).state * 100.0;
                       uint8_t can_mesg[8];
-                      can_mesg[0] = int16_t(max(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state)* 10) & 0xff;
-                      can_mesg[1] = int16_t(max(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state)* 10) >> 8 & 0xff;
-                      can_mesg[2] = int16_t(min(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state)* 10) & 0xff;
-                      can_mesg[3] = int16_t(min(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state)* 10) >> 8 & 0xff;
+                      can_mesg[0] = int16_t(max(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10) & 0xff;
+                      can_mesg[1] = int16_t(max(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10) >> 8 & 0xff;
+                      can_mesg[2] = int16_t(min(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10) & 0xff;
+                      can_mesg[3] = int16_t(min(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10) >> 8 & 0xff;
                       can_mesg[4] = max_cell_voltage_i & 0xff;
                       can_mesg[5] = max_cell_voltage_i >> 8 & 0xff;
                       can_mesg[6] = min_cell_voltage_i & 0xff;
@@ -376,7 +376,7 @@ interval:
                       uint8_t can_mesg[8];
                       
                       // Min-Max Temp. Sensor ID ?
-                      if (id(${smartbms_id}_temperature_sensor_1).state >= id(${smartbms_id}_temperature_sensor_2).state){
+                      if (id(${yambms_id}_temperature_sensor_1).state >= id(${yambms_id}_temperature_sensor_2).state){
                         can_mesg[0] = 0x01;
                         can_mesg[2] = 0x02;
                       }
@@ -387,10 +387,10 @@ interval:
                       
                       can_mesg[1] = 0x00;
                       can_mesg[3] = 0x00;
-                      can_mesg[4] = uint16_t(id(${smartbms_id}_max_voltage_cell).state) & 0xff;
-                      can_mesg[5] = uint16_t(id(${smartbms_id}_max_voltage_cell).state) >> 8 & 0xff;
-                      can_mesg[6] = uint16_t(id(${smartbms_id}_min_voltage_cell).state) & 0xff;
-                      can_mesg[7] = uint16_t(id(${smartbms_id}_min_voltage_cell).state) >> 8 & 0xff;
+                      can_mesg[4] = uint16_t(id(${yambms_id}_max_voltage_cell).state) & 0xff;
+                      can_mesg[5] = uint16_t(id(${yambms_id}_max_voltage_cell).state) >> 8 & 0xff;
+                      can_mesg[6] = uint16_t(id(${yambms_id}_min_voltage_cell).state) & 0xff;
+                      can_mesg[7] = uint16_t(id(${yambms_id}_min_voltage_cell).state) >> 8 & 0xff;
                       ESP_LOGI("main", "send can id: 0x371 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
                         
@@ -409,7 +409,7 @@ interval:
                       // Byte [06:07] : Nbr. of battery modules offline
                       
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-                      can_mesg[0] = id(${smartbms_id}_battery_module).state;
+                      can_mesg[0] = id(${yambms_id}_battery_module).state;
                       
                       ESP_LOGI("main", "send can id: 0x372 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
@@ -428,10 +428,10 @@ interval:
                       // Byte [04:05] : Min cell temperature
                       // Byte [06:07] : Max cell temperature
                       
-                      int min_cell_voltage_i = id(${smartbms_id}_min_cell_voltage).state * 1000.0;
-                      int max_cell_voltage_i = id(${smartbms_id}_max_cell_voltage).state * 1000.0;
-                      int min_temp_kelvin = min(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state) + 273.15;
-                      int max_temp_kelvin = max(id(${smartbms_id}_temperature_sensor_1).state, id(${smartbms_id}_temperature_sensor_2).state) + 273.15;
+                      int min_cell_voltage_i = id(${yambms_id}_min_cell_voltage).state * 1000.0;
+                      int max_cell_voltage_i = id(${yambms_id}_max_cell_voltage).state * 1000.0;
+                      int min_temp_kelvin = min(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state) + 273.15;
+                      int max_temp_kelvin = max(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state) + 273.15;
                       
                       uint8_t can_mesg[8];
                       can_mesg[0] = min_cell_voltage_i & 0xff;
@@ -455,7 +455,7 @@ interval:
                       can_id: 0x374
                       data: !lambda |-
                         
-                        int cell_id = id(${smartbms_id}_min_voltage_cell).state;
+                        int cell_id = id(${yambms_id}_min_voltage_cell).state;
                         // init 8 bytes char array values
                         char can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                         // save int cell_id to 8 bytes char array
@@ -474,7 +474,7 @@ interval:
                       can_id: 0x375
                       data: !lambda |-
                         
-                        int cell_id = id(${smartbms_id}_max_voltage_cell).state;
+                        int cell_id = id(${yambms_id}_max_voltage_cell).state;
                         // init 8 bytes char array values
                         char can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                         // save int cell_id to 8 bytes char array
@@ -494,7 +494,7 @@ interval:
                       data: !lambda |-
                         
                         // Min Temp. Sensor ID ?
-                        if (id(${smartbms_id}_temperature_sensor_1).state >= id(${smartbms_id}_temperature_sensor_2).state){
+                        if (id(${yambms_id}_temperature_sensor_1).state >= id(${yambms_id}_temperature_sensor_2).state){
                           ESP_LOGI("main", "send can id: 0x376 [ASCII] Min Temp. Sensor ID : 2");
                           return {0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
                         }
@@ -513,7 +513,7 @@ interval:
                       data: !lambda |-
                         
                         // Max Temp. Sensor ID ?
-                        if (id(${smartbms_id}_temperature_sensor_1).state >= id(${smartbms_id}_temperature_sensor_2).state){
+                        if (id(${yambms_id}_temperature_sensor_1).state >= id(${yambms_id}_temperature_sensor_2).state){
                           ESP_LOGI("main", "send can id: 0x377 [ASCII] Max Temp. Sensor ID : 1");
                           return {0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
                         }
@@ -531,8 +531,8 @@ interval:
                       can_id: 0x379
                       data: !lambda |-
                         uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-                        can_mesg[0] = uint16_t(id(${smartbms_id}_battery_capacity).state) & 0xff;
-                        can_mesg[1] = uint16_t(id(${smartbms_id}_battery_capacity).state) >> 8 & 0xff;
+                        can_mesg[0] = uint16_t(id(${yambms_id}_battery_capacity).state) & 0xff;
+                        can_mesg[1] = uint16_t(id(${yambms_id}_battery_capacity).state) >> 8 & 0xff;
                         
                         ESP_LOGI("main", "send can id: 0x379 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                         return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
@@ -566,8 +566,8 @@ interval:
                         uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                         can_mesg[2] = 0x02;
                         can_mesg[3] = 0x01;
-                        can_mesg[4] = uint16_t(id(${smartbms_id}_battery_capacity).state) & 0xff;
-                        can_mesg[5] = uint16_t(id(${smartbms_id}_battery_capacity).state) >> 8 & 0xff;
+                        can_mesg[4] = uint16_t(id(${yambms_id}_battery_capacity).state) & 0xff;
+                        can_mesg[5] = uint16_t(id(${yambms_id}_battery_capacity).state) >> 8 & 0xff;
                         
                         ESP_LOGI("main", "send can id: 0x35F hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                         return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};

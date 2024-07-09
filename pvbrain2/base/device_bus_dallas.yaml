@@ -1,3 +1,4 @@
-dallas:
-  - id: dallas_hub
+one_wire:
+  - platform: gpio
+    id: on_wire_hub
     pin: GPIO47
