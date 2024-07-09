@@ -1,3 +1,20 @@
+# Updated : 2024.07.09
+# Version : 1.1.2
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
 title: JK-BMS monitor
 views:
   - title: WHOLE SYSTEM
@@ -22,9 +39,9 @@ views:
                       {%- set total_bms = namespace(value=0) %} {%- set
                       total_online_bms = namespace(value=0) %} {% for idx in
                       range(0, 16)-%} 
-                        {% if states('binary_sensor.esp32_s3_jk_bms_%d_status_online' % idx)=='on' or states('binary_sensor.rs485_bms%d_status_online' % idx)=='off' %}
+                        {% if states('binary_sensor.yambms_jk_bms_%d_status_online' % idx)=='on' or states('binary_sensor.rs485_bms%d_status_online' % idx)=='off' %}
                          {% set total_bms.value = total_bms.value +1 %}
-                         {% if states('binary_sensor.esp32_s3_jk_bms_%d_status_online' % idx)=='on' %}
+                         {% if states('binary_sensor.yambms_jk_bms_%d_status_online' % idx)=='on' %}
                             {% set total_online_bms.value = total_online_bms.value +1 %}
                          {% endif %}
                         {%- endif %}
@@ -38,16 +55,16 @@ views:
                   - type: markdown
                     content: >-
                       {%- set power_draw =
-                      states('sensor.esp32_s3_jk_bms_1_battery_power')|float +
-                      states('sensor.esp32_s3_jk_bms_2_battery_power')|float %} 
+                      states('sensor.yambms_jk_bms_1_battery_power')|float +
+                      states('sensor.yambms_jk_bms_2_battery_power')|float %} 
                       {%- set power_charging =
-                      states('sensor.esp32_s3_jk_bms_1_battery_power_charging')|float
+                      states('sensor.yambms_jk_bms_1_battery_power_charging')|float
                       +
-                      states('sensor.esp32_s3_jk_bms_2_battery_power_charging')|float
+                      states('sensor.yambms_jk_bms_2_battery_power_charging')|float
                       %}  {%- set power_discharging =
-                      states('sensor.esp32_s3_jk_bms_1_battery_power_discharging')|float
+                      states('sensor.yambms_jk_bms_1_battery_power_discharging')|float
                       +
-                      states('sensor.esp32_s3_jk_bms_2_battery_power_discharging')|float
+                      states('sensor.yambms_jk_bms_2_battery_power_discharging')|float
                       %} 
 
                       {%- set power_label = "(charging)" if (power_charging)>0 
@@ -85,9 +102,9 @@ views:
                   - type: markdown
                     content: >-
                       {%- set total_voltage =
-                      (states('sensor.esp32_s3_jk_bms_1_battery_voltage')|float
+                      (states('sensor.yambms_jk_bms_1_battery_voltage')|float
                       +
-                      states('sensor.esp32_s3_jk_bms_2_battery_voltage')|float)/2
+                      states('sensor.yambms_jk_bms_2_battery_voltage')|float)/2
                       %}
 
                       <center><b><font color=#41CD52 size=6>{{"%.3f" %
@@ -103,7 +120,7 @@ views:
                   - type: markdown
                     content: >-
                       {%- set total_current =
-                      (states('sensor.esp32_s3_jk_bms_1_battery_current')|float)+(states('sensor.esp32_s3_jk_bms_2_battery_current')|float)
+                      (states('sensor.yambms_jk_bms_1_battery_current')|float)+(states('sensor.yambms_jk_bms_2_battery_current')|float)
                       %}
                                   
                       <center><b><font color=#41CD52 size=6>{{"%.3f" %
@@ -143,55 +160,55 @@ views:
                       color=#41CD52 family=Consolas> {{ s }} </font> {%-
                       endmacro %} <div>    {{ pad_right(14, 'MOS  Temp.:') }} 
                       {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_powertube')
+                      green(states('sensor.yambms_jk_bms_1_temperature_powertube')
                       + ' °C') }} <br>  {{ pad_right(15, 'Battery T1:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_1')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_1')
                       +  ' °C') }} <br>  {{ pad_right(15, 'Battery T2:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_2')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_2')
                       +  ' °C') }} <br>  {{ pad_right(15, 'Battery T3:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_3')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_3')
                       +  ' °C') }}<br>  {{ pad_right(15, 'Battery T4:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_4')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_4')
                       +  ' °C') }}           <br>  {{ pad_right(15, 'Battery
                       T5:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_5')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_5')
                       +  ' °C') }}</div><br>
 
                       <div> {%- set alarm_active =
-                      states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_active')|int
+                      states('sensor.yambms_jk_bms_1_battery_total_alarms_active')|int
                       %} {%- set alarm_active = 0 %}                
-                        {%- set alarm_count = states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_count')|int %}
+                        {%- set alarm_count = states('sensor.yambms_jk_bms_1_battery_total_alarms_count')|int %}
                         {%- set alarm_label = '<font size=2>ALARMS</font>' if alarm_active==0
                             else '<b><font size=5 color=red>ALARMS</font></b>' %}
                         {{alarm_label}} ({{ alarm_active }}/{{ alarm_count -}})
                   - type: markdown
                     content: >-
                       {%- set soc =
-                        states('sensor.esp32_s3_jk_bms_1_battery_capacity_state_of_charge') %} 
+                        states('sensor.yambms_jk_bms_1_battery_capacity_state_of_charge') %} 
                       {%- set soh =
-                        states('sensor.esp32_s3_jk_bms_1_battery_soh_valuation') %}   {%- set
+                        states('sensor.yambms_jk_bms_1_battery_soh_valuation') %}   {%- set
                       max_idx =
-                      states('sensor.esp32_s3_jk_bms_1_cell_voltage_max_cell_number')
+                      states('sensor.yambms_jk_bms_1_cell_voltage_max_cell_number')
                       %} {%- set min_idx =
-                      states('sensor.esp32_s3_jk_bms_1_cell_voltage_min_cell_number')
+                      states('sensor.yambms_jk_bms_1_cell_voltage_min_cell_number')
                       %}   {%- set max_idx =
-                      states('sensor.esp32_s3_jk_bms_1_cell_voltage_max_cell_number')
+                      states('sensor.yambms_jk_bms_1_cell_voltage_max_cell_number')
                       %}    {%- set min_idxr =
-                      states('sensor.esp32_s3_jk_bms_1_cell_resistance_min_cell_number')
+                      states('sensor.yambms_jk_bms_1_cell_resistance_min_cell_number')
                       %}   {%- set max_idxr =
-                      states('sensor.esp32_s3_jk_bms_1_cell_resistance_max_cell_number')
+                      states('sensor.yambms_jk_bms_1_cell_resistance_max_cell_number')
                       %}                  {%- set delta_voltage =
-                      (states('sensor.esp32_s3_jk_bms_1_cell_delta_voltage')|float)
+                      (states('sensor.yambms_jk_bms_1_cell_delta_voltage')|float)
                       %} {%- set average_voltage =
-                        (states('sensor.esp32_s3_jk_bms_1_cell_average_voltage')|float) %}   {%-
+                        (states('sensor.yambms_jk_bms_1_cell_average_voltage')|float) %}   {%-
                       set max_voltage =
-                      (states('sensor.esp32_s3_jk_bms_1_cell_voltage_max')|float)
+                      (states('sensor.yambms_jk_bms_1_cell_voltage_max')|float)
                       %}    {%- set min_voltage =
-                      (states('sensor.esp32_s3_jk_bms_1_cell_voltage_min')|float)
+                      (states('sensor.yambms_jk_bms_1_cell_voltage_min')|float)
                       %}              {%- set max_resistance =
-                      (states('sensor.esp32_s3_jk_bms_1_cell_resistance_max')|float)
+                      (states('sensor.yambms_jk_bms_1_cell_resistance_max')|float)
                       %}  {%- set min_resistance =
-                      (states('sensor.esp32_s3_jk_bms_1_cell_resistance_min')|float)
+                      (states('sensor.yambms_jk_bms_1_cell_resistance_min')|float)
                       %}            <table>  
                         <tr><td><b>SOC:</b></td><td width=125px>{{soc}} %</td></tr>              
                         <tr><td><b>SOH:</b></td><td width=125px>{{soh}} %</td></tr>              
@@ -233,55 +250,55 @@ views:
                       color=#41CD52 family=Consolas> {{ s }} </font> {%-
                       endmacro %} <div>    {{ pad_right(14, 'MOS  Temp.:') }} 
                       {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_powertube')
+                      green(states('sensor.yambms_jk_bms_2_temperature_powertube')
                       + ' °C') }} <br>  {{ pad_right(15, 'Battery T1:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_1')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_1')
                       +  ' °C') }} <br>  {{ pad_right(15, 'Battery T2:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_2')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_2')
                       +  ' °C') }} <br>  {{ pad_right(15, 'Battery T3:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_3')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_3')
                       +  ' °C') }}<br>  {{ pad_right(15, 'Battery T4:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_4')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_4')
                       +  ' °C') }}           <br>  {{ pad_right(15, 'Battery
                       T5:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_5')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_5')
                       +  ' °C') }}</div><br>
 
                       <div> {%- set alarm_active =
-                      states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_active')|int
+                      states('sensor.yambms_jk_bms_2_battery_total_alarms_active')|int
                       %} {%- set alarm_active = 0 %}                
-                        {%- set alarm_count = states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_count')|int %}
+                        {%- set alarm_count = states('sensor.yambms_jk_bms_2_battery_total_alarms_count')|int %}
                         {%- set alarm_label = '<font size=2>ALARMS</font>' if alarm_active==0
                             else '<b><font size=5 color=red>ALARMS</font></b>' %}
                         {{alarm_label}} ({{ alarm_active }}/{{ alarm_count -}})
                   - type: markdown
                     content: >-
                       {%- set soc =
-                        states('sensor.esp32_s3_jk_bms_2_battery_capacity_state_of_charge') %} 
+                        states('sensor.yambms_jk_bms_2_battery_capacity_state_of_charge') %} 
                       {%- set soh =
-                        states('sensor.esp32_s3_jk_bms_2_battery_soh_valuation') %}   {%- set
+                        states('sensor.yambms_jk_bms_2_battery_soh_valuation') %}   {%- set
                       max_idx =
-                      states('sensor.esp32_s3_jk_bms_2_cell_voltage_max_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_voltage_max_cell_number')
                       %} {%- set min_idx =
-                      states('sensor.esp32_s3_jk_bms_2_cell_voltage_min_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_voltage_min_cell_number')
                       %}   {%- set max_idx =
-                      states('sensor.esp32_s3_jk_bms_2_cell_voltage_max_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_voltage_max_cell_number')
                       %}    {%- set min_idxr =
-                      states('sensor.esp32_s3_jk_bms_2_cell_resistance_min_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_resistance_min_cell_number')
                       %}   {%- set max_idxr =
-                      states('sensor.esp32_s3_jk_bms_2_cell_resistance_max_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_resistance_max_cell_number')
                       %}                  {%- set delta_voltage =
-                      (states('sensor.esp32_s3_jk_bms_2_cell_delta_voltage')|float)
+                      (states('sensor.yambms_jk_bms_2_cell_delta_voltage')|float)
                       %} {%- set average_voltage =
-                        (states('sensor.esp32_s3_jk_bms_2_cell_average_voltage')|float) %}   {%-
+                        (states('sensor.yambms_jk_bms_2_cell_average_voltage')|float) %}   {%-
                       set max_voltage =
-                      (states('sensor.esp32_s3_jk_bms_2_cell_voltage_max')|float)
+                      (states('sensor.yambms_jk_bms_2_cell_voltage_max')|float)
                       %}    {%- set min_voltage =
-                      (states('sensor.esp32_s3_jk_bms_2_cell_voltage_min')|float)
+                      (states('sensor.yambms_jk_bms_2_cell_voltage_min')|float)
                       %}              {%- set max_resistance =
-                      (states('sensor.esp32_s3_jk_bms_2_cell_resistance_max')|float)
+                      (states('sensor.yambms_jk_bms_2_cell_resistance_max')|float)
                       %}  {%- set min_resistance =
-                      (states('sensor.esp32_s3_jk_bms_2_cell_resistance_min')|float)
+                      (states('sensor.yambms_jk_bms_2_cell_resistance_min')|float)
                       %}            <table>  
                         <tr><td><b>SOC:</b></td><td width=125px>{{soc}} %</td></tr>              
                         <tr><td><b>SOH:</b></td><td width=125px>{{soh}} %</td></tr>              
@@ -294,25 +311,25 @@ views:
                       </table>
       - type: entities
         entities:
-          - entity: binary_sensor.esp32_s3_canbus_1_status
+          - entity: binary_sensor.yambms_canbus_1_status
             name: CANBUS 1 Status
-          - entity: binary_sensor.esp32_s3_esp32_online_status
+          - entity: binary_sensor.yambms_esp32_online_status
             name: ESP32 Online Status
-          - entity: binary_sensor.esp32_s3_jk_bms_1_status_online
+          - entity: binary_sensor.yambms_jk_bms_1_status_online
             name: JK-BMS 1 status online
-          - entity: binary_sensor.esp32_s3_jk_bms_2_status_online
+          - entity: binary_sensor.yambms_jk_bms_2_status_online
             name: JK-BMS 2 status online
-          - entity: sensor.esp32_s3_smart_bms_1_alarm
-            name: Smart BMS 1 Alarm
-          - entity: sensor.esp32_s3_smart_bms_1_last_complete_charge
-            name: Smart BMS 1 Last Complete Charge
-          - entity: sensor.esp32_s3_smart_bms_1_last_complete_charge_human_readable
-            name: Smart BMS 1 Last Complete Charge Human Readable
-          - entity: sensor.esp32_s3_smart_bms_1_warning
-            name: Smart BMS 1 Warning
-          - entity: sensor.esp32_s3_uptime_human_readable
+          - entity: sensor.yambms_yambms_1_alarm
+            name: YamBMS 1 Alarm
+          - entity: sensor.yambms_yambms_1_last_complete_charge
+            name: YamBMS 1 Last Complete Charge
+          - entity: sensor.yambms_yambms_1_last_complete_charge_human_readable
+            name: YamBMS 1 Last Complete Charge Human Readable
+          - entity: sensor.yambms_yambms_1_warning
+            name: YamBMS 1 Warning
+          - entity: sensor.yambms_uptime_human_readable
             name: Uptime Human Readable
-          - entity: sensor.esp32_s3_uptime_sensor
+          - entity: sensor.yambms_uptime_sensor
             name: Uptime Sensor
         title: Esp32-S3
   - title: BMS Summary
@@ -334,11 +351,11 @@ views:
                   - type: markdown
                     content: >-
                       <center><font color=#3090C7 size=4>BMS_01 [{{
-                      states('sensor.esp32_s3_jk_bms_1_total_runtime_formatted')
+                      states('sensor.yambms_jk_bms_1_total_runtime_formatted')
                       | string }}]&nbsp;&nbsp;{{
-                      (states('sensor.esp32_s3_jk_bms_1_battery_capacity_state_of_charge')
+                      (states('sensor.yambms_jk_bms_1_battery_capacity_state_of_charge')
                       + ' %') }}   ({{
-                        (states('sensor.esp32_s3_jk_bms_1_battery_capacity_remaining')) }}Ah)
+                        (states('sensor.yambms_jk_bms_1_battery_capacity_remaining')) }}Ah)
                       </center>
               - type: grid
                 square: false
@@ -347,7 +364,7 @@ views:
                   - type: markdown
                     content: >-
                       {%- set online =
-                      states('binary_sensor.esp32_s3_jk_bms_1_status_online')
+                      states('binary_sensor.yambms_jk_bms_1_status_online')
                       %}                      
 
                       {%- set is_working = "online" if (online|bool) else
@@ -364,7 +381,7 @@ views:
 
 
                       {%- set precharging =
-                      states('binary_sensor.esp32_s3_jk_bms_1_status_precharging')
+                      states('binary_sensor.yambms_jk_bms_1_status_precharging')
                       %}                      
 
                       {%- set is_working = "working" if (precharging|bool) else
@@ -381,7 +398,7 @@ views:
 
 
                       {%- set heating =
-                      states('binary_sensor.esp32_s3_jk_bms_1_status_heating')
+                      states('binary_sensor.yambms_jk_bms_1_status_heating')
                       %}                      
 
                       {%- set is_working = "working" if (heating|bool) else
@@ -398,7 +415,7 @@ views:
                   - type: markdown
                     content: >-
                       {%- set charging =
-                      states('binary_sensor.esp32_s3_jk_bms_1_status_charging')
+                      states('binary_sensor.yambms_jk_bms_1_status_charging')
                       %}                         
 
                       {%- set is_working = "working" if (charging|bool) else
@@ -415,7 +432,7 @@ views:
 
 
                       {%- set discharging =
-                      states('binary_sensor.esp32_s3_jk_bms_1_status_discharging')
+                      states('binary_sensor.yambms_jk_bms_1_status_discharging')
                       %}                         
 
                       {%- set is_working = "working" if (discharging|bool) else
@@ -431,7 +448,7 @@ views:
                       font_end -}}
                         
                       {%- set balancing_direction =
-                      states('sensor.esp32_s3_jk_bms_1_balancing_direction')%}  
+                      states('sensor.yambms_jk_bms_1_balancing_direction')%}  
                       {%- set is_working = "charging" if
                       (balancing_direction|int)==1 
                             else "discharging" if (balancing_direction|int)==2 
@@ -458,11 +475,11 @@ views:
                   - type: markdown
                     content: >-
                       {%- set power_draw =
-                      states('sensor.esp32_s3_jk_bms_1_battery_power')|float %} 
+                      states('sensor.yambms_jk_bms_1_battery_power')|float %} 
                       {%- set power_charging =
-                      states('sensor.esp32_s3_jk_bms_1_battery_power_charging')|float
+                      states('sensor.yambms_jk_bms_1_battery_power_charging')|float
                       %}  {%- set power_discharging =
-                      states('sensor.esp32_s3_jk_bms_1_battery_power_discharging')|float
+                      states('sensor.yambms_jk_bms_1_battery_power_discharging')|float
                       %} 
 
                       {%- set power_label = "(charging)" if (power_charging)>0 
@@ -500,7 +517,7 @@ views:
                   - type: markdown
                     content: >-
                       <center><b><font color=#41CD52
-                      size=6>{{states('sensor.esp32_s3_jk_bms_1_battery_voltage')
+                      size=6>{{states('sensor.yambms_jk_bms_1_battery_voltage')
                       }}V</font></b><br> </center>   {% macro pad_right(w, s) %}
                       {{ s }} {% set slen =  w - (s|length) %} 
                         {% for idx in range(slen)%} &nbsp; {%endfor %}
@@ -512,7 +529,7 @@ views:
                   - type: markdown
                     content: >-
                       <center><b><font color=#41CD52 size=6>{{
-                      states('sensor.esp32_s3_jk_bms_1_battery_current') }}
+                      states('sensor.yambms_jk_bms_1_battery_current') }}
                       A</font></b><br> </center> {% macro pad_right(w, s) %}  {{
                       s }} {% set slen =  w - (s|length) %} {% for idx in
                       range(slen)%} &nbsp; {%endfor %} {%- endmacro %} {% macro
@@ -531,35 +548,35 @@ views:
                   - type: markdown
                     content: >-
                       <div> {%- set ovp =
-                      states('sensor.esp32_s3_jk_bms_1_cell_overvoltage_protection')
+                      states('sensor.yambms_jk_bms_1_cell_overvoltage_protection')
                       %}  {%- set slv =
-                      states('sensor.esp32_s3_jk_bms_1_cell_smart_sleep_voltage')
+                      states('sensor.yambms_jk_bms_1_cell_smart_sleep_voltage')
                       %}  {%- set rcv =
-                      states('sensor.esp32_s3_jk_bms_1_cell_request_charge_voltage')
+                      states('sensor.yambms_jk_bms_1_cell_request_charge_voltage')
                       %}  {%- set bsv =
-                      states('sensor.esp32_s3_jk_bms_1_cell_balancing_starting_voltage')
+                      states('sensor.yambms_jk_bms_1_cell_balancing_starting_voltage')
                       %}  {%- set soc100 =
-                      states('sensor.esp32_s3_jk_bms_1_cell_soc100_voltage') %} 
+                      states('sensor.yambms_jk_bms_1_cell_soc100_voltage') %} 
                       {%- set ovpr =
-                      states('sensor.esp32_s3_jk_bms_1_cell_overvoltage_protection_recovery')
+                      states('sensor.yambms_jk_bms_1_cell_overvoltage_protection_recovery')
                       %}  {%- set rfv =
-                      states('sensor.esp32_s3_jk_bms_1_cell_request_float_voltage')
+                      states('sensor.yambms_jk_bms_1_cell_request_float_voltage')
                       %}  {%- set uvpr =
-                      states('sensor.esp32_s3_jk_bms_1_cell_undervoltage_protection_recovery')
+                      states('sensor.yambms_jk_bms_1_cell_undervoltage_protection_recovery')
                       %}  {%- set soc0 =
-                      states('sensor.esp32_s3_jk_bms_1_cell_soc0_voltage') %} 
+                      states('sensor.yambms_jk_bms_1_cell_soc0_voltage') %} 
                       {%- set uvp =
-                      states('sensor.esp32_s3_jk_bms_1_cell_undervoltage_protection')
+                      states('sensor.yambms_jk_bms_1_cell_undervoltage_protection')
                       %}  {%- set poff =
-                      states('sensor.esp32_s3_jk_bms_1_cell_power_off_voltage')
+                      states('sensor.yambms_jk_bms_1_cell_power_off_voltage')
                       %}  {%- set rcvt =
-                      states('sensor.esp32_s3_jk_bms_1_cell_request_charge_voltage_time')
+                      states('sensor.yambms_jk_bms_1_cell_request_charge_voltage_time')
                       %}     {%- set rfvt =
-                      states('sensor.esp32_s3_jk_bms_1_cell_request_float_voltage_time') 
+                      states('sensor.yambms_jk_bms_1_cell_request_float_voltage_time') 
                       %}    {%- set TimeOVPR =
-                      states('sensor.esp32_s3_jk_bms_1_cell_overvoltage_protection_release_time') 
+                      states('sensor.yambms_jk_bms_1_cell_overvoltage_protection_release_time') 
                       %}  {%- set TimeUVPR =
-                      states('sensor.esp32_s3_jk_bms_1_cell_undervoltage_protection_release_time') 
+                      states('sensor.yambms_jk_bms_1_cell_undervoltage_protection_release_time') 
                       %} 
 
 
@@ -588,39 +605,39 @@ views:
                       green(s) %} <font color=#41CD52 family=Consolas> {{ s }}
                       </font> {%- endmacro %} <div>    {{ pad_right(14, 'MOS 
                       Temp.:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_powertube')
+                      green(states('sensor.yambms_jk_bms_1_temperature_powertube')
                       + ' °C') }} <br>  {{ pad_right(15, 'Battery T1:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_1')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_1')
                       +  ' °C') }} <br>  {{ pad_right(15, 'Battery T2:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_2')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_2')
                       +  ' °C') }} <br>  {{ pad_right(15, 'Battery T3:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_3')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_3')
                       +  ' °C') }}<br>  {{ pad_right(15, 'Battery T4:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_4')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_4')
                       +  ' °C') }}           <br>  {{ pad_right(15, 'Battery
                       T5:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_temperature_sensor_5')
+                      green(states('sensor.yambms_jk_bms_1_temperature_sensor_5')
                       +  ' °C') }}</div>
                   - type: markdown
                     content: >-
                       {%- set min_idx =
-                      states('sensor.esp32_s3_jk_bms_1_cell_voltage_min_cell_number')
+                      states('sensor.yambms_jk_bms_1_cell_voltage_min_cell_number')
                       %} 
 
                       {%- set max_idx =
-                      states('sensor.esp32_s3_jk_bms_1_cell_voltage_max_cell_number')
+                      states('sensor.yambms_jk_bms_1_cell_voltage_max_cell_number')
                       %}  
 
                       {%- set min_idxr =
-                      states('sensor.esp32_s3_jk_bms_1_cell_resistance_min_cell_number')
+                      states('sensor.yambms_jk_bms_1_cell_resistance_min_cell_number')
                       %} 
 
                       {%- set max_idxr =
-                      states('sensor.esp32_s3_jk_bms_1_cell_resistance_max_cell_number')
+                      states('sensor.yambms_jk_bms_1_cell_resistance_max_cell_number')
                       %}  
 
                       {%- set delta =
-                      (states('sensor.esp32_s3_jk_bms_1_cell_delta_voltage')|float)
+                      (states('sensor.yambms_jk_bms_1_cell_delta_voltage')|float)
                       %}  
 
                       <table> <tr><td colspan=4><b>CELL
@@ -630,8 +647,8 @@ views:
                         {%- set is_min = 1 if ((min_idx | int) == (idx | int)) else 0 %}
                         {%- set is_maxr = 1 if ((max_idxr | int) == (idx | int)) else 0 %} 
                         {%- set is_minr = 1 if ((min_idxr | int) == (idx | int)) else 0 %}            
-                        {%- set cell_volt = states('sensor.esp32_s3_jk_bms_1_cell_voltage_%02d' % idx) %} 
-                        {%- set cell_resistance = states('sensor.esp32_s3_jk_bms_1_cell_resistance_%02d' % idx) %} 
+                        {%- set cell_volt = states('sensor.yambms_jk_bms_1_cell_voltage_%02d' % idx) %} 
+                        {%- set cell_resistance = states('sensor.yambms_jk_bms_1_cell_resistance_%02d' % idx) %} 
                         {%- set font_start = '<font color="#3090C7">' if is_max 
                             else '<font color="red">' if is_min 
                             else '' %} 
@@ -644,7 +661,7 @@ views:
                             else '' %}                 
                         <tr><td>{{ "%02d" % idx}}.</td><td width=55px>{{ font_start }} {{ cell_volt }} V {{ font_end -}} </td><td width=8px align="center">/</td><td>{{ font_start_resistance }} {{ cell_resistance |float * 1000 }} mΩ  {{ font_end_resistance }}</td><tr>{% endfor %}
                       </table> {%- set network_nodes_available =
-                      states('sensor.esp32_s3_jk_bms_1_network_nodes_available')
+                      states('sensor.yambms_jk_bms_1_network_nodes_available')
                       %}   <b>NET:{{network_nodes_available}}</b>&nbsp;&nbsp;
           - type: custom:stack-in-card
             keep:
@@ -667,12 +684,12 @@ views:
                       {% macro green(s) %} <font color=#41CD52 size=2
                       family=Consolas> {{ s }} </font> {%- endmacro %} <div>  
                       {{ pad_right(20, 'Cycle Capacity:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_battery_capacity_total_charging_cycle')
+                      green(states('sensor.yambms_jk_bms_1_battery_capacity_total_charging_cycle')
                       + " Ah") }}<br>    {{ pad_right(15, "Rem. Capacity:")
                       -}}    {{
-                      green(states('sensor.esp32_s3_jk_bms_1_battery_capacity_remaining')
+                      green(states('sensor.yambms_jk_bms_1_battery_capacity_remaining')
                       + " Ah") }} <br>{{ pad_right(20, "Total Capacity:") -}} {{
-                      green(states('sensor.esp32_s3_jk_bms_1_battery_capacity_total_setting')
+                      green(states('sensor.yambms_jk_bms_1_battery_capacity_total_setting')
                       + " Ah")}}</div>
                                 
                       </div>
@@ -683,16 +700,16 @@ views:
                       %} {%- endmacro %} {% macro green(s) %} <font
                       color=#41CD52 family=Consolas> {{ s }} </font> {%-
                       endmacro %} <div>  {{ pad_right(18, "SOC:") -}}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_battery_capacity_state_of_charge')
+                      green(states('sensor.yambms_jk_bms_1_battery_capacity_state_of_charge')
                       + ' %') }}<br>{{ pad_right(18, "SOH:") -}}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_battery_soh_valuation')
+                      green(states('sensor.yambms_jk_bms_1_battery_soh_valuation')
                       + ' %') }}<br>   {{ pad_right(18, 'Cycle Count:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_1_charging_cycles' )+
+                      green(states('sensor.yambms_jk_bms_1_charging_cycles' )+
                       ' cycles') }}<br>  
                        {{ pad_right(20, 'Balance Curr:') }}   
-                      {{green(states('sensor.esp32_s3_jk_bms_1_balancing_current')
+                      {{green(states('sensor.yambms_jk_bms_1_balancing_current')
                       + ' A') }}  <br>{{ pad_right(20, 'Balancing Trig.:') }}   
-                        {{green(states('sensor.esp32_s3_jk_bms_1_balancing_trigger_voltage') + ' V') }} 
+                        {{green(states('sensor.yambms_jk_bms_1_balancing_trigger_voltage') + ' V') }} 
                       </div>
       - type: vertical-stack
         cards:
@@ -709,11 +726,11 @@ views:
                   - type: markdown
                     content: >-
                       <center><font color=#3090C7 size=4>BMS_02 [{{
-                      states('sensor.esp32_s3_jk_bms_2_total_runtime_formatted')
+                      states('sensor.yambms_jk_bms_2_total_runtime_formatted')
                       | string }}]&nbsp;&nbsp;{{
-                      (states('sensor.esp32_s3_jk_bms_2_battery_capacity_state_of_charge')
+                      (states('sensor.yambms_jk_bms_2_battery_capacity_state_of_charge')
                       + ' %') }}   ({{
-                        (states('sensor.esp32_s3_jk_bms_2_battery_capacity_remaining')) }}Ah)
+                        (states('sensor.yambms_jk_bms_2_battery_capacity_remaining')) }}Ah)
                       </center>
               - type: grid
                 square: false
@@ -722,7 +739,7 @@ views:
                   - type: markdown
                     content: >-
                       {%- set online =
-                      states('binary_sensor.esp32_s3_jk_bms_2_status_online')
+                      states('binary_sensor.yambms_jk_bms_2_status_online')
                       %}                      
 
                       {%- set is_working = "online" if (online|bool) else
@@ -739,7 +756,7 @@ views:
 
 
                       {%- set precharging =
-                      states('binary_sensor.esp32_s3_jk_bms_2_status_precharging')
+                      states('binary_sensor.yambms_jk_bms_2_status_precharging')
                       %}                      
 
                       {%- set is_working = "working" if (precharging|bool) else
@@ -756,7 +773,7 @@ views:
 
 
                       {%- set heating =
-                      states('binary_sensor.esp32_s3_jk_bms_2_status_heating')
+                      states('binary_sensor.yambms_jk_bms_2_status_heating')
                       %}                      
 
                       {%- set is_working = "working" if (heating|bool) else
@@ -773,7 +790,7 @@ views:
                   - type: markdown
                     content: >-
                       {%- set charging =
-                      states('binary_sensor.esp32_s3_jk_bms_2_status_charging')
+                      states('binary_sensor.yambms_jk_bms_2_status_charging')
                       %}                         
 
                       {%- set is_working = "working" if (charging|bool) else
@@ -790,7 +807,7 @@ views:
 
 
                       {%- set discharging =
-                      states('binary_sensor.esp32_s3_jk_bms_2_status_discharging')
+                      states('binary_sensor.yambms_jk_bms_2_status_discharging')
                       %}                         
 
                       {%- set is_working = "working" if (discharging|bool) else
@@ -806,7 +823,7 @@ views:
                       font_end -}}
                         
                       {%- set balancing_direction =
-                      states('sensor.esp32_s3_jk_bms_2_balancing_direction')%}  
+                      states('sensor.yambms_jk_bms_2_balancing_direction')%}  
                       {%- set is_working = "charging" if
                       (balancing_direction|int)>0 
                             else "discharging" if (balancing_direction|int)<0 
@@ -832,11 +849,11 @@ views:
                   - type: markdown
                     content: >-
                       {%- set power_draw =
-                      states('sensor.esp32_s3_jk_bms_2_battery_power')|float %} 
+                      states('sensor.yambms_jk_bms_2_battery_power')|float %} 
                       {%- set power_charging =
-                      states('sensor.esp32_s3_jk_bms_2_battery_power_charging')|float
+                      states('sensor.yambms_jk_bms_2_battery_power_charging')|float
                       %}  {%- set power_discharging =
-                      states('sensor.esp32_s3_jk_bms_2_battery_power_discharging')|float
+                      states('sensor.yambms_jk_bms_2_battery_power_discharging')|float
                       %} 
 
                       {%- set power_label = "(charging)" if (power_charging)>0 
@@ -874,7 +891,7 @@ views:
                   - type: markdown
                     content: >-
                       <center><b><font color=#41CD52
-                      size=6>{{states('sensor.esp32_s3_jk_bms_2_battery_voltage')
+                      size=6>{{states('sensor.yambms_jk_bms_2_battery_voltage')
                       }}V</font></b><br> </center>   {% macro pad_right(w, s) %}
                       {{ s }} {% set slen =  w - (s|length) %} 
                         {% for idx in range(slen)%} &nbsp; {%endfor %}
@@ -886,7 +903,7 @@ views:
                   - type: markdown
                     content: >-
                       <center><b><font color=#41CD52 size=6>{{
-                      states('sensor.esp32_s3_jk_bms_2_battery_current') }}
+                      states('sensor.yambms_jk_bms_2_battery_current') }}
                       A</font></b><br> </center> {% macro pad_right(w, s) %}  {{
                       s }} {% set slen =  w - (s|length) %} {% for idx in
                       range(slen)%} &nbsp; {%endfor %} {%- endmacro %} {% macro
@@ -905,35 +922,35 @@ views:
                   - type: markdown
                     content: >-
                       <div> {%- set ovp =
-                      states('sensor.esp32_s3_jk_bms_2_cell_overvoltage_protection')
+                      states('sensor.yambms_jk_bms_2_cell_overvoltage_protection')
                       %}  {%- set slv =
-                      states('sensor.esp32_s3_jk_bms_2_cell_smart_sleep_voltage')
+                      states('sensor.yambms_jk_bms_2_cell_smart_sleep_voltage')
                       %}  {%- set rcv =
-                      states('sensor.esp32_s3_jk_bms_2_cell_request_charge_voltage')
+                      states('sensor.yambms_jk_bms_2_cell_request_charge_voltage')
                       %}  {%- set bsv =
-                      states('sensor.esp32_s3_jk_bms_2_cell_balancing_starting_voltage')
+                      states('sensor.yambms_jk_bms_2_cell_balancing_starting_voltage')
                       %}  {%- set soc100 =
-                      states('sensor.esp32_s3_jk_bms_2_cell_soc100_voltage') %} 
+                      states('sensor.yambms_jk_bms_2_cell_soc100_voltage') %} 
                       {%- set ovpr =
-                      states('sensor.esp32_s3_jk_bms_2_cell_overvoltage_protection_recovery')
+                      states('sensor.yambms_jk_bms_2_cell_overvoltage_protection_recovery')
                       %}  {%- set rfv =
-                      states('sensor.esp32_s3_jk_bms_2_cell_request_float_voltage')
+                      states('sensor.yambms_jk_bms_2_cell_request_float_voltage')
                       %}  {%- set uvpr =
-                      states('sensor.esp32_s3_jk_bms_2_cell_undervoltage_protection_recovery')
+                      states('sensor.yambms_jk_bms_2_cell_undervoltage_protection_recovery')
                       %}  {%- set soc0 =
-                      states('sensor.esp32_s3_jk_bms_2_cell_soc0_voltage') %} 
+                      states('sensor.yambms_jk_bms_2_cell_soc0_voltage') %} 
                       {%- set uvp =
-                      states('sensor.esp32_s3_jk_bms_2_cell_undervoltage_protection')
+                      states('sensor.yambms_jk_bms_2_cell_undervoltage_protection')
                       %}  {%- set poff =
-                      states('sensor.esp32_s3_jk_bms_2_cell_power_off_voltage')
+                      states('sensor.yambms_jk_bms_2_cell_power_off_voltage')
                       %}  {%- set rcvt =
-                      states('sensor.esp32_s3_jk_bms_2_cell_request_charge_voltage_time')
+                      states('sensor.yambms_jk_bms_2_cell_request_charge_voltage_time')
                       %}     {%- set rfvt =
-                      states('sensor.esp32_s3_jk_bms_2_cell_request_float_voltage_time') 
+                      states('sensor.yambms_jk_bms_2_cell_request_float_voltage_time') 
                       %}    {%- set TimeOVPR =
-                      states('sensor.esp32_s3_jk_bms_2_cell_overvoltage_protection_release_time') 
+                      states('sensor.yambms_jk_bms_2_cell_overvoltage_protection_release_time') 
                       %}  {%- set TimeUVPR =
-                      states('sensor.esp32_s3_jk_bms_2_cell_undervoltage_protection_release_time') 
+                      states('sensor.yambms_jk_bms_2_cell_undervoltage_protection_release_time') 
                       %} 
 
 
@@ -962,39 +979,39 @@ views:
                       green(s) %} <font color=#41CD52 family=Consolas> {{ s }}
                       </font> {%- endmacro %} <div>    {{ pad_right(14, 'MOS 
                       Temp.:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_powertube')
+                      green(states('sensor.yambms_jk_bms_2_temperature_powertube')
                       + ' °C') }} <br>  {{ pad_right(15, 'Battery T1:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_1')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_1')
                       +  ' °C') }} <br>  {{ pad_right(15, 'Battery T2:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_2')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_2')
                       +  ' °C') }} <br>  {{ pad_right(15, 'Battery T3:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_3')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_3')
                       +  ' °C') }}<br>  {{ pad_right(15, 'Battery T4:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_4')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_4')
                       +  ' °C') }}           <br>  {{ pad_right(15, 'Battery
                       T5:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_temperature_sensor_5')
+                      green(states('sensor.yambms_jk_bms_2_temperature_sensor_5')
                       +  ' °C') }}</div>
                   - type: markdown
                     content: >-
                       {%- set min_idx =
-                      states('sensor.esp32_s3_jk_bms_2_cell_voltage_min_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_voltage_min_cell_number')
                       %} 
 
                       {%- set max_idx =
-                      states('sensor.esp32_s3_jk_bms_2_cell_voltage_max_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_voltage_max_cell_number')
                       %}  
 
                       {%- set min_idxr =
-                      states('sensor.esp32_s3_jk_bms_2_cell_resistance_min_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_resistance_min_cell_number')
                       %} 
 
                       {%- set max_idxr =
-                      states('sensor.esp32_s3_jk_bms_2_cell_resistance_max_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_resistance_max_cell_number')
                       %}  
 
                       {%- set delta =
-                      (states('sensor.esp32_s3_jk_bms_2_cell_delta_voltage')|float)
+                      (states('sensor.yambms_jk_bms_2_cell_delta_voltage')|float)
                       %}  
 
                       <table> <tr><td colspan=4><b>CELL
@@ -1004,8 +1021,8 @@ views:
                         {%- set is_min = 1 if ((min_idx | int) == (idx | int)) else 0 %}
                         {%- set is_maxr = 1 if ((max_idxr | int) == (idx | int)) else 0 %} 
                         {%- set is_minr = 1 if ((min_idxr | int) == (idx | int)) else 0 %}            
-                        {%- set cell_volt = states('sensor.esp32_s3_jk_bms_2_cell_voltage_%02d' % idx) %} 
-                        {%- set cell_resistance = states('sensor.esp32_s3_jk_bms_2_cell_resistance_%02d' % idx) %} 
+                        {%- set cell_volt = states('sensor.yambms_jk_bms_2_cell_voltage_%02d' % idx) %} 
+                        {%- set cell_resistance = states('sensor.yambms_jk_bms_2_cell_resistance_%02d' % idx) %} 
                         {%- set font_start = '<font color="#3090C7">' if is_max 
                             else '<font color="red">' if is_min 
                             else '' %} 
@@ -1018,7 +1035,7 @@ views:
                             else '' %}                 
                         <tr><td>{{ "%02d" % idx}}.</td><td width=55px>{{ font_start }} {{ cell_volt }} V {{ font_end -}} </td><td width=8px align="center">/</td><td>{{ font_start_resistance }} {{ cell_resistance |float * 1000 }} mΩ  {{ font_end_resistance }}</td><tr>{% endfor %}
                       </table> {%- set network_nodes_available =
-                      states('sensor.esp32_s3_jk_bms_2_network_nodes_available')
+                      states('sensor.yambms_jk_bms_2_network_nodes_available')
                       %}   <b>NET:{{network_nodes_available}}</b>&nbsp;&nbsp;
           - type: custom:stack-in-card
             keep:
@@ -1041,12 +1058,12 @@ views:
                       {% macro green(s) %} <font color=#41CD52 size=2
                       family=Consolas> {{ s }} </font> {%- endmacro %} <div>  
                       {{ pad_right(20, 'Cycle Capacity:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_battery_capacity_total_charging_cycle')
+                      green(states('sensor.yambms_jk_bms_2_battery_capacity_total_charging_cycle')
                       + " Ah") }}<br>    {{ pad_right(15, "Rem. Capacity:")
                       -}}    {{
-                      green(states('sensor.esp32_s3_jk_bms_2_battery_capacity_remaining')
+                      green(states('sensor.yambms_jk_bms_2_battery_capacity_remaining')
                       + " Ah") }} <br>{{ pad_right(20, "Total Capacity:") -}} {{
-                      green(states('sensor.esp32_s3_jk_bms_2_battery_capacity_total_setting')
+                      green(states('sensor.yambms_jk_bms_2_battery_capacity_total_setting')
                       + " Ah")}}</div>
                                 
                       </div>
@@ -1057,16 +1074,16 @@ views:
                       %} {%- endmacro %} {% macro green(s) %} <font
                       color=#41CD52 family=Consolas> {{ s }} </font> {%-
                       endmacro %} <div>  {{ pad_right(18, "SOC:") -}}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_battery_capacity_state_of_charge')
+                      green(states('sensor.yambms_jk_bms_2_battery_capacity_state_of_charge')
                       + ' %') }}<br>{{ pad_right(18, "SOH:") -}}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_battery_soh_valuation')
+                      green(states('sensor.yambms_jk_bms_2_battery_soh_valuation')
                       + ' %') }}<br>   {{ pad_right(18, 'Cycle Count:') }}  {{
-                      green(states('sensor.esp32_s3_jk_bms_2_charging_cycles' )+
+                      green(states('sensor.yambms_jk_bms_2_charging_cycles' )+
                       ' cycles') }}<br>  
                        {{ pad_right(20, 'Balance Curr:') }}   
-                      {{green(states('sensor.esp32_s3_jk_bms_2_balancing_current')
+                      {{green(states('sensor.yambms_jk_bms_2_balancing_current')
                       + ' A') }}  <br>{{ pad_right(20, 'Balancing Trig.:') }}   
-                        {{green(states('sensor.esp32_s3_jk_bms_2_balancing_trigger_voltage') + ' V') }} 
+                        {{green(states('sensor.yambms_jk_bms_2_balancing_trigger_voltage') + ' V') }} 
                       </div>
   - title: BMS1 (cells)
     cards:
@@ -1089,7 +1106,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_01
+        entity: sensor.yambms_jk_bms_1_cell_voltage_01
       - type: gauge
         needle: true
         max: 3.65
@@ -1109,7 +1126,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_05
+        entity: sensor.yambms_jk_bms_1_cell_voltage_05
       - type: gauge
         needle: true
         max: 3.65
@@ -1129,7 +1146,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_02
+        entity: sensor.yambms_jk_bms_1_cell_voltage_02
       - type: gauge
         needle: true
         max: 3.65
@@ -1149,7 +1166,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_06
+        entity: sensor.yambms_jk_bms_1_cell_voltage_06
       - type: gauge
         needle: true
         max: 3.65
@@ -1169,7 +1186,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_03
+        entity: sensor.yambms_jk_bms_1_cell_voltage_03
       - type: gauge
         needle: true
         max: 3.65
@@ -1189,7 +1206,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_07
+        entity: sensor.yambms_jk_bms_1_cell_voltage_07
       - type: gauge
         needle: true
         max: 3.65
@@ -1209,7 +1226,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_04
+        entity: sensor.yambms_jk_bms_1_cell_voltage_04
       - type: gauge
         needle: true
         max: 3.65
@@ -1229,7 +1246,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_08
+        entity: sensor.yambms_jk_bms_1_cell_voltage_08
       - type: gauge
         needle: true
         max: 3.65
@@ -1249,7 +1266,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_09
+        entity: sensor.yambms_jk_bms_1_cell_voltage_09
       - type: gauge
         needle: true
         max: 3.65
@@ -1269,7 +1286,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_10
+        entity: sensor.yambms_jk_bms_1_cell_voltage_10
       - type: gauge
         needle: true
         max: 3.65
@@ -1289,7 +1306,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_11
+        entity: sensor.yambms_jk_bms_1_cell_voltage_11
       - type: gauge
         needle: true
         max: 3.65
@@ -1309,7 +1326,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_12
+        entity: sensor.yambms_jk_bms_1_cell_voltage_12
       - type: gauge
         needle: true
         max: 3.65
@@ -1329,7 +1346,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_13
+        entity: sensor.yambms_jk_bms_1_cell_voltage_13
       - type: gauge
         needle: true
         max: 3.65
@@ -1349,7 +1366,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_14
+        entity: sensor.yambms_jk_bms_1_cell_voltage_14
       - type: gauge
         needle: true
         max: 3.65
@@ -1369,7 +1386,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_15
+        entity: sensor.yambms_jk_bms_1_cell_voltage_15
       - type: gauge
         needle: true
         max: 3.65
@@ -1389,15 +1406,15 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_16
+        entity: sensor.yambms_jk_bms_1_cell_voltage_16
       - graph: line
         type: sensor
         detail: 1
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_max_cell_number
+        entity: sensor.yambms_jk_bms_1_cell_voltage_max_cell_number
       - graph: line
         type: sensor
         detail: 1
-        entity: sensor.esp32_s3_jk_bms_1_cell_voltage_min_cell_number
+        entity: sensor.yambms_jk_bms_1_cell_voltage_min_cell_number
   - title: BMS2(cells)
     cards:
       - type: gauge
@@ -1419,7 +1436,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_01
+        entity: sensor.yambms_jk_bms_2_cell_voltage_01
       - type: gauge
         needle: true
         max: 3.65
@@ -1439,7 +1456,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_05
+        entity: sensor.yambms_jk_bms_2_cell_voltage_05
       - type: gauge
         needle: true
         max: 3.65
@@ -1459,7 +1476,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_02
+        entity: sensor.yambms_jk_bms_2_cell_voltage_02
       - type: gauge
         needle: true
         max: 3.65
@@ -1479,7 +1496,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_06
+        entity: sensor.yambms_jk_bms_2_cell_voltage_06
       - type: gauge
         needle: true
         max: 3.65
@@ -1499,7 +1516,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_03
+        entity: sensor.yambms_jk_bms_2_cell_voltage_03
       - type: gauge
         needle: true
         max: 3.65
@@ -1519,7 +1536,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_07
+        entity: sensor.yambms_jk_bms_2_cell_voltage_07
       - type: gauge
         needle: true
         max: 3.65
@@ -1539,7 +1556,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_04
+        entity: sensor.yambms_jk_bms_2_cell_voltage_04
       - type: gauge
         needle: true
         max: 3.65
@@ -1559,7 +1576,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_08
+        entity: sensor.yambms_jk_bms_2_cell_voltage_08
       - type: gauge
         needle: true
         max: 3.65
@@ -1579,7 +1596,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_09
+        entity: sensor.yambms_jk_bms_2_cell_voltage_09
       - type: gauge
         needle: true
         max: 3.65
@@ -1599,7 +1616,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_10
+        entity: sensor.yambms_jk_bms_2_cell_voltage_10
       - type: gauge
         needle: true
         max: 3.65
@@ -1619,7 +1636,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_11
+        entity: sensor.yambms_jk_bms_2_cell_voltage_11
       - type: gauge
         needle: true
         max: 3.65
@@ -1639,7 +1656,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_12
+        entity: sensor.yambms_jk_bms_2_cell_voltage_12
       - type: gauge
         needle: true
         max: 3.65
@@ -1659,7 +1676,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_13
+        entity: sensor.yambms_jk_bms_2_cell_voltage_13
       - type: gauge
         needle: true
         max: 3.65
@@ -1679,7 +1696,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_14
+        entity: sensor.yambms_jk_bms_2_cell_voltage_14
       - type: gauge
         needle: true
         max: 3.65
@@ -1699,7 +1716,7 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_15
+        entity: sensor.yambms_jk_bms_2_cell_voltage_15
       - type: gauge
         needle: true
         max: 3.65
@@ -1719,15 +1736,15 @@ views:
             color: '#ffa600'
           - from: 3.65
             color: '#db4437'
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_16
+        entity: sensor.yambms_jk_bms_2_cell_voltage_16
       - graph: line
         type: sensor
         detail: 1
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_max_cell_number
+        entity: sensor.yambms_jk_bms_2_cell_voltage_max_cell_number
       - graph: line
         type: sensor
         detail: 1
-        entity: sensor.esp32_s3_jk_bms_2_cell_voltage_min_cell_number
+        entity: sensor.yambms_jk_bms_2_cell_voltage_min_cell_number
   - path: bms0_settings
     title: BMS1 (SETTINGS)
     icon: ''
@@ -1744,27 +1761,27 @@ views:
             cards:
               - type: markdown
                 content: >-
-                  {%- set vid = states('sensor.esp32_s3_jk_bms_1_info_vendorid')
+                  {%- set vid = states('sensor.yambms_jk_bms_1_info_vendorid')
                   %} {%- set swv =
-                  states('sensor.esp32_s3_jk_bms_1_info_software_version') %}
+                  states('sensor.yambms_jk_bms_1_info_software_version') %}
                   {%- set hwv =
-                  states('sensor.esp32_s3_jk_bms_1_info_hardware_version') %}
+                  states('sensor.yambms_jk_bms_1_info_hardware_version') %}
                   {%- set dna =
-                  states('sensor.esp32_s3_jk_bms_1_info_device_name') %} {%- set
+                  states('sensor.yambms_jk_bms_1_info_device_name') %} {%- set
                   dsn =
-                  states('sensor.esp32_s3_jk_bms_1_info_device_serial_number')
+                  states('sensor.yambms_jk_bms_1_info_device_serial_number')
                   %}               {%- set pin =
-                  states('sensor.esp32_s3_jk_bms_1_info_device_password') %} 
+                  states('sensor.yambms_jk_bms_1_info_device_password') %} 
                   {%- set settings_pin =
-                  states('sensor.esp32_s3_jk_bms_1_info_device_setup_passcode')
+                  states('sensor.yambms_jk_bms_1_info_device_setup_passcode')
                   %} {%- set uart1 =
-                  states('sensor.esp32_s3_jk_bms_1_uart1_protocol_number') %} 
+                  states('sensor.yambms_jk_bms_1_uart1_protocol_number') %} 
                   {%- set uart2 =
-                  states('sensor.esp32_s3_jk_bms_1_uart2_protocol_number') %}
+                  states('sensor.yambms_jk_bms_1_uart2_protocol_number') %}
                   {%- set cell_number_settings =
-                  states('sensor.esp32_s3_jk_bms_1_cell_count_settings') %} {%-
+                  states('sensor.yambms_jk_bms_1_cell_count_settings') %} {%-
                   set cell_number_real =
-                  states('sensor.esp32_s3_jk_bms_1_cell_count_real') %} <table>
+                  states('sensor.yambms_jk_bms_1_cell_count_real') %} <table>
                   <tr><td colspan=2><b>BMS INFO:</b></td></tr>
                   <tr><td>VendorID:</td><td>{{vid}}</tr> <tr><td>HARD
                   ver:</td><td>{{swv}}</tr> <tr><td>SOFT
@@ -1782,47 +1799,47 @@ views:
               - type: markdown
                 content: >-
                   {%- set min_idx =
-                  states('sensor.esp32_s3_jk_bms_1_cell_voltage_min_cell_number')
+                  states('sensor.yambms_jk_bms_1_cell_voltage_min_cell_number')
                   %} 
 
                   {%- set max_idx =
-                  states('sensor.esp32_s3_jk_bms_1_cell_voltage_max_cell_number')
+                  states('sensor.yambms_jk_bms_1_cell_voltage_max_cell_number')
                   %}  
 
                   {%- set delta =
-                  (states('sensor.esp32_s3_jk_bms_1_cell_delta_voltage')|float)
+                  (states('sensor.yambms_jk_bms_1_cell_delta_voltage')|float)
                   %}  
 
                   <table> <tr><td colspan=4><b>NETWORK
                   DEVICES:</b>&nbsp;&nbsp;</td></tr> <tr><td>{%- set
                   network_nodes_available =
-                  states('sensor.esp32_s3_jk_bms_1_network_nodes_available') %} 
+                  states('sensor.yambms_jk_bms_1_network_nodes_available') %} 
                   </td></tr></table>
 
                   {{network_nodes_available}}</b>&nbsp;&nbsp;
       - type: entities
         entities:
-          - entity: switch.esp32_s3_jk_bms_1_charging
+          - entity: switch.yambms_jk_bms_1_charging
             name: CHARGE
-          - entity: switch.esp32_s3_jk_bms_1_discharging
+          - entity: switch.yambms_jk_bms_1_discharging
             name: DISCHARGE
-          - entity: switch.esp32_s3_jk_bms_1_balancing
+          - entity: switch.yambms_jk_bms_1_balancing
             name: BALANCING
-          - entity: switch.esp32_s3_jk_bms_1_emergency
+          - entity: switch.yambms_jk_bms_1_emergency
             name: EMERGENCY
-          - entity: switch.esp32_s3_jk_bms_1_heating
+          - entity: switch.yambms_jk_bms_1_heating
             name: HEATING
-          - entity: switch.esp32_s3_jk_bms_1_disable_temperature_sensors
+          - entity: switch.yambms_jk_bms_1_disable_temperature_sensors
             name: DISABLE TEMPERATURE SENSORS
-          - entity: switch.esp32_s3_jk_bms_1_display_always_on
+          - entity: switch.yambms_jk_bms_1_display_always_on
             name: DISPLAY ALWAYS ON
-          - entity: switch.esp32_s3_jk_bms_1_smart_sleep_on
+          - entity: switch.yambms_jk_bms_1_smart_sleep_on
             name: SMART SLEEP ON
-          - entity: switch.esp32_s3_jk_bms_1_disable_pcl_module
+          - entity: switch.yambms_jk_bms_1_disable_pcl_module
             name: DISABLE PCL MODULE
-          - entity: switch.esp32_s3_jk_bms_1_timed_stored_data
+          - entity: switch.yambms_jk_bms_1_timed_stored_data
             name: TIMED_STORED_DATA
-          - entity: switch.esp32_s3_jk_bms_1_charging_float_mode
+          - entity: switch.yambms_jk_bms_1_charging_float_mode
             name: CHARGE FLOAT MODE
         title: Switch (Read Only)
         show_header_toggle: false
@@ -1841,9 +1858,9 @@ views:
                   - type: markdown
                     content: |-
                       <center>
-                        {%- set alarm_active = states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_active')|int %}
+                        {%- set alarm_active = states('sensor.yambms_jk_bms_1_battery_total_alarms_active')|int %}
                         {%- set alarm_active = 0 %}                
-                        {%- set alarm_count = states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_count')|int %}
+                        {%- set alarm_count = states('sensor.yambms_jk_bms_1_battery_total_alarms_count')|int %}
                         {%- set alarm_label = '<font size=4>ALARMS BMS_00</font>' if alarm_active==0
                             else '<b><font size=5 color=red>ALARMS BMS_00</font></b>' %}
                         {{alarm_label}} ({{ alarm_active }}/{{ alarm_count -}})<br></center>
@@ -1854,11 +1871,11 @@ views:
                   - type: markdown
                     content: >-
                       {%- set alarm_active =
-                      states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_active')|int
+                      states('sensor.yambms_jk_bms_1_battery_total_alarms_active')|int
                       %}
 
                       {%- set alarm_count =
-                      states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_count')|int
+                      states('sensor.yambms_jk_bms_1_battery_total_alarms_count')|int
                       %}
 
                       {%- set alarm_active = 0 %} 
@@ -1869,7 +1886,7 @@ views:
                       {{ alarms_label }}    
 
                       <center>  {% for state in states -%} 
-                        {% if state.entity_id.startswith('binary_sensor.esp32_s3_jk_bms_1_alarm_') and state.state!="off" %}
+                        {% if state.entity_id.startswith('binary_sensor.yambms_jk_bms_1_alarm_') and state.state!="off" %}
                           {% set last_word = state.name.split()[-1] | string %}
                           {% set last_status = state.state %}
                           {%- set font_start = '<font color="#3090C7">' if last_status=="off"
@@ -1887,9 +1904,9 @@ views:
               - type: markdown
                 content: |-
                   <center>
-                    {%- set alarm_active = states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_active')|int %}
+                    {%- set alarm_active = states('sensor.yambms_jk_bms_2_battery_total_alarms_active')|int %}
                     {%- set alarm_active = 0 %}                
-                    {%- set alarm_count = states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_count')|int %}
+                    {%- set alarm_count = states('sensor.yambms_jk_bms_2_battery_total_alarms_count')|int %}
                     {%- set alarm_label = '<font size=4>ALARMS BMS_01</font>' if alarm_active==0
                         else '<b><font size=5 color=red>ALARMS BMS_01</font></b>' %}
                     {{alarm_label}} ({{ alarm_active }}/{{ alarm_count -}})<br></center>
@@ -1900,11 +1917,11 @@ views:
               - type: markdown
                 content: >-
                   {%- set alarm_active =
-                  states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_active')|int
+                  states('sensor.yambms_jk_bms_2_battery_total_alarms_active')|int
                   %}
 
                   {%- set alarm_count =
-                  states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_count')|int
+                  states('sensor.yambms_jk_bms_2_battery_total_alarms_count')|int
                   %}
 
                   {%- set alarm_active = 0 %} 
@@ -1915,7 +1932,7 @@ views:
                   {{ alarms_label }}    
 
                   <center>  {% for state in states -%} 
-                    {% if state.entity_id.startswith('binary_sensor.esp32_s3_jk_bms_2_alarm_') and state.state!="off" %}
+                    {% if state.entity_id.startswith('binary_sensor.yambms_jk_bms_2_alarm_') and state.state!="off" %}
                       {% set last_word = state.name.split()[-1] | string %}
                       {% set last_status = state.state %}
                       {%- set font_start = '<font color="#3090C7">' if last_status=="off"
@@ -1945,27 +1962,27 @@ views:
                   - type: markdown
                     content: >-
                       {%- set vid =
-                      states('sensor.esp32_s3_jk_bms_2_info_vendorid') %} {%-
+                      states('sensor.yambms_jk_bms_2_info_vendorid') %} {%-
                       set swv =
-                      states('sensor.esp32_s3_jk_bms_2_info_software_version')
+                      states('sensor.yambms_jk_bms_2_info_software_version')
                       %} {%- set hwv =
-                      states('sensor.esp32_s3_jk_bms_2_info_hardware_version')
+                      states('sensor.yambms_jk_bms_2_info_hardware_version')
                       %} {%- set dna =
-                      states('sensor.esp32_s3_jk_bms_2_info_device_name') %} {%-
+                      states('sensor.yambms_jk_bms_2_info_device_name') %} {%-
                       set dsn =
-                      states('sensor.esp32_s3_jk_bms_2_info_device_serial_number')
+                      states('sensor.yambms_jk_bms_2_info_device_serial_number')
                       %}               {%- set pin =
-                      states('sensor.esp32_s3_jk_bms_2_info_device_password')
+                      states('sensor.yambms_jk_bms_2_info_device_password')
                       %}  {%- set settings_pin =
-                      states('sensor.esp32_s3_jk_bms_2_info_device_setup_passcode')
+                      states('sensor.yambms_jk_bms_2_info_device_setup_passcode')
                       %} {%- set uart1 =
-                      states('sensor.esp32_s3_jk_bms_2_uart1_protocol_number')
+                      states('sensor.yambms_jk_bms_2_uart1_protocol_number')
                       %}  {%- set uart2 =
-                      states('sensor.esp32_s3_jk_bms_2_uart2_protocol_number')
+                      states('sensor.yambms_jk_bms_2_uart2_protocol_number')
                       %} {%- set cell_number_settings =
-                      states('sensor.esp32_s3_jk_bms_2_cell_count_settings') %}
+                      states('sensor.yambms_jk_bms_2_cell_count_settings') %}
                       {%- set cell_number_real =
-                      states('sensor.esp32_s3_jk_bms_2_cell_count_real') %}
+                      states('sensor.yambms_jk_bms_2_cell_count_real') %}
                       <table> <tr><td colspan=2><b>BMS INFO:</b></td></tr>
                       <tr><td>VendorID:</td><td>{{vid}}</tr> <tr><td>HARD
                       ver:</td><td>{{swv}}</tr> <tr><td>SOFT
@@ -1984,47 +2001,47 @@ views:
                   - type: markdown
                     content: >-
                       {%- set min_idx =
-                      states('sensor.esp32_s3_jk_bms_2_cell_voltage_min_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_voltage_min_cell_number')
                       %} 
 
                       {%- set max_idx =
-                      states('sensor.esp32_s3_jk_bms_2_cell_voltage_max_cell_number')
+                      states('sensor.yambms_jk_bms_2_cell_voltage_max_cell_number')
                       %}  
 
                       {%- set delta =
-                      (states('sensor.esp32_s3_jk_bms_2_cell_delta_voltage')|float)
+                      (states('sensor.yambms_jk_bms_2_cell_delta_voltage')|float)
                       %}  
 
                       <table> <tr><td colspan=4><b>NETWORK
                       DEVICES:</b>&nbsp;&nbsp;</td></tr> <tr><td>{%- set
                       network_nodes_available =
-                      states('sensor.esp32_s3_jk_bms_2_network_nodes_available')
+                      states('sensor.yambms_jk_bms_2_network_nodes_available')
                       %}  </td></tr></table>
 
                       {{network_nodes_available}}</b>&nbsp;&nbsp;
       - type: entities
         entities:
-          - entity: switch.esp32_s3_jk_bms_2_charging
+          - entity: switch.yambms_jk_bms_2_charging
             name: CHARGE
-          - entity: switch.esp32_s3_jk_bms_2_discharging
+          - entity: switch.yambms_jk_bms_2_discharging
             name: DISCHARGE
-          - entity: switch.esp32_s3_jk_bms_2_balancing
+          - entity: switch.yambms_jk_bms_2_balancing
             name: BALANCING
-          - entity: switch.esp32_s3_jk_bms_2_emergency
+          - entity: switch.yambms_jk_bms_2_emergency
             name: EMERGENCY
-          - entity: switch.esp32_s3_jk_bms_2_heating
+          - entity: switch.yambms_jk_bms_2_heating
             name: HEATING
-          - entity: switch.esp32_s3_jk_bms_2_disable_temperature_sensors
+          - entity: switch.yambms_jk_bms_2_disable_temperature_sensors
             name: DISABLE TEMPERATURE SENSORS
-          - entity: switch.esp32_s3_jk_bms_2_display_always_on
+          - entity: switch.yambms_jk_bms_2_display_always_on
             name: DISPLAY ALWAYS ON
-          - entity: switch.esp32_s3_jk_bms_2_smart_sleep_on
+          - entity: switch.yambms_jk_bms_2_smart_sleep_on
             name: SMART SLEEP ON
-          - entity: switch.esp32_s3_jk_bms_2_disable_pcl_module
+          - entity: switch.yambms_jk_bms_2_disable_pcl_module
             name: DISABLE PCL MODULE
-          - entity: switch.esp32_s3_jk_bms_2_timed_stored_data
+          - entity: switch.yambms_jk_bms_2_timed_stored_data
             name: TIMED_STORED_DATA
-          - entity: switch.esp32_s3_jk_bms_2_charging_float_mode
+          - entity: switch.yambms_jk_bms_2_charging_float_mode
             name: CHARGE FLOAT MODE
         title: Switch (Read Only)
         show_header_toggle: false
@@ -2043,9 +2060,9 @@ views:
                   - type: markdown
                     content: |-
                       <center>
-                        {%- set alarm_active = states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_active')|int %}
+                        {%- set alarm_active = states('sensor.yambms_jk_bms_1_battery_total_alarms_active')|int %}
                         {%- set alarm_active = 0 %}                
-                        {%- set alarm_count = states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_count')|int %}
+                        {%- set alarm_count = states('sensor.yambms_jk_bms_1_battery_total_alarms_count')|int %}
                         {%- set alarm_label = '<font size=4>ALARMS BMS_00</font>' if alarm_active==0
                             else '<b><font size=5 color=red>ALARMS BMS_00</font></b>' %}
                         {{alarm_label}} ({{ alarm_active }}/{{ alarm_count -}})<br></center>
@@ -2056,11 +2073,11 @@ views:
                   - type: markdown
                     content: >-
                       {%- set alarm_active =
-                      states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_active')|int
+                      states('sensor.yambms_jk_bms_1_battery_total_alarms_active')|int
                       %}
 
                       {%- set alarm_count =
-                      states('sensor.esp32_s3_jk_bms_1_battery_total_alarms_count')|int
+                      states('sensor.yambms_jk_bms_1_battery_total_alarms_count')|int
                       %}
 
                       {%- set alarm_active = 0 %} 
@@ -2071,7 +2088,7 @@ views:
                       {{ alarms_label }}    
 
                       <center>  {% for state in states -%} 
-                        {% if state.entity_id.startswith('binary_sensor.esp32_s3_jk_bms_1_alarm_') and state.state!="off" %}
+                        {% if state.entity_id.startswith('binary_sensor.yambms_jk_bms_1_alarm_') and state.state!="off" %}
                           {% set last_word = state.name.split()[-1] | string %}
                           {% set last_status = state.state %}
                           {%- set font_start = '<font color="#3090C7">' if last_status=="off"
@@ -2089,9 +2106,9 @@ views:
               - type: markdown
                 content: |-
                   <center>
-                    {%- set alarm_active = states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_active')|int %}
+                    {%- set alarm_active = states('sensor.yambms_jk_bms_2_battery_total_alarms_active')|int %}
                     {%- set alarm_active = 0 %}                
-                    {%- set alarm_count = states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_count')|int %}
+                    {%- set alarm_count = states('sensor.yambms_jk_bms_2_battery_total_alarms_count')|int %}
                     {%- set alarm_label = '<font size=4>ALARMS BMS_01</font>' if alarm_active==0
                         else '<b><font size=5 color=red>ALARMS BMS_01</font></b>' %}
                     {{alarm_label}} ({{ alarm_active }}/{{ alarm_count -}})<br></center>
@@ -2102,11 +2119,11 @@ views:
               - type: markdown
                 content: >-
                   {%- set alarm_active =
-                  states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_active')|int
+                  states('sensor.yambms_jk_bms_2_battery_total_alarms_active')|int
                   %}
 
                   {%- set alarm_count =
-                  states('sensor.esp32_s3_jk_bms_2_battery_total_alarms_count')|int
+                  states('sensor.yambms_jk_bms_2_battery_total_alarms_count')|int
                   %}
 
                   {%- set alarm_active = 0 %} 
@@ -2117,7 +2134,7 @@ views:
                   {{ alarms_label }}    
 
                   <center>  {% for state in states -%} 
-                    {% if state.entity_id.startswith('binary_sensor.esp32_s3_jk_bms_2_alarm_') and state.state!="off" %}
+                    {% if state.entity_id.startswith('binary_sensor.yambms_jk_bms_2_alarm_') and state.state!="off" %}
                       {% set last_word = state.name.split()[-1] | string %}
                       {% set last_status = state.state %}
                       {%- set font_start = '<font color="#3090C7">' if last_status=="off"
@@ -2133,70 +2150,70 @@ views:
     cards:
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_1_mos_overtemperature_protection
+          - entity: sensor.yambms_jk_bms_1_mos_overtemperature_protection
             name: mos_overtemperature_protection
-          - entity: sensor.esp32_s3_jk_bms_1_mos_overtemperature_protection_recovery
+          - entity: sensor.yambms_jk_bms_1_mos_overtemperature_protection_recovery
             name: mos_overtemperature_protection_recovery
-          - entity: sensor.esp32_s3_jk_bms_1_charging_overtemperature_protection
+          - entity: sensor.yambms_jk_bms_1_charging_overtemperature_protection
             name: charging_overtemperature_protection
-          - entity: sensor.esp32_s3_jk_bms_1_discharging_overtemperature_protection
+          - entity: sensor.yambms_jk_bms_1_discharging_overtemperature_protection
             name: discharging_overtemperature_protection
           - entity: >-
-              sensor.esp32_s3_jk_bms_1_charging_overtemperature_protection_recovery
+              sensor.yambms_jk_bms_1_charging_overtemperature_protection_recovery
             name: charging_overtemperature_protection_recovery
           - entity: >-
-              sensor.esp32_s3_jk_bms_1_discharging_overtemperature_protection_recovery
+              sensor.yambms_jk_bms_1_discharging_overtemperature_protection_recovery
             name: discharging_overtemperature_protection_recovery
           - entity: >-
-              sensor.esp32_s3_jk_bms_1_charging_lowtemperature_protection_recovery
+              sensor.yambms_jk_bms_1_charging_lowtemperature_protection_recovery
             name: charging_lowtemperature_protection_recovery
-          - entity: sensor.esp32_s3_jk_bms_1_charging_lowtemperature_protection
+          - entity: sensor.yambms_jk_bms_1_charging_lowtemperature_protection
             name: charging_lowtemperature_protection
         title: TEMPERATURE
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_1_max_charging_current
+          - entity: sensor.yambms_jk_bms_1_max_charging_current
             name: max_charging_current
-          - entity: sensor.esp32_s3_jk_bms_1_charging_overcurrent_protection_delay
+          - entity: sensor.yambms_jk_bms_1_charging_overcurrent_protection_delay
             name: charging_overcurrent_protection_delay
           - entity: >-
-              sensor.esp32_s3_jk_bms_1_charging_overcurrent_protection_recovery_delay
+              sensor.yambms_jk_bms_1_charging_overcurrent_protection_recovery_delay
             name: charging_overcurrent_protection_recovery_delay
           - entity: >-
-              sensor.esp32_s3_jk_bms_1_charging_overcurrent_protection_release_time
+              sensor.yambms_jk_bms_1_charging_overcurrent_protection_release_time
             name: charging_overcurrent_protection_release_time
           - entity: >-
-              sensor.esp32_s3_jk_bms_1_charging_short_circuit_protection_release_time
+              sensor.yambms_jk_bms_1_charging_short_circuit_protection_release_time
             name: charging_short_circuit_protection_release_time
-          - entity: sensor.esp32_s3_jk_bms_1_precharging_time_from_discharge
+          - entity: sensor.yambms_jk_bms_1_precharging_time_from_discharge
             name: precharging_time_from_discharge
         title: CHARGING
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_1_max_discharging_current
+          - entity: sensor.yambms_jk_bms_1_max_discharging_current
             name: max_discharging_current
-          - entity: sensor.esp32_s3_jk_bms_1_discharging_overcurrent_protection_delay
+          - entity: sensor.yambms_jk_bms_1_discharging_overcurrent_protection_delay
             name: discharging_overcurrent_protection_delay
           - entity: >-
-              sensor.esp32_s3_jk_bms_1_discharging_overcurrent_protection_recovery_delay
+              sensor.yambms_jk_bms_1_discharging_overcurrent_protection_recovery_delay
             name: discharging_overcurrent_protection_recovery_delay
           - entity: >-
-              sensor.esp32_s3_jk_bms_1_discharging_overcurrent_protection_release_time
+              sensor.yambms_jk_bms_1_discharging_overcurrent_protection_release_time
             name: discharging_overcurrent_protection_release_time
           - entity: >-
-              sensor.esp32_s3_jk_bms_1_discharging_short_circuit_protection_release_time
+              sensor.yambms_jk_bms_1_discharging_short_circuit_protection_release_time
             name: discharging_short_circuit_protection_release_time
         title: DISCHARGING
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_1_short_circuit_protection_delay
+          - entity: sensor.yambms_jk_bms_1_short_circuit_protection_delay
             name: short_circuit_protection_delay
-          - entity: sensor.esp32_s3_jk_bms_1_short_circuit_protection_recovery_delay
+          - entity: sensor.yambms_jk_bms_1_short_circuit_protection_recovery_delay
             name: short_circuit_protection_recovery_delay
         title: SHORT CIRCUIT
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_1_max_balancing_current
+          - entity: sensor.yambms_jk_bms_1_max_balancing_current
             name: max_balancing_current
         title: BALANCING
   - title: BMS2 (PROTECTION)
@@ -2204,69 +2221,69 @@ views:
     cards:
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_2_mos_overtemperature_protection
+          - entity: sensor.yambms_jk_bms_2_mos_overtemperature_protection
             name: mos_overtemperature_protection
-          - entity: sensor.esp32_s3_jk_bms_2_mos_overtemperature_protection_recovery
+          - entity: sensor.yambms_jk_bms_2_mos_overtemperature_protection_recovery
             name: mos_overtemperature_protection_recovery
-          - entity: sensor.esp32_s3_jk_bms_2_charging_overtemperature_protection
+          - entity: sensor.yambms_jk_bms_2_charging_overtemperature_protection
             name: charging_overtemperature_protection
-          - entity: sensor.esp32_s3_jk_bms_2_discharging_overtemperature_protection
+          - entity: sensor.yambms_jk_bms_2_discharging_overtemperature_protection
             name: discharging_overtemperature_protection
           - entity: >-
-              sensor.esp32_s3_jk_bms_2_charging_overtemperature_protection_recovery
+              sensor.yambms_jk_bms_2_charging_overtemperature_protection_recovery
             name: charging_overtemperature_protection_recovery
           - entity: >-
-              sensor.esp32_s3_jk_bms_2_discharging_overtemperature_protection_recovery
+              sensor.yambms_jk_bms_2_discharging_overtemperature_protection_recovery
             name: discharging_overtemperature_protection_recovery
           - entity: >-
-              sensor.esp32_s3_jk_bms_2_charging_lowtemperature_protection_recovery
+              sensor.yambms_jk_bms_2_charging_lowtemperature_protection_recovery
             name: charging_lowtemperature_protection_recovery
-          - entity: sensor.esp32_s3_jk_bms_2_charging_lowtemperature_protection
+          - entity: sensor.yambms_jk_bms_2_charging_lowtemperature_protection
             name: charging_lowtemperature_protection
         title: TEMPERATURE
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_2_max_charging_current
+          - entity: sensor.yambms_jk_bms_2_max_charging_current
             name: max_charging_current
-          - entity: sensor.esp32_s3_jk_bms_2_charging_overcurrent_protection_delay
+          - entity: sensor.yambms_jk_bms_2_charging_overcurrent_protection_delay
             name: charging_overcurrent_protection_delay
           - entity: >-
-              sensor.esp32_s3_jk_bms_2_charging_overcurrent_protection_recovery_delay
+              sensor.yambms_jk_bms_2_charging_overcurrent_protection_recovery_delay
             name: charging_overcurrent_protection_recovery_delay
           - entity: >-
-              sensor.esp32_s3_jk_bms_2_charging_overcurrent_protection_release_time
+              sensor.yambms_jk_bms_2_charging_overcurrent_protection_release_time
             name: charging_overcurrent_protection_release_time
           - entity: >-
-              sensor.esp32_s3_jk_bms_2_charging_short_circuit_protection_release_time
+              sensor.yambms_jk_bms_2_charging_short_circuit_protection_release_time
             name: charging_short_circuit_protection_release_time
-          - entity: sensor.esp32_s3_jk_bms_2_precharging_time_from_discharge
+          - entity: sensor.yambms_jk_bms_2_precharging_time_from_discharge
             name: precharging_time_from_discharge
         title: CHARGING
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_2_max_discharging_current
+          - entity: sensor.yambms_jk_bms_2_max_discharging_current
             name: max_discharging_current
-          - entity: sensor.esp32_s3_jk_bms_2_discharging_overcurrent_protection_delay
+          - entity: sensor.yambms_jk_bms_2_discharging_overcurrent_protection_delay
             name: discharging_overcurrent_protection_delay
           - entity: >-
-              sensor.esp32_s3_jk_bms_2_discharging_overcurrent_protection_recovery_delay
+              sensor.yambms_jk_bms_2_discharging_overcurrent_protection_recovery_delay
             name: discharging_overcurrent_protection_recovery_delay
           - entity: >-
-              sensor.esp32_s3_jk_bms_2_discharging_overcurrent_protection_release_time
+              sensor.yambms_jk_bms_2_discharging_overcurrent_protection_release_time
             name: discharging_overcurrent_protection_release_time
           - entity: >-
-              sensor.esp32_s3_jk_bms_2_discharging_short_circuit_protection_release_time
+              sensor.yambms_jk_bms_2_discharging_short_circuit_protection_release_time
             name: discharging_short_circuit_protection_release_time
         title: DISCHARGING
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_2_short_circuit_protection_delay
+          - entity: sensor.yambms_jk_bms_2_short_circuit_protection_delay
             name: short_circuit_protection_delay
-          - entity: sensor.esp32_s3_jk_bms_2_short_circuit_protection_recovery_delay
+          - entity: sensor.yambms_jk_bms_2_short_circuit_protection_recovery_delay
             name: short_circuit_protection_recovery_delay
         title: SHORT CIRCUIT
       - type: entities
         entities:
-          - entity: sensor.esp32_s3_jk_bms_2_max_balancing_current
+          - entity: sensor.yambms_jk_bms_2_max_balancing_current
             name: max_balancing_current
         title: BALANCING
