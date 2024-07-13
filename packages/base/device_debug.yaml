@@ -1,0 +1,40 @@
+# Updated : 2024.07.11
+# Version : 1.3.2
+# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+# +----------------------------------------+
+# | Debug, logger must be at least "debug" |
+# +----------------------------------------+
+debug:
+  update_interval: 5s
+
+text_sensor:
+  - platform: debug
+    device:
+      name: ${name} Debug Device Info
+    reset_reason:
+      name: ${name} Debug Reset Reason
+
+sensor:
+  - platform: debug
+    free:
+      name: ${name} Debug Heap Free
+    block:
+      name: ${name} Debug Heap Max Block
+    loop_time:
+      name: ${name} Debug Loop Time
+#    psram:
+#      name: ${name} Debug Free PSRAM
