@@ -1,4 +1,4 @@
-# Updated : 2024.07.09
+# Updated : 2024.07.13
 # Version : 2.2.1
 # GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
 
@@ -559,13 +559,13 @@ interval:
                         
                         //                SMA                 Victron
                         // Byte [00:01] : Bat-Type            Product ID
-                        // Byte [02:03] : BMS Version         Firmware version (2.1 => HEX [02:01])
+                        // Byte [02:03] : BMS Version         Firmware version (2.2 => HEX [02:02])
                         // Byte [04:05] : Bat-Capacity        Available Capacity Ah
                         // Byte [06:07] : Manufacturer ID     Hardware version
                         
                         uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                         can_mesg[2] = 0x02;
-                        can_mesg[3] = 0x01;
+                        can_mesg[3] = 0x02;
                         can_mesg[4] = uint16_t(id(${yambms_id}_battery_capacity).state) & 0xff;
                         can_mesg[5] = uint16_t(id(${yambms_id}_battery_capacity).state) >> 8 & 0xff;
                         

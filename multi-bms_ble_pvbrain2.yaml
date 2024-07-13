@@ -1,5 +1,5 @@
-# Updated   : 2024.07.09
-# Version   : 1.3.1
+# Updated   : 2024.07.13
+# Version   : 1.3.2
 # GitHub    : https://github.com/SeByDocKy/pvbrain2
 # GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
 # Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
@@ -72,6 +72,8 @@ wifi:
 
 captive_portal:
 
+# Please note that enabling this component will take up a lot of memory and may decrease
+# stability and be the cause of reboot depending on the capabilities of the board used.
 #web_server:
 #  port: 80
 #  log: false
@@ -87,7 +89,7 @@ packages:
   # https://docs.espressif.com/projects/esp-faq/en/latest/software-framework/ble-bt.html
 
   bms1: !include
-    file: packages/bms/bms_jk-bms_ble.yaml
+    file: packages/bms/bms_JK-ALL_BLE_minimal.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -97,10 +99,10 @@ packages:
       bms_update_interval: '2s'
       bms_combine_interval: '1s'
       bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
-      bms_ble_mac_address: C8:47:8C:10:7E:AB
+      bms_ble_mac_address: C8:47:8C:10:7E:AA
   
   bms2: !include
-    file: packages/bms/bms_jk-bms_ble.yaml
+    file: packages/bms/bms_JK-ALL_BLE_minimal.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -110,7 +112,7 @@ packages:
       bms_update_interval: '2s'
       bms_combine_interval: '1s'
       bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
-      bms_ble_mac_address: C8:47:8C:10:7E:AC
+      bms_ble_mac_address: C8:47:8C:10:7E:AB
 
   yambms1: !include
     file: packages/yambms/yambms.yaml
@@ -122,6 +124,9 @@ packages:
       yambms_update_interval: '1s'
       # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.
       yambms_input_number_mode: 'slider'
+      # Number of cells in series, 16S by default
+      # In the case where a cell is defective with a BMS reporting one cell less than reality, this avoids sending bad charging parameters to the inverter.
+      yambms_cell_count: '16'
       # Bulk / Absorption Voltage : corresponds to the Bulk voltage that will be used to charge the battery. (55.2V = 3.45V/Cell for 16S battery)
       yambms_bulk_v: '55.2'
       # Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6V = 3.35V/Cell for 16S battery)
