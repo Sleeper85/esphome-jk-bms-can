@@ -333,8 +333,10 @@ domain : .local
 ```
 
 4. **Install the application in the ESP32**<br>
-Choose the YAML that best suits your needs.<br>
-Validate the configuration, create a binary, upload it, and start logs.
+Choose the main YAML that best suits your needs like for example "multi-bms_ble_one-esp.yaml".<br>
+Validate the configuration, create a binary, upload it, and start logs.<br>
+**The only YAML that needs to be checked and configured is the main one like for example "multi-bms_ble_one-esp.yaml" but you can modify other YAMLs if you want.<br>
+The goal is that the main YAML which contains all your specific parameters can be preserved and reused each time the other YAMLs classified in the 'packaged' folder are updated.**
 
 ```bash
 # To install the multi-bms Wire version
