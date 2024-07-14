@@ -1,4 +1,4 @@
-# JK-BMS-CAN
+# YamBMS ( Yet another multi-BMS Merging Solution )
 
 [![Badge License: GPLv3](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Badge Version](https://img.shields.io/github/v/release/Sleeper85/esphome-jk-bms-can?include_prereleases&color=yellow&logo=DocuSign&logoColor=white)](https://github.com/Sleeper85/esphome-jk-bms-can/releases/latest)
@@ -29,11 +29,15 @@ The ESP32 then sends the required CAN bus data to the inverter via a TJA1050, TJ
   - Battery name
   - Alarms: Cell over/under voltage, Charge/discharge over current, High/low Temp, BMS fault
   
-**Note: This code support only one BMS connection per inverter and should work with inverters that support the CAN bus protocol shown in the table below.
+**Note: This code support multi-BMS connection per inverter (with a single ESP32) and should work with inverters that support the CAN bus protocol shown in the table below.
 I'm only testing it with my Deye SUN-6K-SG03-LP1-EU inverter.<br>
-The CAN bus support is still in development and testing...<br>**
+This project is still in development and testing...<br>**
 
-[Dedicated topic on DIY Solar Forum](https://diysolarforum.com/threads/jk-bms-can-with-new-cut-off-charging-logic-open-source.79325/)
+[Dedicated topic on DIY Solar Forum](https://diysolarforum.com/threads/yambms-jk-bms-can-with-new-cut-off-charging-logic-open-source.79325/)
+
+## YamBMS
+
+![Image](images/YamBMS_packaged_version.png "YamBMS packaged version")
 
 ## Charging Logic Diagram
 
@@ -108,30 +112,8 @@ wifi:
 
 ## Changelog
 
-* V1.17.4 MrPablo   : Added "SMA" to CAN BMS names, added function "Auto Charge Voltage Control" to avoid OVP alarms and improve balancing, categorised sensors, set time source to SNTP, min battery voltage based on BMS value, added "Last Complete Charge" timestamp, renamed daily energy sensors and added input number display option
-* V1.17.3 Sleeper85 : Renumbering cells, Added “BMS Charging”, “BMS Discharging” and “JK-BMS ESP32 Restart” switches, adding Total Daily Energy sensors, set jk_bms update interval to 3s, set default log level to INFO, improvement of comments
-* V1.17.2 MrPablo   : Added function "Auto Charge/Discharge Current Control" to avoid OVP/UVP alarms
-* V1.17.1 Sleeper85 : New Cut-Off Current/Voltage Charging Logic for LFP with the participation of @shvmm
-* V1.16.6 Sleeper85 : Selectable CAN settings + Adding inverter_offset_v + Improved CAN ID 0x355, sending 100% only at the end of the absorption phase, adding bytes [04:05] and [06:07] + Automatic calculation of the number of battery modules + Save and Restore slider values
-* V1.16.5 Sleeper85 : Add Preventive Alarms Logic, CAN ID 0x356: send average temperature of T1/T2, new "Discharging current max" slider
-* V1.16.4 Sleeper85 : Improved Charging Logic for ESP32 startup/reboot and Float charge, Add CAN ID 0x356 bytes [06:07] cycles for Sofar, Change switch name
-* V1.16.3 Sleeper85 : ID 0x379 will be sent when choosing protocol 2 or 4 (Battery Capacity for Victron, Sol-Ark and Luxpower)
-* V1.16.2 Sleeper85 : Split the "Charge/Discharge values" section and added instructions for "Stop Discharging" + Change framework to "esp-idf" (BLE version)
-* V1.16.1 Sleeper85 : Slider charging_current max value = ${charge_a}, Improved Alarm/Charging/Discharging Logic, Improved CAN protocol and Victron support
-* V1.15.5 Sleeper85 : Improved code and set api "reboot_timout" to "0s" by default (no reboot without HA)
-* V1.15.4 Sleeper85 : Improved documentation for API, Web Server and WiFi settings
-* V1.15.3 Sleeper85 : Add 'CAN Protocol Settings' and new CAN ID based on the SMA and Victron protocol (alpha)
-* V1.15.2 Sleeper85 : Improved Alarm handling, all alarms will set charge/discharge current to 0A and set 'Charging Status' to Alarm
-* V1.15.1 Sleeper85 : New CANBUS script with CANBUS Status in HA, stop sending CAN messages if the inverter is not responding (fix WDT reboot issues).
-* V1.14.3 Sleeper85 : Improved documentation + Charging Voltage tips for Deye
-* V1.14.2 Sleeper85 : Improve 'Charging Voltage' behavior
-* V1.14.1 Sleeper85 : Add 'Float charge function'
-* V1.13.6 Sleeper85 : Add 'Absorption time' and 'Absorption Offset V.' slider
-* V1.13.5 Sleeper85 : Set CAN manufacter to "PYLON" for improve compatibility with Deye and other inverters
-* V1.13.4 Sleeper85 : Improve 'Charge Status' behavior + add 'Rebulk Offset V.' slider
-* V1.13.3 uksa007   : Improve compatibility with Deye and other inverters
-* V1.13.2 uksa007   : Send Max Temperature of T1, T2 to inverter
-* V1.13.1 uksa007   : Fix compile issues with new version of ESPhome 2023.4.0, set rebulk offset to 2.5
+* 1.3.2  Sleeper85 : New var `yambms_cell_count`, the BMS charge or discharge switches can be activated separately without causing the decombination of the BMS, new `minimal` version of the BMS YAML in order to reduce the loop time
+* 1.3.1  Sleeper85 : First multi-BMS version named `YamBMS`
 
 ## Supported inverter
 
@@ -185,7 +167,7 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 
 ## Requirements
 
-* [ESPHome 2022.11.0 or higher](https://github.com/esphome/esphome/releases).
+* [ESPHome 2024.6.0 or higher](https://github.com/esphome/esphome/releases).
 * Generic ESP32 DevKit v1 30 pin board or M5Stack Atom Lite (ESP32-PICO)
 * NOTE: ESP32-S2 currently has issues with CAN BUS and does not work!
 * For 5V CAN bus : TJA1050 or TJA1051T CAN controller interface module and 4.7K resistor for 5v to 3.3v level shifing.
@@ -338,8 +320,8 @@ You can do this from the command line or in your preferred method.
 
 ```bash
 # Clone this external component
-git clone https://github.com/Sleeper85/esphome-jk-bms-can.git
-cd esphome-jk-bms-can
+git clone https://github.com/Sleeper85/esphome-yambms.git
+cd esphome-yambms
 ```
 
 3. **Enter your WiFi credentials in the secrets.yaml files**
@@ -351,15 +333,18 @@ domain : .local
 ```
 
 4. **Install the application in the ESP32**<br>
-This is an installation example of YAML Wire for LFP.<br>
+Choose the YAML that best suits your needs.<br>
 Validate the configuration, create a binary, upload it, and start logs.
 
 ```bash
-# To install the Wire version
-esphome run ESP32_LFP_Wire_jk-bms-can.yaml
+# To install the multi-bms Wire version
+esphome run multi-bms_wire_one-esp.yaml
 
-# To install the Bluetooth version
-esphome run ESP32_LFP_Wire_jk-bms-can.yaml
+# To install the multi-bms Bluetooth version
+esphome run multi-bms_ble_one-esp.yaml
+
+# upgrade via OTA by specifying the IP address of the ESP32
+esphome run multi-bms_wire_one-esp.yaml --device 192.168.x.x
 ```
 
 5. **Optional: add the ESP32 in Home Assistant**<br>
@@ -369,18 +354,17 @@ In Home Assistant under **" Settings > Devices and services > Add Intergration "
 
 ```bash
 # test the config
-esphome config ESP32_LFP_Wire_jk-bms-can.yaml
+esphome config multi-bms_wire_one-esp.yaml
 
 # install the config in ESP32
-esphome run ESP32_LFP_Wire_jk-bms-can.yaml
+esphome run multi-bms_wire_one-esp.yaml
 
 # check the logs (the --device option is not required)
-esphome logs ESP32_LFP_Wire_jk-bms-can.yaml --device 192.168.x.x
+esphome logs multi-bms_wire_one-esp.yaml --device 192.168.x.x
 ```
 
 ## Known issues
 
-* Fixed in version 1.15.1 - ~~ESP32 has a bug that causes WDT reboot if no other devices on CAN bus to ACK the packets. If you try to run without inverter it will not work as it will constantly WDT reboot!~~
 * The battery type sensor is pretty useless because the BMS reports always the same value (`Ternary Lithium`). Regardless of which battery type was set / parameter set was loaded via the android app. ([#9][i9])
 * ESP32: Adding all supported sensors can lead to a stack overflow / boot loop. This can be solved by increasing the stack size. ([#63][i63])
 
