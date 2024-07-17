@@ -20,7 +20,7 @@ Note: The equations below are valid for other chemistries like Li-ion and LTO bu
 
 Note: The diagram below is valid for other chemistries like Li-ion and LTO but with other CVmin and CVmax values.
 
-![Image](../../images/JK-BMS-CAN_Cut-Off_Charging_Logic_for_LFP_Diagram.png "JK-BMS-CAN Cut-Off Charging Logic_for LFP Diagram")
+![Image](../../images/YamBMS_Cut-Off_Charging_Logic_Diagram.png "YamBMS Cut-Off Charging Logic Diagram")
 
 ## LFP Cut-Off Values
 
