@@ -1,5 +1,5 @@
-# Updated : 2024.05.15
-# Version : 1.1
+# Updated : 2024.07.17
+# Version : 1.4.1
 # GitHub  : https://github.com/SeByDocKy/pvbrain2
 
 packages:
@@ -8,7 +8,7 @@ packages:
   # BUS
   bus_i2c0: !include device_bus_i2c0.yaml
   bus_spi1: !include device_bus_spi1.yaml
-  bus_dallas: !include device_bus_dallas.yaml
+  bus_dallas: !include device_bus_one_wire.yaml
 
   # Devices
   device_uart_esp: !include device_uart_esp.yaml

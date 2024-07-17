@@ -1,4 +1,4 @@
 one_wire:
   - platform: gpio
-    id: on_wire_hub
+    id: one_wire_hub
     pin: GPIO47

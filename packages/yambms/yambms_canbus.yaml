@@ -1,6 +1,6 @@
-# Updated : 2024.07.13
-# Version : 2.2.1
-# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+# Updated : 2024.07.17
+# Version : 2.2.3
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -71,14 +71,8 @@ binary_sensor:
 # | Start CAN Handling                   |
 # +--------------------------------------+
 
-#canbus: # 0x305 - Inverter ACK - SMA/LG/Pylon/Goodwe reply
-#  - id: !extend canbus_node1
-
-#extensions:
-#  ${canbus_node_id}:
-
 canbus: # 0x305 - Inverter ACK - SMA/LG/Pylon/Goodwe reply
-  - id: !extend canbus_node1 # should be replaced by the variable ${canbus_node_id}
+  - id: !extend ${canbus_node_id}
     on_frame:
     - can_id: 0x305
       then:
@@ -137,7 +131,7 @@ interval:
                       // +---------------------------+
                       
                       // SmartBMS alarm ?
-                      if (id(${yambms_id}_alarm).state != "NoAlarm") {
+                      if ((id(${yambms_id}_alarm).state != "NoAlarm") & (id(${yambms_id}_alarm).state != "Warning")) {
                         if (id(${yambms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x02;   // Over Voltage Protection
                         if (id(${yambms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x04;   // Under Voltage Protection
                         if (id(${yambms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x08;   // Over Temp Protection
@@ -154,24 +148,24 @@ interval:
                       
                       // SmartBMS warning ?
                       if (id(${yambms_id}_warning).state != "NoAlarm") {
-                        if (id(${yambms_id}_alarm).state == "OVP") can_mesg[2] = can_mesg[2] | 0x02;   // Over Voltage Protection
-                        if (id(${yambms_id}_alarm).state == "UVP") can_mesg[2] = can_mesg[2] | 0x04;   // Under Voltage Protection
-                        if (id(${yambms_id}_alarm).state == "OTP") can_mesg[2] = can_mesg[2] | 0x08;   // Over Temp Protection
-                        if (id(${yambms_id}_alarm).state == "UTP") can_mesg[2] = can_mesg[2] | 0x10;   // Under Temp Protection
-                        if (id(${yambms_id}_alarm).state == "DOCP") can_mesg[2] = can_mesg[2] | 0x80;  // Discharge Over Current Protection
-                        if (id(${yambms_id}_alarm).state == "COCP") can_mesg[3] = can_mesg[3] | 0x80;  // Charge Over Current Protection
-                        if (id(${yambms_id}_alarm).state == "BMS") can_mesg[3] = can_mesg[3] | 0x08;   // BMS Internal Error
-                        if (id(${yambms_id}_alarm).state == "UBC") can_mesg[3] = can_mesg[3] | 0x10;   // UnBalanced Cell
+                        if (id(${yambms_id}_warning).state == "OVP") can_mesg[2] = can_mesg[2] | 0x02;   // Over Voltage Protection
+                        if (id(${yambms_id}_warning).state == "UVP") can_mesg[2] = can_mesg[2] | 0x04;   // Under Voltage Protection
+                        if (id(${yambms_id}_warning).state == "OTP") can_mesg[2] = can_mesg[2] | 0x08;   // Over Temp Protection
+                        if (id(${yambms_id}_warning).state == "UTP") can_mesg[2] = can_mesg[2] | 0x10;   // Under Temp Protection
+                        if (id(${yambms_id}_warning).state == "DOCP") can_mesg[2] = can_mesg[2] | 0x80;  // Discharge Over Current Protection
+                        if (id(${yambms_id}_warning).state == "COCP") can_mesg[3] = can_mesg[3] | 0x80;  // Charge Over Current Protection
+                        if (id(${yambms_id}_warning).state == "BMS") can_mesg[3] = can_mesg[3] | 0x08;   // BMS Internal Error
+                        if (id(${yambms_id}_warning).state == "UBC") can_mesg[3] = can_mesg[3] | 0x10;   // UnBalanced Cell
                       }
                       
                       // +---------------------------+
                       // | Flags : byte 4 to 7       |
                       // +---------------------------+
                                         
-                      can_mesg[4] = id(${yambms_id}_battery_module).state;      // byte4 - Module in parallel (max 8)
-                      can_mesg[5] = 0x00;                                         // byte5
-                      can_mesg[6] = 0x00;                                         // byte6
-                      can_mesg[7] = 0x00;                                         // byte7 - DIP switches 1,3 10000100 0x84                      
+                      can_mesg[4] = id(${yambms_id}_bms_combined).state;     // byte4 - Module in parallel (max 8)
+                      can_mesg[5] = 0x00;                                    // byte5
+                      can_mesg[6] = 0x00;                                    // byte6
+                      can_mesg[7] = 0x00;                                    // byte7 - DIP switches 1,3 10000100 0x84                      
                       
                       ESP_LOGI("main", "send can id: 0x359 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
@@ -185,6 +179,9 @@ interval:
                     can_id: 0x35A
                     data: !lambda |-
                       
+                      // Master-LV-communication-guide-EN-8000.pdf
+                      // https://github.com/dfch/BydCanProtocol
+                      
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                       
                       // +---------------------------+
@@ -192,7 +189,7 @@ interval:
                       // +---------------------------+
                       
                       // SmartBMS alarm ?
-                      if (id(${yambms_id}_alarm).state != "NoAlarm") {
+                      if ((id(${yambms_id}_alarm).state != "NoAlarm") & (id(${yambms_id}_alarm).state != "Warning")) {
                         if (id(${yambms_id}_alarm).state == "OVP") can_mesg[0] = can_mesg[0] | 0x04;   // Over Voltage Protection
                         if (id(${yambms_id}_alarm).state == "UVP") can_mesg[0] = can_mesg[0] | 0x10;   // Under Voltage Protection
                         if (id(${yambms_id}_alarm).state == "OTP") can_mesg[0] = can_mesg[0] | 0x40;   // Over Temp Protection
@@ -209,14 +206,14 @@ interval:
                       
                       // SmartBMS warning ?
                       if (id(${yambms_id}_warning).state != "NoAlarm") {
-                        if (id(${yambms_id}_alarm).state == "OVP") can_mesg[4] = can_mesg[4] | 0x04;   // Over Voltage Protection
-                        if (id(${yambms_id}_alarm).state == "UVP") can_mesg[4] = can_mesg[4] | 0x10;   // Under Voltage Protection
-                        if (id(${yambms_id}_alarm).state == "OTP") can_mesg[4] = can_mesg[4] | 0x40;   // Over Temp Protection
-                        if (id(${yambms_id}_alarm).state == "UTP") can_mesg[5] = can_mesg[5] | 0x01;   // Under Temp Protection
-                        if (id(${yambms_id}_alarm).state == "DOCP") can_mesg[5] = can_mesg[5] | 0x40;  // Discharge Over Current Protection
-                        if (id(${yambms_id}_alarm).state == "COCP") can_mesg[6] = can_mesg[6] | 0x01;  // Charge Over Current Protection
-                        if (id(${yambms_id}_alarm).state == "BMS") can_mesg[6] = can_mesg[6] | 0x40;   // BMS Internal Error
-                        if (id(${yambms_id}_alarm).state == "UBC") can_mesg[7] = can_mesg[7] | 0x01;   // UnBalanced Cell
+                        if (id(${yambms_id}_warning).state == "OVP") can_mesg[4] = can_mesg[4] | 0x04;   // Over Voltage Protection
+                        if (id(${yambms_id}_warning).state == "UVP") can_mesg[4] = can_mesg[4] | 0x10;   // Under Voltage Protection
+                        if (id(${yambms_id}_warning).state == "OTP") can_mesg[4] = can_mesg[4] | 0x40;   // Over Temp Protection
+                        if (id(${yambms_id}_warning).state == "UTP") can_mesg[5] = can_mesg[5] | 0x01;   // Under Temp Protection
+                        if (id(${yambms_id}_warning).state == "DOCP") can_mesg[5] = can_mesg[5] | 0x40;  // Discharge Over Current Protection
+                        if (id(${yambms_id}_warning).state == "COCP") can_mesg[6] = can_mesg[6] | 0x01;  // Charge Over Current Protection
+                        if (id(${yambms_id}_warning).state == "BMS") can_mesg[6] = can_mesg[6] | 0x40;   // BMS Internal Error
+                        if (id(${yambms_id}_warning).state == "UBC") can_mesg[7] = can_mesg[7] | 0x01;   // UnBalanced Cell
                       }
                       
                       ESP_LOGI("main", "send can id: 0x35A hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
@@ -409,7 +406,7 @@ interval:
                       // Byte [06:07] : Nbr. of battery modules offline
                       
                       uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
-                      can_mesg[0] = id(${yambms_id}_battery_module).state;
+                      can_mesg[0] = id(${yambms_id}_bms_combined).state;
                       
                       ESP_LOGI("main", "send can id: 0x372 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                       return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};

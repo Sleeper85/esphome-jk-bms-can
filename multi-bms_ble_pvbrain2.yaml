@@ -1,8 +1,7 @@
-# Updated   : 2024.07.13
-# Version   : 1.3.2
-# GitHub    : https://github.com/SeByDocKy/pvbrain2
-# GitHub    : https://github.com/Sleeper85/esphome-jk-bms-can
-# Changelog : https://github.com/Sleeper85/esphome-jk-bms-can?tab=readme-ov-file#changelog
+# Updated : 2024.07.17
+# Version : 1.4.1
+# GitHub  : https://github.com/SeByDocKy/pvbrain2
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,12 +18,6 @@
 
 substitutions:
   name: 'pvbrain2'
-
-  ###### For builtin ESP32 S3 UART ports ######
-  
-  uart_esp0_baudrate: '115200'  # Linky   #1200 if historique >> #9600 if standard
-  uart_esp1_baudrate: '9600'
-  uart_esp2_baudrate: '9600'
 
   ###### For extended UART ports with the 2 WK2168 ######
 
@@ -117,8 +110,7 @@ packages:
   yambms1: !include
     file: packages/yambms/yambms.yaml
     vars:
-      # Please read the cut off charging logic to understand how the SmartBMS works
-      # https://github.com/Sleeper85/esphome-jk-bms-can/blob/main/documents/README/Cut-Off_Charging_Logic.md
+      # Please read the cut-off charging logic README to understand how the YamBMS works
       yambms_id: 'yambms1'
       yambms_name: 'YamBMS 1'
       yambms_update_interval: '1s'
@@ -136,6 +128,8 @@ packages:
       # Allows the charging process to complete within 30 minutes even if the cells are still equalizing
       # This timer can be deactivated with a switch
       yambms_eoc_timer: '30'
+      # Time in seconds during which the end of charge conditions must be respected (cut-off + cells not equalizing)
+      yambms_cutoff_timer: '60'
       # Absorption Offset V.
       yambms_absorption_offset_v: '0.1'
       yambms_absorption_offset_v_slider: 'true' # true: the slider is hidden, false: the slider is available

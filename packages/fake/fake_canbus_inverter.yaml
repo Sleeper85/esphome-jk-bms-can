@@ -6,3 +6,28 @@ interval:
         canbus_id: canbus_node2
         can_id: 0x305
         data: [0, 0, 0, 0, 0, 0, 0, 0]
+
+# Inverter received frames
+# esphome logs multi-bms_dev_pvbrain2.yaml | grep "receive can id: 359"
+canbus:
+  - id: !extend canbus_node2
+    on_frame:
+    - can_id:      0  # listen to all messages
+      can_id_mask: 0
+      use_extended_id: false # false = can_id 11 bits (PYLON), true = can_id 29 bits
+      then:
+        - lambda: |-
+            ESP_LOGI("can", "receive can id: %x hex: %x %x %x %x %x %x %x %x", can_id, x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]);
+
+#             // For extended can_id of 29 bits
+#             char buf[29];                       // 29 character (byte)
+#             // DGN
+#             // Source Address (SA)
+#             // Priority
+#             // Data (8 bytes)
+#             int dgn = (can_id >>8) & 0x1ffff;   // 0x1ffff = 11111111111111111
+#             int pri = (can_id >> 26) & 0b111;   // 0b111   = 111
+#             int sa  = can_id & 0xff;            // 0xff    = 11111111
+#             snprintf((char*)&buf, sizeof(buf), "%05X,%02X,%1X,%02X%02X%02X%02X%02X%02X%02X%02X", dgn, sa, pri, x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]);
+#             id(rvc_rx).publish_state((const char*)&buf);
+#             ESP_LOGI("can", "%s", (const char*)&buf);

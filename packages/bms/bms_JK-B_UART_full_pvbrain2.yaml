@@ -27,11 +27,6 @@ external_components:
 # | JK-BMS UART connection               |
 # +--------------------------------------+
 
-uart:
-  - id: !extend ${bms_uart_id}
-    baud_rate: 115200
-    rx_buffer_size: 384
-
 jk_modbus:
   - id: modbus_bms${bms_id}
     uart_id: ${bms_uart_id}

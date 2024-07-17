@@ -1,6 +1,6 @@
-# Updated : 2024.07.09
-# Version : 1.2.1
-# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+# Updated : 2024.07.17
+# Version : 1.4.1
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # Atom S3 - SKU:C123
 # https://docs.m5stack.com/en/core/AtomS3
@@ -30,7 +30,6 @@ uart:
     tx_pin: 1
     rx_pin: 2
     baud_rate: 115200
-    rx_buffer_size: 384
 
 canbus:
   # CANBUS NODE 1
