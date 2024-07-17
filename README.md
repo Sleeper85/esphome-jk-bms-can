@@ -112,6 +112,7 @@ wifi:
 
 ## Changelog
 
+* 1.4.1  Sleeper85 : Rewriting of the alarm system, bug fixes and improvement of the charging logic (new status "Cut-Off"), icon allocation for each sensor
 * 1.3.2  Sleeper85 : New var `yambms_cell_count`, the BMS charge or discharge switches can be activated separately without causing the decombination of the BMS, new `minimal` version of the BMS YAML in order to reduce the loop time
 * 1.3.1  Sleeper85 : First multi-BMS version named `YamBMS`
 
