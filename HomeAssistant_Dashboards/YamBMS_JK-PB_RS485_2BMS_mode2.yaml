@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
-title: JK-BMS monitor
+title: Home
 views:
-  - title: WHOLE SYSTEM
-    path: default_view
+  - title: YamBMS
+    path: yambms
     badges: []
     cards:
       - type: vertical-stack

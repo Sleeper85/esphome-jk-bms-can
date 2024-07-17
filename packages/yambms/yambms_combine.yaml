@@ -1,6 +1,6 @@
-# Updated : 2024.07.13
-# Version : 1.3.2
-# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+# Updated : 2024.07.17
+# Version : 1.4.1
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,15 +20,23 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
+  - id: ${yambms_id}_can_be_combined_bms_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
   - id: ${yambms_id}_combined_bms_counter
     type: int
     restore_value: no
     initial_value: '0'
-  - id: ${yambms_id}_errors_bitmask_and_alarm
+  - id: ${yambms_id}_errors_bitmask_counter_var
     type: int
     restore_value: no
     initial_value: '0'
-  - id: ${yambms_id}_errors_bitmask_or_warning
+  - id: ${yambms_id}_errors_bitmask_alarm_var
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: ${yambms_id}_errors_bitmask_warning_var
     type: int
     restore_value: no
     initial_value: '0'
@@ -134,7 +142,7 @@ interval:
 
             // total_voltage MEAN
             float total_voltage = 0.0;
-            if (id(${yambms_id}_bms_counter) > 0) total_voltage = (id(${yambms_id}_total_total_voltage) / id(${yambms_id}_bms_counter));
+            if (id(${yambms_id}_can_be_combined_bms_counter) > 0) total_voltage = (id(${yambms_id}_total_total_voltage) / id(${yambms_id}_can_be_combined_bms_counter));
             id(${yambms_id}_total_voltage).publish_state(total_voltage);
             id(${yambms_id}_total_total_voltage) = 0.0; // global var reset
             
@@ -160,13 +168,13 @@ interval:
             
             // state_of_charge MEAN
             float soc = 0.0;
-            if (id(${yambms_id}_bms_counter) > 0) soc = (id(${yambms_id}_total_soc) / id(${yambms_id}_bms_counter));
+            if (id(${yambms_id}_can_be_combined_bms_counter) > 0) soc = (id(${yambms_id}_total_soc) / id(${yambms_id}_can_be_combined_bms_counter));
             id(${yambms_id}_state_of_charge).publish_state(soc);
             id(${yambms_id}_total_soc) = 0.0; // global var reset
 
             // charging_cycles MEAN
             float charging_cycles = 0.0;
-            if (id(${yambms_id}_bms_counter) > 0) charging_cycles = (id(${yambms_id}_total_charging_cycles) / id(${yambms_id}_bms_counter));
+            if (id(${yambms_id}_can_be_combined_bms_counter) > 0) charging_cycles = (id(${yambms_id}_total_charging_cycles) / id(${yambms_id}_can_be_combined_bms_counter));
             id(${yambms_id}_charging_cycles).publish_state(charging_cycles);
             id(${yambms_id}_total_charging_cycles) = 0.0; // global var reset
             
@@ -185,23 +193,15 @@ interval:
             else id(${yambms_id}_bms_switch_discharging).publish_state(false);
             id(${yambms_id}_bms_switch_discharging_counter) = 0; // global var reset
 
-            // errors_bitmask (16bit)
-            // Alarm - bitwise AND
-            id(${yambms_id}_errors_bitmask_alarm).publish_state(id(${yambms_id}_errors_bitmask_and_alarm));
-            id(${yambms_id}_errors_bitmask_and_alarm) = 0xFFFF; // global var reset (all bits set to 1)
-            // Warning - bitwise OR
-            id(${yambms_id}_errors_bitmask_warning).publish_state(id(${yambms_id}_errors_bitmask_or_warning));
-            id(${yambms_id}_errors_bitmask_or_warning) = 0; // global var reset (all bits set to 0)
-
             // MIN/MAX values
             // balance_trigger_voltage MAX
-            if ((id(${yambms_id}_bms_counter) == 0) | (id(${yambms_id}_max_balance_trigger_voltage) > 0.0)) {
+            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_balance_trigger_voltage) > 0.0)) {
               id(${yambms_id}_balance_trigger_voltage).publish_state(id(${yambms_id}_max_balance_trigger_voltage));
               id(${yambms_id}_max_balance_trigger_voltage) = 0.0; // global var reset
             }
             // min_cell_voltage MIN
             // min_voltage_cell MIN (cell number)
-            if ((id(${yambms_id}_bms_counter) == 0) | (id(${yambms_id}_min_min_cell_voltage) < 5.0)) {
+            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_min_min_cell_voltage) < 5.0)) {
               id(${yambms_id}_min_cell_voltage).publish_state(id(${yambms_id}_min_min_cell_voltage));
               id(${yambms_id}_min_voltage_cell).publish_state(id(${yambms_id}_min_min_voltage_cell));
               id(${yambms_id}_min_min_cell_voltage) = 5.0; // global var reset
@@ -209,37 +209,51 @@ interval:
             }
             // max_cell_voltage MAX
             // max_voltage_cell MAX (cell number)
-            if ((id(${yambms_id}_bms_counter) == 0) | (id(${yambms_id}_max_max_cell_voltage) > 0.0)) {
+            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_max_cell_voltage) > 0.0)) {
               id(${yambms_id}_max_cell_voltage).publish_state(id(${yambms_id}_max_max_cell_voltage));
               id(${yambms_id}_max_voltage_cell).publish_state(id(${yambms_id}_max_max_voltage_cell));
               id(${yambms_id}_max_max_cell_voltage) = 0.0; // global var reset
               id(${yambms_id}_max_max_voltage_cell) = 0; // global var reset
             }
             // cell_ovp MIN
-            if ((id(${yambms_id}_bms_counter) == 0) | (id(${yambms_id}_min_cell_ovp) < 5.0)) {
+            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_min_cell_ovp) < 5.0)) {
               id(${yambms_id}_cell_ovp).publish_state(id(${yambms_id}_min_cell_ovp));
               id(${yambms_id}_min_cell_ovp) = 5.0; // global var reset
             }
             // cell_ovpr MIN
-            if ((id(${yambms_id}_bms_counter) == 0) | (id(${yambms_id}_min_cell_ovpr) < 5.0)) {
+            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_min_cell_ovpr) < 5.0)) {
               id(${yambms_id}_cell_ovpr).publish_state(id(${yambms_id}_min_cell_ovpr));
               id(${yambms_id}_min_cell_ovpr) = 5.0; // global var reset
             }
             // cell_uvpr MAX
-            if ((id(${yambms_id}_bms_counter) == 0) | (id(${yambms_id}_max_cell_uvpr) > 0.0)) {
+            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_cell_uvpr) > 0.0)) {
               id(${yambms_id}_cell_uvpr).publish_state(id(${yambms_id}_max_cell_uvpr));
               id(${yambms_id}_max_cell_uvpr) = 0.0; // global var reset
             }
             // temperature_sensor_1 MAX
-            if ((id(${yambms_id}_bms_counter) == 0) | (id(${yambms_id}_max_temperature_sensor_1) > -100.0)) {
+            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_temperature_sensor_1) > -100.0)) {
               id(${yambms_id}_temperature_sensor_1).publish_state(id(${yambms_id}_max_temperature_sensor_1));
               id(${yambms_id}_max_temperature_sensor_1) = -100.0; // global var reset
             }
             // temperature_sensor_2 MAX
-            if ((id(${yambms_id}_bms_counter) == 0) | (id(${yambms_id}_max_temperature_sensor_2) > -100.0)) {
+            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_temperature_sensor_2) > -100.0)) {
               id(${yambms_id}_temperature_sensor_2).publish_state(id(${yambms_id}_max_temperature_sensor_2));
               id(${yambms_id}_max_temperature_sensor_2) = -100.0; // global var reset
             }
+
+            // errors_bitmask (16bit)
+            // Alarm - bitwise OR
+            if (id(${yambms_id}_errors_bitmask_counter_var) == id(${yambms_id}_bms_counter)) {
+              id(${yambms_id}_errors_bitmask_alarm).publish_state(id(${yambms_id}_errors_bitmask_alarm_var));
+              id(${yambms_id}_errors_bitmask_alarm_var) = 0; // global var reset
+            }
+            else id(${yambms_id}_errors_bitmask_alarm).publish_state(0);
+            // Warning - bitwise OR
+            id(${yambms_id}_errors_bitmask_warning).publish_state(id(${yambms_id}_errors_bitmask_warning_var));
+            id(${yambms_id}_errors_bitmask_warning_var) = 0; // global var reset
+            // errors_bitmask_counter
+            id(${yambms_id}_errors_bitmask_counter).publish_state(id(${yambms_id}_errors_bitmask_counter_var));
+            id(${yambms_id}_errors_bitmask_counter_var) = 0; // global var reset
 
             // Reset combined_bms_counter (new cycle)
             // The bms are once again authorized to communicate their informations
@@ -261,19 +275,18 @@ binary_sensor:
     id: ${yambms_id}_bms_switch_discharging
 
 sensor:
-  # cell_count
+  # cell_count SUM
   - platform: template
     id: ${yambms_id}_cell_count_total
     name: "${name} ${yambms_name} Cell Count (Σ)"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
+    icon: mdi:counter
     filters:
       - or:
         - throttle: 10s
         - delta: 1
-    lambda: |-
-      if (id(${yambms_id}_bms_counter) == 0) id(${yambms_id}_total_cell_count) = 0;
-      return id(${yambms_id}_total_cell_count);
+    lambda: return id(${yambms_id}_total_cell_count);
 
   # max_charge_current SUM
   - platform: template
@@ -282,6 +295,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: A
+    device_class: current
     filters:
       - or:
         - throttle: 10s
@@ -294,6 +308,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: A
+    device_class: current
     filters:
       - or:
         - throttle: 10s
@@ -305,6 +320,7 @@ sensor:
     name: "${name} ${yambms_name} Min Voltage Cell"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
+    icon: mdi:numeric
     filters:
       - or:
         - throttle: 10s
@@ -316,6 +332,7 @@ sensor:
     name: "${name} ${yambms_name} Max Voltage Cell"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
+    icon: mdi:numeric
     filters:
       - or:
         - throttle: 10s
@@ -328,6 +345,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 3
     unit_of_measurement: V
+    device_class: voltage
     filters:
       - or:
         - throttle: 10s
@@ -340,10 +358,25 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 3
     unit_of_measurement: V
+    device_class: voltage
     filters:
       - or:
         - throttle: 10s
         - delta: 0.001
+
+  # delta_cell_voltage
+  - platform: template
+    id: ${yambms_id}_delta_cell_voltage
+    name: "${name} ${yambms_name} Delta Cell Voltage"
+    update_interval: ${yambms_update_interval}
+    accuracy_decimals: 3
+    unit_of_measurement: V
+    device_class: voltage
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 0.001
+    lambda: return (id(${yambms_id}_max_cell_voltage).state - id(${yambms_id}_min_cell_voltage).state);
 
   # total_voltage MEAN
   - platform: template
@@ -352,6 +385,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 2
     unit_of_measurement: V
+    device_class: voltage
     filters:
       - or:
         - throttle: 10s
@@ -364,6 +398,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 1
     unit_of_measurement: A
+    device_class: current
     filters:
       - or:
         - throttle: 10s
@@ -376,6 +411,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: W
+    device_class: power
     filters:
       - or:
         - throttle: 10s
@@ -388,6 +424,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: '%'
+    device_class: battery
     filters:
       - or:
         - throttle: 10s
@@ -401,6 +438,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: Ah
+    device_class: energy_storage
     filters:
       - or:
         - throttle: 10s
@@ -413,6 +451,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: Ah
+    device_class: energy_storage
     filters:
       - or:
         - throttle: 10s
@@ -426,6 +465,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 3
     unit_of_measurement: V
+    device_class: voltage
     filters:
       - or:
         - throttle: 10s
@@ -438,6 +478,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 3
     unit_of_measurement: V
+    device_class: voltage
     filters:
       - or:
         - throttle: 10s
@@ -450,6 +491,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 3
     unit_of_measurement: V
+    device_class: voltage
     filters:
       - or:
         - throttle: 10s
@@ -462,6 +504,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 3
     unit_of_measurement: V
+    device_class: voltage
     filters:
       - or:
         - throttle: 10s
@@ -474,6 +517,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 1
     unit_of_measurement: °C
+    device_class: temperature
     filters:
       - or:
         - throttle: 10s
@@ -486,6 +530,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 1
     unit_of_measurement: °C
+    device_class: temperature
     filters:
       - or:
         - throttle: 10s
@@ -497,6 +542,7 @@ sensor:
     name: "${name} ${yambms_name} Charging Cycles (Ø)"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
+    icon: mdi:counter
     filters:
       - or:
         - throttle: 10s
@@ -508,6 +554,7 @@ sensor:
     name: "${name} ${yambms_name} Errors Bitmask Alarm"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
+    icon: mdi:alert-circle-outline
     filters:
       - or:
         - throttle: 10s
@@ -519,6 +566,19 @@ sensor:
     name: "${name} ${yambms_name} Errors Bitmask Warning"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
+    icon: mdi:alert-circle-outline
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+
+  # errors_bitmask_counter
+  - platform: template
+    id: ${yambms_id}_errors_bitmask_counter
+    name: "${name} ${yambms_name} BMS in alarm"
+    update_interval: ${yambms_update_interval}
+    accuracy_decimals: 0
+    icon: mdi:counter
     filters:
       - or:
         - throttle: 10s

@@ -27,11 +27,6 @@ external_components:
 # | JK-BMS UART connection               |
 # +--------------------------------------+
 
-uart:
-  - id: !extend ${bms_uart_id}
-    baud_rate: 115200
-    rx_buffer_size: 384
-
 jk_modbus:
   - id: modbus_bms${bms_id}
     uart_id: ${bms_uart_id}
@@ -97,86 +92,6 @@ sensor:
       name: "${name} ${bms_name} delta cell voltage"
     average_cell_voltage:
       name: "${name} ${bms_name} average cell voltage"
-    cell_voltage_1:
-      id: bms${bms_id}_cell_v_01
-      name: "${name} ${bms_name} cell voltage 01"
-    cell_voltage_2:
-      id: bms${bms_id}_cell_v_02
-      name: "${name} ${bms_name} cell voltage 02"
-    cell_voltage_3:
-      id: bms${bms_id}_cell_v_03
-      name: "${name} ${bms_name} cell voltage 03"
-    cell_voltage_4:
-      id: bms${bms_id}_cell_v_04
-      name: "${name} ${bms_name} cell voltage 04"
-    cell_voltage_5:
-      id: bms${bms_id}_cell_v_05
-      name: "${name} ${bms_name} cell voltage 05"
-    cell_voltage_6:
-      id: bms${bms_id}_cell_v_06
-      name: "${name} ${bms_name} cell voltage 06"
-    cell_voltage_7:
-      id: bms${bms_id}_cell_v_07
-      name: "${name} ${bms_name} cell voltage 07"
-    cell_voltage_8:
-      id: bms${bms_id}_cell_v_08
-      name: "${name} ${bms_name} cell voltage 08"
-    cell_voltage_9:
-      id: bms${bms_id}_cell_v_09
-      name: "${name} ${bms_name} cell voltage 09"
-    cell_voltage_10:
-      id: bms${bms_id}_cell_v_10
-      name: "${name} ${bms_name} cell voltage 10"
-    cell_voltage_11:
-      id: bms${bms_id}_cell_v_11
-      name: "${name} ${bms_name} cell voltage 11"
-    cell_voltage_12:
-      id: bms${bms_id}_cell_v_12
-      name: "${name} ${bms_name} cell voltage 12"
-    cell_voltage_13:
-      id: bms${bms_id}_cell_v_13
-      name: "${name} ${bms_name} cell voltage 13"
-    cell_voltage_14:
-      id: bms${bms_id}_cell_v_14
-      name: "${name} ${bms_name} cell voltage 14"
-    cell_voltage_15:
-      id: bms${bms_id}_cell_v_15
-      name: "${name} ${bms_name} cell voltage 15"
-    cell_voltage_16:
-      id: bms${bms_id}_cell_v_16
-      name: "${name} ${bms_name} cell voltage 16"
-    cell_voltage_17:
-      id: bms${bms_id}_cell_v_17
-      name: "${name} ${bms_name} cell voltage 17"
-      disabled_by_default: true
-    cell_voltage_18:
-      id: bms${bms_id}_cell_v_18
-      name: "${name} ${bms_name} cell voltage 18"
-      disabled_by_default: true
-    cell_voltage_19:
-      id: bms${bms_id}_cell_v_19
-      name: "${name} ${bms_name} cell voltage 19"
-      disabled_by_default: true
-    cell_voltage_20:
-      id: bms${bms_id}_cell_v_20
-      name: "${name} ${bms_name} cell voltage 20"
-      disabled_by_default: true
-    cell_voltage_21:
-      id: bms${bms_id}_cell_v_21
-      name: "${name} ${bms_name} cell voltage 21"
-      disabled_by_default: true
-    cell_voltage_22:
-      id: bms${bms_id}_cell_v_22
-      name: "${name} ${bms_name} cell voltage 22"
-      disabled_by_default: true
-    cell_voltage_23:
-      id: bms${bms_id}_cell_v_23
-      name: "${name} ${bms_name} cell voltage 23"
-      disabled_by_default: true
-    cell_voltage_24:
-      id: bms${bms_id}_cell_v_24
-      name: "${name} ${bms_name} cell voltage 24"
-      disabled_by_default: true
     power_tube_temperature:
       id: bms${bms_id}_power_tube_temperature
       name: "${name} ${bms_name} power tube temperature"
@@ -221,9 +136,6 @@ sensor:
     errors_bitmask:
       id: bms${bms_id}_errors_bitmask
       name: "${name} ${bms_name} errors bitmask"
-      entity_category: diagnostic
-    operation_mode_bitmask:
-      name: "${name} ${bms_name} operation mode bitmask"
       entity_category: diagnostic
     total_voltage_overvoltage_protection:
       name: "${name} ${bms_name} total voltage overvoltage protection"
@@ -289,31 +201,6 @@ sensor:
     total_battery_capacity_setting:
       id: bms${bms_id}_battery_capacity
       name: "${name} ${bms_name} total battery capacity setting"
-    current_calibration:
-      name: "${name} ${bms_name} current calibration"
-    device_address:
-      name: "${name} ${bms_name} device address"
-      entity_category: diagnostic
-    sleep_wait_time:
-      name: "${name} ${bms_name} sleep wait time"
-      entity_category: diagnostic
-      disabled_by_default: true
-    alarm_low_volume:
-      name: "${name} ${bms_name} alarm low volume"
-      disabled_by_default: true
-    manufacturing_date:
-      name: "${name} ${bms_name} manufacturing date"
-      entity_category: diagnostic
-      disabled_by_default: true
-    total_runtime:
-      name: "${name} ${bms_name} total runtime"
-      entity_category: diagnostic
-    # start_current_calibration:
-    #   name: "${name} ${bms_name} start current calibration"
-    actual_battery_capacity:
-      name: "${name} ${bms_name} actual battery capacity"
-    # protocol_version:
-    #   name: "${name} ${bms_name} protocol version"
 
 text_sensor:
   - platform: jk_bms

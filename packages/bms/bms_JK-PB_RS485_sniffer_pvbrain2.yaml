@@ -9,11 +9,6 @@ external_components:
 logger:
   tx_buffer_size: 1024
 
-uart:
-  - id: !extend ${sniffer_uart_id}
-    baud_rate: 115200
-    rx_buffer_size: 1000
-
 jk_rs485_sniffer:
   - id: ${sniffer_id}
     protocol_version: ${sniffer_protocol}

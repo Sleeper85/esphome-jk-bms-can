@@ -1,5 +1,5 @@
-# Updated : 2024.05.18
-# Version : 1.0.1
+# Updated : 2024.07.17
+# Version : 1.4.1
 # GitHub  : https://github.com/SeByDocKy/pvbrain2
 
 esp32:
@@ -14,9 +14,9 @@ esphome:
   # comment: 'Solar system braining and more !'
   # area: 'Local Technique'
   project:
-    name: esphome.pvbrain2
-    version: "1.0.1"
-  min_version: 2024.5.0
+    name: Sleeper85.YamBMS
+    version: "1.4.1"
+  min_version: 2024.6.3
   # Standard uses a single line for data, Dual IO uses 2 lines for data.
   platformio_options:
     board_build.flash_mode: dio # Needed to flash the ESP32-S3 and prevent reboot loop

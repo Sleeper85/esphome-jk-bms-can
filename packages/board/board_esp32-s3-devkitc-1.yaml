@@ -1,6 +1,6 @@
-# Updated : 2024.05.18
-# Version : 1.1
-# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+# Updated : 2024.07.17
+# Version : 1.4.1
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -28,13 +28,11 @@ uart:
     tx_pin: 17
     rx_pin: 18
     baud_rate: 115200
-    rx_buffer_size: 384
   # UART 2
   - id: uart_esp_2
     tx_pin: 15
     rx_pin: 16
     baud_rate: 115200
-    rx_buffer_size: 384
 
 canbus:
   # CANBUS NODE 1
