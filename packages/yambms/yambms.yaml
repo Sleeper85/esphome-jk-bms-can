@@ -1,4 +1,4 @@
-# Updated : 2024.07.17
+# Updated : 2024.07.18
 # Version : 1.4.1
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -347,11 +347,12 @@ sensor:
       float soc = id(${yambms_id}_state_of_charge).state;
       float min_cell_v = id(${yambms_id}_min_cell_voltage).state;
       float cell_uvpr = id(${yambms_id}_cell_uvpr).state;
-      if (min_cell_v <= cell_uvpr) return 0;                       // Real 0% Sending 0%
-      else if (soc < 1) return 2;                                  // False 0% sending 2%
-      else if (soc < 99) return soc;                               // SOC < 99% => Sending BMS SOC
-      else if (id(${yambms_id}_eoc) == true) return 100;           // End Of Charge => Sending 100%
-      else return 98;                                              // Otherwise => Sending 98%
+      if (min_cell_v <= cell_uvpr) return 0;                          // Real 0% Sending 0%
+      else if (soc < 1) return 2;                                     // False 0% sending 2%
+      else if (soc < 99) return soc;                                  // SOC < 99% => Sending BMS SOC
+      // Useful for some inverters, will not send 100% until charging is complete
+      else if (id(${yambms_id}_eoc) == true) return soc;              // End Of Charge => Sending BMS SOC
+      else return 98;                                                 // Otherwise => Sending 98%
   # +--------------------------------------+
   # | Battery State of Health (SOH)        |
   # +--------------------------------------+
