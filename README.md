@@ -45,7 +45,7 @@ The charging voltage and current correspond to the default values in the YAML sc
 
 [Cut-Off Charging Logic](documents/README/Cut-Off_Charging_Logic.md) (what's happening in the yellow diamond)
 
-![Image](images/JK-BMS-CAN_Charging_Logic_Diagram.png "JK-BMS-CAN Charging Logic")
+![Image](images/YamBMS_Charging_Logic_Diagram.png "YamBMS Charging Logic")
 
 ## CAN Protocol Table
 
