@@ -1,5 +1,5 @@
-# Updated : 2024.07.17
-# Version : 2.3.1
+# Updated : 2024.07.19
+# Version : 2.4.1
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
@@ -34,6 +34,21 @@ switch:
     optimistic: true
     entity_category: config
 
+number:
+  - platform: template
+    name: "${name} ${yambms_name} Auto CVL Boost Charge V."
+    id: "${yambms_id}_auto_cvl_boost_charge_v"
+    step: 0.1
+    min_value: 0
+    max_value: 3
+    restore_value: true
+    mode: "${yambms_input_number_mode}"
+    initial_value: 0.0
+    unit_of_measurement: V
+    icon: mdi:sine-wave
+    optimistic: true
+    entity_category: config
+
 sensor:
   # +--------------------------------------+
   # | Auto Charge Voltage Control          |
@@ -54,9 +69,9 @@ sensor:
             double balance_delta = id(${yambms_id}_balance_trigger_voltage).state;
             double max_allowed_voltage = cell_bulk_v + balance_delta;
             double max_cell_v = id(${yambms_id}_max_cell_voltage).state;
-            double max_CVL = id(${yambms_id}_bulk_voltage).state;                  // Maximum CVL
-            double min_CVL = id(${yambms_id}_float_voltage).state;                 // Minimum CVL
-            double CVL = id(${yambms_id}_bulk_voltage).state;                      // Starting CVL
+            double max_CVL = id(${yambms_id}_bulk_voltage).state + id(${yambms_id}_auto_cvl_boost_charge_v).state;  // Maximum CVL
+            double min_CVL = id(${yambms_id}_float_voltage).state;                                                  // Minimum CVL
+            double CVL = id(${yambms_id}_bulk_voltage).state;                                                       // Starting CVL
 
             double kp = ${charge_v_kp};                                               // Proportional gain, adjust as needed
             double ki = ${charge_v_ki};                                               // Integral gain, adjust as needed
@@ -97,6 +112,7 @@ sensor:
               else {
                 prev_integral = integral;
               }
+              id(${yambms_id}_auto_cvl) = CVL;
               return CVL;
             }
     filters:    
