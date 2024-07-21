@@ -1,4 +1,4 @@
-# Updated : 2024.07.17
+# Updated : 2024.07.21
 # Version : 1.4.1
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -155,11 +155,11 @@ interval:
             id(${yambms_id}_total_power) = 0.0; // global var reset
 
             // max_charge_current TOTAL
-            id(${yambms_id}_max_charge_current).publish_state(id(${yambms_id}_total_max_charge_current));
+            id(${yambms_id}_max_charge_current).publish_state(id(${yambms_id}_total_max_charge_current) * 0.8);
             id(${yambms_id}_total_max_charge_current) = 0.0; // global var reset
 
             // max_discharge_current TOTAL
-            id(${yambms_id}_max_discharge_current).publish_state(id(${yambms_id}_total_max_discharge_current));
+            id(${yambms_id}_max_discharge_current).publish_state(id(${yambms_id}_total_max_discharge_current) * 0.8);
             id(${yambms_id}_total_max_discharge_current) = 0.0; // global var reset
                        
             // capacity_remaining_ah TOTAL
