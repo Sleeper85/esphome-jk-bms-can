@@ -124,12 +124,13 @@ The following are confirmed and known to work:
 
 | Brand | Model | Satus | Reported by | Inverter battery | BMS | BMS link | ESP32 board | CAN name | CAN protocol | CAN board | Multi-BMS | Remarks |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Deye | SUN-6K-SG03LP1-EU | Working | [@Sleeper85](https://github.com/Sleeper85) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | TJA1051T | no | --- |
-| Deye | SUN-5K-SG03LP1-EU | Working | [@vdiex](https://github.com/vdiex) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
-| Deye | SUN-12K-SG04LP3-EU | Working | [@lucize](https://github.com/lucize) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
 | Deye | SUN-3.6K-SG03LP1-EU | Working | [@Der_Hannes](https://diysolarforum.com/members/der_hannes.16949/) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | SN65HVD230 **3.3V** | no | --- |
+| Deye | SUN-5K-SG03LP1-EU | Working | [@vdiex](https://github.com/vdiex) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
 | Deye | SUN-5K-SG03LP1-EU | Working | [@arzaman](https://github.com/arzaman) | Lithium 00 | JK-B* | BLE | Atom S3 | PYLON | PYLON 1.2 | [Atomic CAN base (CA-IS3050G)](https://docs.m5stack.com/en/atom/Atomic%20CAN%20Base) | no | --- |
 | Deye | SUN-5K-SG03LP1-EU (3) | Working | [@widget4145](https://diysolarforum.com/members/widget4145.110784/) | Lithium 00 | JK-PB* (7) | RS485 | Atom S3 Lite | PYLON | PYLON 1.2 | [Atomic CAN base (CA-IS3050G)](https://docs.m5stack.com/en/atom/Atomic%20CAN%20Base) | yes | --- |
+| Deye | SUN-6K-SG03LP1-EU | Working | [@Sleeper85](https://github.com/Sleeper85) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | TJA1051T | no | --- |
+| Deye | SUN-12K-SG04LP3-EU | Working | [@lucize](https://github.com/lucize) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
+| Deye | SUN-12K-SG04LP3-EU | Working | [@luckylinux](https://github.com/luckylinux) | Lithium 00 | JK-B* | BLE | Atom S3 Lite | PYLON | PYLON 1.2 | [CANBus Unit (CA-IS3050G)](https://docs.m5stack.com/en/unit/can) | no | --- |
 | Goodwe | 3648-ES (GW5048-ES) | Working | [@jirdol](https://github.com/jirdol) | --- | JK-B* | UART | ESP32 DevKit V1 | GOODWE | PYLON + | --- | no | --- |
 | Goodwe | GW5000S-BP | Working | [@Uksa007](https://github.com/Uksa007) | Goodwe LX U5.4-L | JK-B* | UART | ESP32 DevKit V1 | GOODWE | PYLON + | --- | no | --- |
 | Goodwe | GW5000S-BP & GW3600S-BP | Working | [@OselDusan7](https://github.com/OselDusan7) | --- | JK-B* | UART | ESP32 DevKit V1 | GOODWE | PYLON + | --- | no | --- |
