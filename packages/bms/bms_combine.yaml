@@ -1,5 +1,5 @@
-# Updated : 2024.07.17
-# Version : 1.4.1
+# Updated : 2024.07.29
+# Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
@@ -46,9 +46,8 @@ binary_sensor:
 esphome:
   on_boot:
     then:
-      # BMS counter total
+      # BMS counter (total)
       - lambda: id(${yambms_id}_bms_counter) += 1;
-      #- script.execute: my_script
 
 interval:
   - interval: ${bms_combine_interval}
@@ -87,21 +86,24 @@ interval:
             id(bms${bms_id}_combined) = false;
           }
 
-          // Combine continuously
+          // Combine continuously (all BMS)
           if (id(${yambms_id}_combined_bms_counter) < id(${yambms_id}_bms_counter)) {
+            
+            // BMS combined counter
+            id(${yambms_id}_combined_bms_counter) += 1;
 
-            // BMS errors ?
+            // +-----------------------------------------------+
+            // | Errors bitmask (16bit)                        |
+            // +-----------------------------------------------+
+
             if (id(bms${bms_id}_errors_bitmask).state > 1) {
-
-              // errors_bitmask (16bit)
-              uint16_t bms_errors_bitmask = id(bms${bms_id}_errors_bitmask).state;
-              // Alarm - bitwise AND
-              id(${yambms_id}_errors_bitmask_alarm_var) |= bms_errors_bitmask;
-              // Warning - bitwise OR
-              id(${yambms_id}_errors_bitmask_warning_var) |= bms_errors_bitmask;
-              // errors_bitmask_counter
-              id(${yambms_id}_errors_bitmask_counter_var) += 1;
+              uint16_t bms_errors_bitmask = id(bms${bms_id}_errors_bitmask).state;     // errors_bitmask (16bit)
+              id(${yambms_id}_errors_bitmask_alarm_var) |= bms_errors_bitmask;         // Alarm   - OR bitwise
+              id(${yambms_id}_errors_bitmask_warning_var) |= bms_errors_bitmask;       // Warning - OR bitwise
+              id(${yambms_id}_errors_bitmask_counter_var) += 1;                        // errors_bitmask_counter
             }
+
+            // +-----------------------------------------------+
 
             // Combine only if the device is able to be included in combine
             else if (id(bms${bms_id}_can_be_combined).state) {
@@ -172,7 +174,4 @@ interval:
               // temperature_sensor_2 MAX
               if (id(bms${bms_id}_temperature_sensor_2).state > id(${yambms_id}_max_temperature_sensor_2)) id(${yambms_id}_max_temperature_sensor_2) = id(bms${bms_id}_temperature_sensor_2).state;
             }
-            
-            // BMS combined counter
-            id(${yambms_id}_combined_bms_counter) += 1;
           }

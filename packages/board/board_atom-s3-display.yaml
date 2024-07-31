@@ -1,5 +1,5 @@
-# Updated : 2024.07.17
-# Version : 1.4.1
+# Updated : 2024.07.29
+# Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # Atom S3 - SKU:C123
@@ -11,9 +11,8 @@ esp32:
     type: esp-idf
 
 esphome:
-  # Standard uses a single line for data, Dual IO uses 2 lines for data.
   platformio_options:
-    board_build.flash_mode: dio # Needed to flash the ESP32-S3 and prevent reboot loop
+    board_build.flash_mode: dio # Standard uses a single line for data, Dual IO uses 2 lines for data (prevent reboot loop)
   on_boot:
     then:
       - lambda: |-

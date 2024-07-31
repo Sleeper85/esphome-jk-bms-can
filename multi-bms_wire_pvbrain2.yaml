@@ -1,5 +1,5 @@
-# Updated : 2024.07.17
-# Version : 1.4.1
+# Updated : 2024.07.24
+# Version : 1.4.2
 # GitHub  : https://github.com/SeByDocKy/pvbrain2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -148,5 +148,19 @@ packages:
       canbus_name: 'CANBUS 1'
       canbus_node_id: 'canbus_node1'
       canbus_light_id: 'led_light_1' # on_board_light_io48
-      # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after 30 loops.
-      canbus_max_no_ack: "30"
+      # The CANBUS link will be considered down if no response from the inverter (ID 0x305) for 5s
+      # The Deye inverter sends the ACK (can_id 0x305) only when it receives the can_id 0x356
+      canbus_link_timer: '5'
+
+# +--------------------------------------+
+# | DEBUG ( logger level must be DEBUG ) |
+# +--------------------------------------+
+
+  # device_debug: !include
+  #   file: pvbrain2/base/device_debug.yaml
+  #   vars:
+  #     debug_name: 'Debug'
+  #     debug_update_interval: '5s'
+  #     # Size of your PSRAM in bits
+  #     # 8Mb='8388608' | 6Mb='6291456' | 4Mb='4194304' | 2Mb='2097152' | NoPSRAM='0'
+  #     debug_psram_size: '8388608'

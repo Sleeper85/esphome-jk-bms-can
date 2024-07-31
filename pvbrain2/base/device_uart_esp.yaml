@@ -1,6 +1,7 @@
+logger:
+  baud_rate: 0 # Release 'uart esp 0' and prevent boot loops
 
 uart:
-  # Set logger baud_rate: to 0 for prevent boot loop
   - id: uart_esp_0
     tx_pin: GPIO43
     rx_pin: GPIO44

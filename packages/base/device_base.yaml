@@ -1,5 +1,5 @@
-# Updated : 2024.07.17
-# Version : 1.4.1
+# Updated : 2024.07.29
+# Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
@@ -22,7 +22,7 @@ esphome:
   # area: 'Technical local'
   project:
     name: Sleeper85.YamBMS
-    version: "1.4.1"
+    version: "1.4.2"
   min_version: 2024.6.0
 
 time:
@@ -48,8 +48,8 @@ text_sensor:
   # | Uptime Human Readable                |
   # +--------------------------------------+
   - platform: template
-    name: ${name} Uptime Human Readable
-    id: uptime_human
+    name: ${name} ESP32 Uptime
+    id: esp32_uptime
     icon: mdi:clock-start
     entity_category: diagnostic
 
@@ -63,10 +63,11 @@ sensor:
     update_interval: 5s
     entity_category: diagnostic
     icon: mdi:clock-start
+    internal: true
     on_raw_value:
       then:
         - text_sensor.template.publish:
-            id: uptime_human
+            id: esp32_uptime
             state: !lambda |-
               char buf[10];
               int uptime_sec = round(id(uptime_sensor).raw_state);
