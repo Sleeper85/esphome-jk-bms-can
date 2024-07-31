@@ -1,11 +1,15 @@
-# Updated : 2024.07.17
-# Version : 1.4.1
+# Updated : 2024.07.29
+# Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 esp32:
   board: esp32doit-devkit-v1
   framework:
     type: esp-idf
+
+esphome:
+  platformio_options:
+    board_build.flash_mode: dio # Standard uses a single line for data, Dual IO uses 2 lines for data (prevent reboot loop)
 
 uart:
   # UART 0 : uart used for ESP32 flashing and logs, can be released if necessary (tx_pin: 1, rx_pin: 3)

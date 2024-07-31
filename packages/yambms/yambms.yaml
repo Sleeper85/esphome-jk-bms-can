@@ -1,5 +1,5 @@
-# Updated : 2024.07.18
-# Version : 1.4.1
+# Updated : 2024.07.29
+# Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
@@ -144,6 +144,19 @@ number:
     optimistic: true
     entity_category: config
   - platform: template
+    name: "${name} ${yambms_name} Rebulk SoC"
+    id: "${yambms_id}_rebulk_soc"
+    step: 1
+    min_value: 0
+    max_value: 100
+    restore_value: true
+    mode: "${yambms_input_number_mode}"
+    initial_value: 85
+    unit_of_measurement: '%'
+    icon: mdi:battery-medium
+    optimistic: true
+    entity_category: config
+  - platform: template
     name: "${name} ${yambms_name} Absorption Offset V."
     id: "${yambms_id}_absorption_offset_v"
     step: 0.05
@@ -190,9 +203,11 @@ sensor:
   # | Last Complete Charge                 |
   # +--------------------------------------+
   - platform: template
-    name: "${name} ${yambms_name} Last Complete Charge"
-    device_class: timestamp
+    name: "${name} ${yambms_name} Last Complete Charge Timestamp"
     id: ${yambms_id}_eoc_timestamp_template
+    device_class: timestamp
+    entity_category: diagnostic
+    internal: true
     lambda: return id(${yambms_id}_eoc_timestamp);
     on_value:
       then:
@@ -202,7 +217,6 @@ sensor:
                    char str[19];
                    strftime(str, sizeof(str), " %H:%M %d %b %Y", localtime(&id(${yambms_id}_eoc_timestamp)));
                    return  {str};
-    entity_category: diagnostic
   # +--------------------------------------+
   # |  Requested Charge Voltage  (CVL)     |
   # +--------------------------------------+
@@ -333,7 +347,7 @@ sensor:
   # | Battery State of Charge (SOC)        |
   # +--------------------------------------+
   - platform: template
-    name: ${name} ${yambms_name} Battery SOC
+    name: ${name} ${yambms_name} Battery SoC
     id: ${yambms_id}_battery_soc
     unit_of_measurement: "%"
     device_class: battery
@@ -357,7 +371,7 @@ sensor:
   # | Battery State of Health (SOH)        |
   # +--------------------------------------+
   - platform: template
-    name: ${name} ${yambms_name} Battery SOH
+    name: ${name} ${yambms_name} Battery SoH
     id: ${yambms_id}_battery_soh
     unit_of_measurement: "%"
     device_class: battery
@@ -388,7 +402,7 @@ text_sensor:
   # | Last Complete Charge                 |
   # +--------------------------------------+
   - platform: template
-    name: ${name} ${yambms_name} Last Complete Charge Human Readable
+    name: ${name} ${yambms_name} Last Complete Charge
     id: ${yambms_id}_eoc_timestamp_human
     icon: mdi:clock-start
     entity_category: diagnostic
@@ -403,7 +417,7 @@ text_sensor:
     icon: mdi:battery-arrow-up
     lambda: |-
       // +-----------------------------------------------+
-      // | Cut-off Charging Logic                        |
+      // | Charging Logic                                |
       // +-----------------------------------------------+
       
       // Warning : information from JK BMS is not available immediately after boot
@@ -421,7 +435,9 @@ text_sensor:
       else if ((id(${yambms_id}_charge_status) == "Float") & (!id(${yambms_id}_switch_float).state)) id(${yambms_id}_charge_status) = "EOC";
       // No Force Bulk => Wait
       else if ((id(${yambms_id}_charge_status) == "Force Bulk") & (!id(${yambms_id}_switch_force_bulk).state)) id(${yambms_id}_charge_status) = "Wait";
-      
+      // Force Float => Float
+      // else if (id(${yambms_id}_switch_force_float).state) id(${yambms_id}_charge_status) = "Float";
+
       // +-----------------------------------------------+
       // | Charge ON : BMS and ESP charging switch is ON |
       // +-----------------------------------------------+
@@ -432,7 +448,9 @@ text_sensor:
         float cell_rebulk_v = (id(${yambms_id}_rebulk_voltage).state / id(${yambms_id}_cell_count).state);
         float cell_absorption_offset_v = (id(${yambms_id}_absorption_offset_v).state / id(${yambms_id}_cell_count).state);
         
-        // Force Bulk Logic
+        // +-----------------------------------------------+
+        // | Force Bulk Logic                              |
+        // +-----------------------------------------------+
         if (id(${yambms_id}_switch_force_bulk).state) {
           // Stop Force Bulk when the BMS starts to equalize the cells
           if (id(${yambms_id}_equalizing).state) {
@@ -443,13 +461,20 @@ text_sensor:
           else id(${yambms_id}_charge_status) = "Force Bulk";
         }
         
-        // Rebulk Logic (eg: Max Cell V. <= 3.3V)
+        // +-----------------------------------------------+
+        // | Rebulk Logic                                  |
+        // +-----------------------------------------------+
+        // Max Cell V. <= 3.3V (default value)
         else if (id(${yambms_id}_max_cell_voltage).state <= cell_rebulk_v) id(${yambms_id}_charge_status) = "Bulk";
+        // SoC <= 85% (default value)
+        else if (id(${yambms_id}_battery_soc).state <= id(${yambms_id}_rebulk_soc).state) id(${yambms_id}_charge_status) = "Bulk";
         
         // Charging Logic (Bulk)
         else if ((id(${yambms_id}_charge_status) != "EOC") && (id(${yambms_id}_charge_status) != "Float")) {
         
-          // Charging
+          // +-----------------------------------------------+
+          // | Cut-Off Charging Logic                        |
+          // +-----------------------------------------------+
           if (id(${yambms_id}_current).state >= 0) {
             
             float cv_min = ${yambms_cutoff_cvmin};

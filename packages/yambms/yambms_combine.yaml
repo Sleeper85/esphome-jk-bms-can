@@ -1,5 +1,5 @@
-# Updated : 2024.07.21
-# Version : 1.4.1
+# Updated : 2024.07.29
+# Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
@@ -138,7 +138,27 @@ interval:
   - interval: ${yambms_update_interval}
     then:
       - lambda: |-
+          // If all BMS have communicated their informations
           if (id(${yambms_id}_combined_bms_counter) == id(${yambms_id}_bms_counter)) {
+
+            // +-----------------------------------------------+
+            // | Errors bitmask (16bit)                        |
+            // +-----------------------------------------------+
+
+            // Alarm - OR bitwise
+            if (id(${yambms_id}_errors_bitmask_counter_var) == id(${yambms_id}_bms_counter)) {
+              id(${yambms_id}_errors_bitmask_alarm).publish_state(id(${yambms_id}_errors_bitmask_alarm_var));
+              id(${yambms_id}_errors_bitmask_alarm_var) = 0; // global var reset
+            }
+            else id(${yambms_id}_errors_bitmask_alarm).publish_state(0);
+            // Warning - OR bitwise
+            id(${yambms_id}_errors_bitmask_warning).publish_state(id(${yambms_id}_errors_bitmask_warning_var));
+            id(${yambms_id}_errors_bitmask_warning_var) = 0; // global var reset
+            // errors_bitmask_counter
+            id(${yambms_id}_errors_bitmask_counter).publish_state(id(${yambms_id}_errors_bitmask_counter_var));
+            id(${yambms_id}_errors_bitmask_counter_var) = 0; // global var reset
+
+            // +-----------------------------------------------+
 
             // total_voltage MEAN
             float total_voltage = 0.0;
@@ -240,20 +260,6 @@ interval:
               id(${yambms_id}_temperature_sensor_2).publish_state(id(${yambms_id}_max_temperature_sensor_2));
               id(${yambms_id}_max_temperature_sensor_2) = -100.0; // global var reset
             }
-
-            // errors_bitmask (16bit)
-            // Alarm - bitwise OR
-            if (id(${yambms_id}_errors_bitmask_counter_var) == id(${yambms_id}_bms_counter)) {
-              id(${yambms_id}_errors_bitmask_alarm).publish_state(id(${yambms_id}_errors_bitmask_alarm_var));
-              id(${yambms_id}_errors_bitmask_alarm_var) = 0; // global var reset
-            }
-            else id(${yambms_id}_errors_bitmask_alarm).publish_state(0);
-            // Warning - bitwise OR
-            id(${yambms_id}_errors_bitmask_warning).publish_state(id(${yambms_id}_errors_bitmask_warning_var));
-            id(${yambms_id}_errors_bitmask_warning_var) = 0; // global var reset
-            // errors_bitmask_counter
-            id(${yambms_id}_errors_bitmask_counter).publish_state(id(${yambms_id}_errors_bitmask_counter_var));
-            id(${yambms_id}_errors_bitmask_counter_var) = 0; // global var reset
 
             // Reset combined_bms_counter (new cycle)
             // The bms are once again authorized to communicate their informations

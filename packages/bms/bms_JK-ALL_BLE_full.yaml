@@ -1,5 +1,5 @@
-# Updated : 2024.07.17
-# Version : 1.4.1
+# Updated : 2024.07.31
+# Version : 1.4.2
 # GitHub  : https://github.com/syssi/esphome-jk-bms
 
 # This YAML is free software: you can redistribute it and/or
@@ -34,6 +34,8 @@ ota:
 # +--------------------------------------+
 
 esp32_ble_tracker:
+  scan_parameters:
+    interval: 500ms
   on_ble_advertise:
     then:
       - lambda: |-

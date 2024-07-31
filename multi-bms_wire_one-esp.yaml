@@ -1,5 +1,5 @@
-# Updated : 2024.07.17
-# Version : 1.4.1
+# Updated : 2024.07.24
+# Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
@@ -66,7 +66,6 @@ packages:
   # device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
   
   device_base: !include packages/base/device_base.yaml
-  # device_debug: !include packages/base/device_debug.yaml
 
   bms1: !include
     file: packages/bms/bms_JK-B_UART_minimal.yaml
@@ -138,5 +137,16 @@ packages:
       canbus_name: 'CANBUS 1'
       canbus_node_id: 'canbus_node1'
       canbus_light_id: 'esp_light'
-      # The CANBUS links will be considered down if no response from the inverter (ID 0x305) after 30 loops.
-      canbus_max_no_ack: '30'
+      # The CANBUS link will be considered down if no response from the inverter (ID 0x305) for 5s
+      # The Deye inverter sends the ACK (can_id 0x305) only when it receives the can_id 0x356
+      canbus_link_timer: '5'
+
+# +--------------------------------------+
+# | DEBUG ( logger level must be DEBUG ) |
+# +--------------------------------------+
+
+  # device_debug: !include
+  #   file: packages/base/device_debug_ESP32.yaml
+  #   vars:
+  #     debug_name: 'Debug'
+  #     debug_update_interval: '5s'
