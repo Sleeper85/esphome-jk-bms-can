@@ -1,0 +1,160 @@
+# Updated : 2024.08.02
+# Version : 1.4.2
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
+
+# JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
+
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+substitutions:
+  name: yambms
+
+logger:
+  #level: INFO
+
+ota:
+  platform: esphome
+
+# Please use the native `api` component instead of the `mqtt` section.
+# If you use Home Assistant, the native API is more lightweight.
+# If there is no HA server connected to this API, the ESP32 reboots every 15 minutes to try to resolve the problem.
+# If you don't use Home Assistant please uncomment the "reboot_timeout: 0s" option.
+api:
+  reboot_timeout: 0s
+
+# If you don't want to use ESPHome's native API you can use MQTT instead.
+# In this case don't forget to remove the 'api:' section.
+# mqtt:
+#  broker: !secret mqtt_host
+#  username: !secret mqtt_username
+#  password: !secret mqtt_password
+#  id: mqtt_client
+
+# In the event of problems with the WiFi network, the ESP32 will reboot every 15 minutes to try to resolve the problem.
+# If we don't want to connect the ESP32 to the WiFi network please remove the 4 lines below.
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  domain: !secret domain
+
+captive_portal:
+
+# Please note that enabling this component will take up a lot of memory and may decrease
+# stability and be the cause of reboot depending on the capabilities of the board used.
+#web_server:
+#  port: 80
+#  log: false
+#  ota: false
+
+# +--------------------------------------+
+# | Packages                             |
+# +--------------------------------------+
+packages:
+  # Board : uncomment your board
+  # device_board: !include packages/board/board_esp32-devkit-v1.yaml
+  # device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
+  device_board: !include packages/board/board_atom-s3-lite.yaml
+  
+  # device_board: !include
+  #   file: packages/board/board_atom-s3-display.yaml
+  #   vars:
+  #     yambms_id: 'yambms1'
+  #     canbus_id: 'canbus1'
+
+  device_base: !include packages/base/device_base.yaml
+
+  # The sniffer represents the ESP node connected to the JK-BMS PB RS485 bus
+  # If address 0x00 is not detected on the RS485 bus, the sniffer will act directly as a master BMS (mode 2, max 15 BMS)
+  sniffer1: !include
+    file: packages/bms/bms_JK-PB_RS485_sniffer.yaml
+    vars:
+      sniffer_id: 'sniffer1'
+      sniffer_protocol: 'JK02_32S'
+      sniffer_uart_id: 'uart_esp_1'
+      sniffer_talk_pin: 8 # ESP32: 4, ESP32-S3: 8, ESP32-C3: 10
+
+  # Mode2 : configure the DIP switches of your BMS from 0x01 to 0x0F (don't use the 0x00 address, maximum 15 BMS)
+  bms1: !include
+    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    vars:
+      # YamBMS ID
+      yambms_id: 'yambms1'
+      # Sniffer ID
+      sniffer_id: 'sniffer1'
+      # BMS vars
+      bms_id: '1' # must be a number
+      bms_name: 'JK-BMS 1'
+      bms_rs485_address: '0x01' # BMS 1 DIP switch
+      bms_update_interval: '3s' # going below '3s' can cause problems
+      bms_combine_interval: '1s'
+
+  yambms1: !include
+    file: packages/yambms/yambms.yaml
+    vars:
+      # Please read the cut-off charging logic README to understand how the YamBMS works
+      yambms_id: 'yambms1'
+      yambms_name: 'YamBMS 1'
+      yambms_update_interval: '1s'
+      # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.
+      yambms_input_number_mode: 'slider'
+      # Number of cells in series, 16S by default
+      # In the case where a cell is defective with a BMS reporting one cell less than reality, this avoids sending bad charging parameters to the inverter.
+      yambms_cell_count: '16'
+      # Bulk / Absorption Voltage : corresponds to the Bulk voltage that will be used to charge the battery. (55.2V = 3.45V/Cell for 16S battery)
+      yambms_bulk_v: '55.2'
+      # Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6V = 3.35V/Cell for 16S battery)
+      yambms_float_v: '53.6'
+      # Rebulk voltage, voltage less than FLOAT at which BMS requests rebulk. (52.8V = 3.3V/Cell for 16S battery)
+      yambms_rebulk_v: '52.8'
+      # Allows the charging process to complete within 30 minutes even if the cells are still equalizing
+      # This timer can be deactivated with a switch
+      yambms_eoc_timer: '30'
+      # Time in seconds during which the end of charge conditions must be respected (cut-off + cells not equalizing)
+      yambms_cutoff_timer: '60'
+      # Absorption Offset V.
+      yambms_absorption_offset_v: '0.1'
+      yambms_absorption_offset_v_slider: 'true' # true: the slider is hidden, false: the slider is available
+      # Inverter Offset V. allows you to correct the inverter charging voltage.
+      # Requested Charging Voltage = Bulk. V + Inverter Offset V.
+      yambms_inverter_offset_v: "0.0"
+      yambms_inverter_offset_v_slider: 'true' # true: the slider is hidden, false: the slider is available
+      # Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
+      yambms_max_cycles: '6000.0'
+      # Cutoff Charging Logic
+      yambms_cutoff_cvmin: '3.37' # LFP 3.37 - Li-ion 3.90
+      yambms_cutoff_cvmax: '3.65' # LFP 3.65 - Li-ion 4.20
+
+  canbus1: !include
+    file: packages/yambms/yambms_canbus.yaml
+    vars:
+      # YamBMS ID
+      yambms_id: 'yambms1'
+      # CANBUS vars
+      canbus_id: 'canbus1'
+      canbus_name: 'CANBUS 1'
+      canbus_node_id: 'canbus_node1'
+      canbus_light_id: 'esp_light'
+      # The CANBUS link will be considered down if no response from the inverter (ID 0x305) for 5s
+      # The Deye inverter sends the ACK (can_id 0x305) only when it receives the can_id 0x356
+      canbus_link_timer: '5'
+
+# +--------------------------------------+
+# | DEBUG ( logger level must be DEBUG ) |
+# +--------------------------------------+
+
+  # device_debug: !include
+  #   file: packages/base/device_debug_ESP32.yaml
+  #   vars:
+  #     debug_name: 'Debug'
+  #     debug_update_interval: '5s'
