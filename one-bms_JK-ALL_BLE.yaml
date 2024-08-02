@@ -21,11 +21,11 @@ substitutions:
   name: yambms
 
 logger:
-  #level: INFO
+  level: DEBUG # DEBUG / INFO / WARN
 
 ota:
   platform: esphome
-
+  
 # Please use the native `api` component instead of the `mqtt` section.
 # If you use Home Assistant, the native API is more lightweight.
 # If there is no HA server connected to this API, the ESP32 reboots every 15 minutes to try to resolve the problem.
@@ -62,43 +62,37 @@ captive_portal:
 # +--------------------------------------+
 packages:
   # Board : uncomment your board
-  # device_board: !include packages/board/board_esp32-devkit-v1.yaml
+  device_board: !include packages/board/board_esp32-devkit-v1.yaml
   # device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
-  device_board: !include packages/board/board_atom-s3-lite.yaml
+  # device_board: !include packages/board/board_atom-lite.yaml
+  # device_board: !include packages/board/board_atom-s3-lite.yaml
   
   # device_board: !include
   #   file: packages/board/board_atom-s3-display.yaml
   #   vars:
   #     yambms_id: 'yambms1'
   #     canbus_id: 'canbus1'
-
+  
   device_base: !include packages/base/device_base.yaml
 
-  # The sniffer represents the ESP node connected to the JK-BMS PB RS485 bus
-  # If address 0x00 is not detected on the RS485 bus, the sniffer will act directly as a master BMS (mode 2, max 15 BMS)
-  sniffer1: !include
-    file: packages/bms/bms_JK-PB_RS485_sniffer.yaml
-    vars:
-      sniffer_id: 'sniffer1'
-      sniffer_protocol: 'JK02_32S'
-      sniffer_uart_id: 'uart_esp_1'
-      sniffer_talk_pin: 8 # ESP32: 4, ESP32-S3: 8, ESP32-C3: 10
+  # Max 3 BLE connections.
+  # The BLE software stack on the ESP32 consumes a significant amount of RAM on the device.
+  # Crashes are likely to occur if you include too many additional components in your device’s configuration.
+  # https://esphome.io/components/ble_client.html
 
-  # Mode2 : configure the DIP switches of your BMS from 0x01 to 0x0F (don't use the 0x00 address, maximum 15 BMS)
   bms1: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-ALL_BLE_minimal.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
-      # Sniffer ID
-      sniffer_id: 'sniffer1'
       # BMS vars
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
-      bms_rs485_address: '0x01' # BMS 1 DIP switch
-      bms_update_interval: '3s' # going below '3s' can cause problems
+      bms_update_interval: '3s'
       bms_combine_interval: '1s'
-
+      bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
+      bms_ble_mac_address: C8:47:8C:10:7E:AA
+  
   yambms1: !include
     file: packages/yambms/yambms.yaml
     vars:

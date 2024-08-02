@@ -1,8 +1,7 @@
-# Updated : 2024.07.24
+# Updated : 2024.08.02
 # Version : 1.4.2
+# GitHub  : https://github.com/SeByDocKy/pvbrain2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
-
-# JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,10 +17,25 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
 substitutions:
-  name: yambms
+  name: 'pvbrain2'
+
+  ###### For extended UART ports with the 2 WK2168 ######
+
+  uart0_baudrate: '2400'    #WKS         {RJ45-UART0} 
+  uart1_baudrate: '38400'   #JSY193
+  uart2_baudrate: '19200'   #smartshunt
+  uart3_baudrate: '9600'    #SRNE        {RJ45-UART3} 
+  uart4_baudrate: '115200'  #JK-BMS 1
+  uart5_baudrate: '115200'  #JK-BMS 2
+  uart6_baudrate: '115200'  #Pylontech
+  uart7_baudrate: '9600'    #EPEVER      {RJ45-UART7} 
+  
+  # 'i2c' or 'spi'  go into pvbrain2/base/device_base.yaml to select I2C or SPI UART Hub file
+  # If SPI selected, don't forget to jump/solder the two pairs of pin together located back of WK2168 boards 
+  uart_hub_bus: 'spi'
 
 logger:
-  #level: INFO
+  level: DEBUG # DEBUG / INFO / WARN
 
 ota:
   platform: esphome
@@ -61,49 +75,31 @@ captive_portal:
 # | Packages                             |
 # +--------------------------------------+
 packages:
-  # Board : uncomment your board
-  device_board: !include packages/board/board_esp32-devkit-v1.yaml
-  # device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
-  # device_board: !include packages/board/board_atom-s3-lite.yaml
-  
-  # device_board: !include
-  #   file: packages/board/board_atom-s3-display.yaml
-  #   vars:
-  #     yambms_id: 'yambms1'
-  #     canbus_id: 'canbus1'
-  
-  device_base: !include packages/base/device_base.yaml
-
-  # Max 3 BLE connections.
-  # The BLE software stack on the ESP32 consumes a significant amount of RAM on the device.
-  # Crashes are likely to occur if you include too many additional components in your device’s configuration.
-  # https://esphome.io/components/ble_client.html
+  device_base: !include pvbrain2/base/device_base.yaml
 
   bms1: !include
-    file: packages/bms/bms_JK-ALL_BLE_minimal.yaml
+    file: packages/bms/bms_JK-B_UART_minimal_pvbrain2.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
       # BMS vars
       bms_id: '1' # must be a number
       bms_name: 'JK-BMS 1'
-      bms_update_interval: '3s'
+      bms_update_interval: '2s'
       bms_combine_interval: '1s'
-      bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
-      bms_ble_mac_address: C8:47:8C:10:7E:AA
+      bms_uart_id: uart_${uart_hub_bus}_4
   
   bms2: !include
-    file: packages/bms/bms_JK-ALL_BLE_minimal.yaml
+    file: packages/bms/bms_JK-B_UART_minimal_pvbrain2.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
       # BMS vars
       bms_id: '2' # must be a number
       bms_name: 'JK-BMS 2'
-      bms_update_interval: '3s'
+      bms_update_interval: '2s'
       bms_combine_interval: '1s'
-      bms_ble_protocol_version: JK02_32S # JK02_24S < hardware version 11.0 >= JK02_32S
-      bms_ble_mac_address: C8:47:8C:10:7E:AB
+      bms_uart_id: uart_${uart_hub_bus}_5
 
   yambms1: !include
     file: packages/yambms/yambms.yaml
@@ -150,7 +146,7 @@ packages:
       canbus_id: 'canbus1'
       canbus_name: 'CANBUS 1'
       canbus_node_id: 'canbus_node1'
-      canbus_light_id: 'esp_light'
+      canbus_light_id: 'led_light_1' # on_board_light_io48
       # The CANBUS link will be considered down if no response from the inverter (ID 0x305) for 5s
       # The Deye inverter sends the ACK (can_id 0x305) only when it receives the can_id 0x356
       canbus_link_timer: '5'
@@ -160,7 +156,10 @@ packages:
 # +--------------------------------------+
 
   # device_debug: !include
-  #   file: packages/base/device_debug_ESP32.yaml
+  #   file: pvbrain2/base/device_debug.yaml
   #   vars:
   #     debug_name: 'Debug'
   #     debug_update_interval: '5s'
+  #     # Size of your PSRAM in bits
+  #     # 8Mb='8388608' | 6Mb='6291456' | 4Mb='4194304' | 2Mb='2097152' | NoPSRAM='0'
+  #     debug_psram_size: '8388608'
