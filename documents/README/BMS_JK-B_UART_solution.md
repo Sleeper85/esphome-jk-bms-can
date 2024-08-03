@@ -89,7 +89,9 @@ You need to import this YAML board into the main YAML.
 
 ```
 
-**JK-BMS UART-TTL GPS port**
+**JK-B* BMS UART-TTL GPS port**
+
+The JK-B* BMS using the RS485 port (GPS) which is in fact not RS485 but 3.3V UART-TTL, so it can be directly connected to the ESP32.
 
 ```
 # UART-TTL GPS port on JK-BMS (4 pin, JST 1.25mm pitch)

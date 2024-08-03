@@ -6,30 +6,29 @@
 ![GitHub forks](https://img.shields.io/github/forks/Sleeper85/esphome-jk-bms-can)
 ![GitHub watchers](https://img.shields.io/github/watchers/Sleeper85/esphome-jk-bms-can)
 
-**ESPHome component to monitor a Jikong Battery Management System (JK-BMS) and communicate with inverters supporting CANBUS protocol compatible with Pylontech, GoodWe, Seplos, SMA or Victron.**
+**ESPHome component to monitor a Jikong Battery Management System (JK-BMS) and communicate with inverters supporting CAN bus protocol compatible with Pylontech, GoodWe, Seplos, SMA or Victron.**
 
-**Note: Pylontech uses 15s/48v and many others uses 16s/51.2v @3.2v/cell nominal.**
+**Note: Pylontech uses 15S/48V and many others uses 16S/51.2V @3.2V/cell nominal.**
 Other battery profiles that utilise the **PYLON** protocol with different cell counts may also work, eg Alpha Ess Smile, BYD Battery-Box LV Flex Lite.
 Select the correct battery profile in the inverter to match your battery pack!
 
-The ESP32 communicates with the JK-BMS using the RS485 port (GPS) which is in fact not RS485 but 3.3V UART-TTL, so it can be directly connected to the ESP32.
-The ESP32 then sends the required CAN bus data to the inverter via a TJA1050, TJA1051T or SN65HVD230 CAN bus transceiver.
-
-**Note: some inverters only accept a CAN bus at 3.3V in this case please choose the SN65HVD230 chip.**
+The ESP32 communicates with the BMS using the `BLE / UART / RS485` protocol.
+The ESP32 then sends the required CAN bus data to the inverter via the [CAN bus transceiver](documents/README/Supported_devices.md#supported-can-bus-transceiver).
 
 **Sends over CAN bus to inverter:**
   - Battery Voltage
   - Battery Current (+charge, -discharge)
   - State of Charge (SOC)
   - State of health (SOH)
-  - BMS Temperature
-  - Charging Voltage
-  - Charging Amps
-  - Discharge min Voltage
+  - BMS temperature
+  - Charging voltage
+  - Charging max amps
+  - Discharge min voltage
+  - Discharge max amps
   - Battery name
   - Alarms: Cell over/under voltage, Charge/discharge over current, High/low Temp, BMS fault
   
-**Note: This code support multi-BMS connection per inverter (with a single ESP32) and should work with inverters that support the CANBUS protocol PYLON, SMA or Victron.
+**Note: This code support multi-BMS connection per inverter (with a single ESP32) and should work with inverters that support the CAN bus protocol PYLON, SMA or Victron.
 I'm only testing it with my Deye SUN-6K-SG03-LP1-EU inverter.<br>
 This project is still in development and testing...<br>**
 
@@ -47,7 +46,7 @@ This project is still in development and testing...<br>**
 
 1) [Supported devices](documents/README/Supported_devices.md)
 2) [Charging Logic](documents/README/Charging_logic.md)
-3) [CANBUS protocol](documents/README/CANBUS_protocol.md)
+3) [CAN bus protocol](documents/README/CANBUS_protocol.md)
 4) [BMS JK-B UART solution](documents/README/BMS_JK-B_UART_solution.md)
 5) [BMS JK-PB RS485 solution](documents/README/BMS_JK-PB_RS485_solution.md)
 6) [Configuration of the main YAML](documents/README/Main_YAML_config.md)
