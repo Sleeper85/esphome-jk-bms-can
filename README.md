@@ -45,13 +45,13 @@ This project is still in development and testing...<br>**
 
 ## Contents
 
-[01. Supported devices](documents/README/Supported_devices.md)
-[02. Charging Logic](documents/README/Charging_logic.md)
-[03. CANBUS protocol](documents/README/CANBUS_protocol.md)
-[04. BMS JK-B UART solution](documents/README/BMS_JK-B_UART_solution.md)
-[05. BMS JK-PB RS485 solution](documents/README/BMS_JK-PB_RS485_solution.md)
-[06. Configuration of the main YAML](documents/README/Main_YAML_config.md)
-[07. Installation procedure](documents/README/Installation_procedure.md)
+1) [Supported devices](documents/README/Supported_devices.md)
+2) [Charging Logic](documents/README/Charging_logic.md)
+3) [CANBUS protocol](documents/README/CANBUS_protocol.md)
+4) [BMS JK-B UART solution](documents/README/BMS_JK-B_UART_solution.md)
+5) [BMS JK-PB RS485 solution](documents/README/BMS_JK-PB_RS485_solution.md)
+6) [Configuration of the main YAML](documents/README/Main_YAML_config.md)
+7) [Installation procedure](documents/README/Installation_procedure.md)
 
 ## Requirements
 
@@ -76,24 +76,6 @@ This project is still in development and testing...<br>**
 A user of the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/syssi/esphome-jk-bms) project ([@dr3amr](https://github.com/dr3amr)) shared some [Home Assistant Lovelace UI cards for a beautiful dashboard here](https://github.com/syssi/esphome-jk-bms/discussions/230).
 
 ![Lovelace entities card](images/lovelace-cards-contribution.png "Home Assistant Lovelace UI cards")
-
-## Debugging
-
-If this component doesn't work out of the box for your device please update your configuration to enable the debug output of the UART component and increase the log level to the see outgoing and incoming serial traffic:
-
-```
-logger:
-  level: DEBUG
-
-uart:
-  id: uart_0
-  baud_rate: 115200
-  rx_buffer_size: 384
-  tx_pin: ${tx_pin}
-  rx_pin: ${rx_pin}
-  debug:
-    direction: BOTH
-```
 
 ## References
 
