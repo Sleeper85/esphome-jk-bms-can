@@ -1,4 +1,4 @@
-# Updated : 2024.08.02
+# Updated : 2024.08.03
 # Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -64,6 +64,13 @@ packages:
   # Board : uncomment your board
   device_board: !include packages/board/board_esp32-devkit-v1.yaml
   # device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
+  # device_board: !include packages/board/board_atom-s3-lite.yaml
+  
+  # device_board: !include
+  #   file: packages/board/board_atom-s3-display.yaml
+  #   vars:
+  #     yambms_id: 'yambms1'
+  #     canbus_id: 'canbus1'
   
   device_base: !include packages/base/device_base.yaml
 
