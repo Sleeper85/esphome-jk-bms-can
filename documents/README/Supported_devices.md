@@ -22,7 +22,9 @@ See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/s
 
 Note: Other BMS brands already integrated with ESPhome can be added easily.
 
-## Supported CAN Transceiver
+## Supported CAN bus transceiver
+
+**Note: some inverters only accept a CAN bus at 3.3V in this case please choose the SN65HVD230 chip.**
 
 | TJA1050 | TJA1051 | SN65HVD230 |
 | --- | --- | --- |
