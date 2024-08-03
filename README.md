@@ -12,7 +12,7 @@
 Other battery profiles that utilise the **PYLON** protocol with different cell counts may also work, eg Alpha Ess Smile, BYD Battery-Box LV Flex Lite.
 Select the correct battery profile in the inverter to match your battery pack!
 
-The ESP32 communicates with the BMS using the `BLE / UART / RS485` protocol.
+The ESP32 communicates with the BMS using the `BLE / UART / RS485` protocol.<br>
 The ESP32 then sends the required CAN bus data to the inverter via the [CAN bus transceiver](documents/README/Supported_devices.md#supported-can-bus-transceiver).
 
 **Sends over CAN bus to inverter:**
