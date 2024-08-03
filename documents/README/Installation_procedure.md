@@ -67,3 +67,21 @@ esphome compile multi-bms_JK-ALL_BLE.yaml
 # check the logs (the --device option is not required)
 esphome logs multi-bms_JK-ALL_BLE.yaml --device 192.168.x.x
 ```
+
+## Debugging
+
+If this component doesn't work out of the box for your device please update your configuration to enable the debug output of the UART component and increase the log level to the see outgoing and incoming serial traffic:
+
+```
+logger:
+  level: DEBUG
+
+uart:
+  id: uart_0
+  baud_rate: 115200
+  rx_buffer_size: 384
+  tx_pin: ${tx_pin}
+  rx_pin: ${rx_pin}
+  debug:
+    direction: BOTH
+```

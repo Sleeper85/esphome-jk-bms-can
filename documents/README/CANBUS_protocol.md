@@ -6,8 +6,8 @@
 ![GitHub forks](https://img.shields.io/github/forks/Sleeper85/esphome-jk-bms-can)
 ![GitHub watchers](https://img.shields.io/github/watchers/Sleeper85/esphome-jk-bms-can)
 
-## CAN Protocol Table
+## CANBUS protocol table
 
-![Image](../../images/CAN_Protocol_Table.png "CAN Protocol Table")
+![Image](../../images/CAN_Protocol_Table.png "ANBUS protocol table")
 
 Note: the following IDs are not implemented: 0x35B, 0x360, 0x378, 0x380 and 0x381.
