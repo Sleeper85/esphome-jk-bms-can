@@ -8,6 +8,8 @@
 
 ## Supported ESP32
 
+**Recommended: ESP32-S3 or Atom S3**
+
 * [M5Stack Atom S3](Supported_devices_M5Stack_Atom_S3.md)
 * [PVbrain2 with ESP32-S3](https://github.com/SeByDocKy/pvbrain2)
 * [Build your own PCB with ESP32 or ESP32-S3](Supported_devices_Build_your_own_PCB.md)
