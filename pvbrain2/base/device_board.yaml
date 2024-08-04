@@ -1,12 +1,6 @@
-# Updated : 2024.05.18
-# Version : 1.0.1
+# Updated : 2024.07.29
+# Version : 1.4.2
 # GitHub  : https://github.com/SeByDocKy/pvbrain2
-
-esp32:
-  board: esp32-s3-devkitc-1
-  flash_size: 16MB # ajust according to your ESP32-S3 version
-  framework:
-    type: esp-idf
 
 esphome:
   name: ${name}
@@ -14,20 +8,24 @@ esphome:
   # comment: 'Solar system braining and more !'
   # area: 'Local Technique'
   project:
-    name: esphome.pvbrain2
-    version: "1.0.1"
-  min_version: 2024.5.0
+    name: Sleeper85.YamBMS
+    version: "1.4.2"
+  min_version: 2024.6.3
   # Standard uses a single line for data, Dual IO uses 2 lines for data.
   platformio_options:
-    board_build.flash_mode: dio # Needed to flash the ESP32-S3 and prevent reboot loop
+    board_build.flash_mode: dio               # Needed to flash the ESP32-S3 and prevent reboot loop
+    board_upload.maximum_ram_size: 524288     # Total Size of the internal RAM in bits. It's the same for all ESP32-S3 ( 512KB )
 
-  # The following option is required for ESP32 S3 with memory > 16MB, eg. the N32R8V
-  # platformio_options:
-  #   board_build.arduino.memory_type: opi_opi
-  #   board_build.flash_mode: dio
-  #   board_upload.maximum_ram_size: 524288
-  #   board_build.partitions: large_littlefs_32MB.csv
-  #   build_flags:
-  #     -DBOARD_HAS_PSRAM
-  #     -DARDUINO_USB_CDC_ON_BOOT=1
-  #     -mfix-esp32-psram-cache-issue
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 16MB # ajust according to your ESP32-S3 version
+  framework:
+    type: esp-idf
+
+# PSRAM activation and settings
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG

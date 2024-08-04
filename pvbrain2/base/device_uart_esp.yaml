@@ -1,19 +1,18 @@
-
- ############# ESP32 S3 UART ############    
+logger:
+  baud_rate: 0 # Release 'uart esp 0' and prevent boot loops
 
 uart:
-  # Set logger baud_rate: to 0 for prevent boot loop
   - id: uart_esp_0
     tx_pin: GPIO43
     rx_pin: GPIO44
-    baud_rate: ${uart_esp0_baudrate}
+    baud_rate: 115200
 
   - id: uart_esp_1
     tx_pin: GPIO17
     rx_pin: GPIO18
-    baud_rate: ${uart_esp1_baudrate}
+    baud_rate: 115200
     
   - id: uart_esp_2
     tx_pin: GPIO15
     rx_pin: GPIO16
-    baud_rate: ${uart_esp2_baudrate}
+    baud_rate: 115200
