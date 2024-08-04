@@ -8,5 +8,5 @@
 
 ## Contents
 
-1) [JK-B BMS UART solution](documents/README/BMS_JK-B_UART_solution.md)
-2) [JK-PB BMS RS485 solution](documents/README/BMS_JK-PB_RS485_solution.md)
+1) [JK-B BMS UART solution](BMS_JK-B_UART_solution.md)
+2) [JK-PB BMS RS485 solution](BMS_JK-PB_RS485_solution.md)
