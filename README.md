@@ -45,12 +45,12 @@ This project is still in development and testing...<br>**
 ## Contents
 
 1) [Supported devices](documents/README/Supported_devices.md)
-2) [Charging Logic](documents/README/Charging_logic.md)
+2) [Charging logic](documents/README/Charging_logic.md)
+2) [YamBMS functions](documents/README/YamBMS_functions.md)
 3) [CAN bus protocol](documents/README/CANBUS_protocol.md)
-4) [BMS JK-B UART solution](documents/README/BMS_JK-B_UART_solution.md)
-5) [BMS JK-PB RS485 solution](documents/README/BMS_JK-PB_RS485_solution.md)
-6) [Configuration of the main YAML](documents/README/Main_YAML_config.md)
-7) [Installation procedure](documents/README/Installation_procedure.md)
+4) [Schematic and setup instructions](documents/README/Schematic_and_setup_instructions.md)
+5) [Configuration of the main YAML](documents/README/Main_YAML_config.md)
+6) [Installation procedure](documents/README/Installation_procedure.md)
 
 ## Requirements
 

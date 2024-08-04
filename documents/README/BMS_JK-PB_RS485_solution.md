@@ -1,4 +1,4 @@
-# YamBMS - BMS JK-PB RS485 Solution
+# YamBMS - JK-PB BMS RS485 Solution
 
 [![Badge License: GPLv3](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Badge Version](https://img.shields.io/github/v/release/Sleeper85/esphome-jk-bms-can?include_prereleases&color=yellow&logo=DocuSign&logoColor=white)](https://github.com/Sleeper85/esphome-jk-bms-can/releases/latest)
@@ -25,7 +25,7 @@ Note: `Atom S3 Lite` does not have a display.
 ### ESP32-S3 DevKitC-1
 
 - [ESP32-S3 N16R8](https://a.aliexpress.com/_EzFdrw3)
-- [SN65HVD230 3V3 CAN Transceiver](https://a.aliexpress.com/_Evq9Ra7)
+- [SN65HVD230 3V3 CAN transceiver](https://a.aliexpress.com/_Evq9Ra7)
 
 ## RS485 unisolated board
 

@@ -11,7 +11,7 @@
 **Recommended: ESP32-S3 or Atom S3**
 
 * [M5Stack Atom S3](Supported_devices_M5Stack_Atom_S3.md)
-* [PVbrain2 with ESP32-S3](https://github.com/SeByDocKy/pvbrain2)
+* [PVbrain2 with ESP32-S3](https://github.com/SeByDocKy/pvbrain2) (up to 11 BMS monitored with `UART`)
 * [Build your own PCB with ESP32 or ESP32-S3](Supported_devices_Build_your_own_PCB.md)
 
 ## Supported BMS
@@ -20,7 +20,7 @@ All JK-B* and JK-PB* models with software@ version `>=6.0` are using the impleme
 
 See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/syssi/esphome-jk-bms) repository for more information.
 
-Note: Other BMS brands already integrated with ESPhome can be added easily.
+Note: other BMS brands already integrated with ESPhome can be added easily.
 
 ## Supported CAN bus transceiver
 
@@ -40,7 +40,7 @@ Inverters supporting CAN PYLON/Goodwe/SMA/Victron Low Voltage protocol should wo
 
 The following are confirmed and known to work:
 
-| Brand | Model | Satus | Reported by | Inverter battery | BMS | BMS link | ESP32 board | CAN name | CAN protocol | CAN board | Multi-BMS | Remarks |
+| Brand | Model | Satus | Reported by | Inverter battery | BMS | BMS link | ESP32 board | CAN name | CAN protocol | CAN transceiver | Multi-BMS | Remarks |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Deye | SUN-3.6K-SG03LP1-EU | Working | [@Der_Hannes](https://diysolarforum.com/members/der_hannes.16949/) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | SN65HVD230 **3.3V** | no | --- |
 | Deye | SUN-5K-SG03LP1-EU | Working | [@vdiex](https://github.com/vdiex) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
@@ -49,6 +49,7 @@ The following are confirmed and known to work:
 | Deye | SUN-6K-SG03LP1-EU | Working | [@Sleeper85](https://github.com/Sleeper85) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | TJA1051T | no | --- |
 | Deye | SUN-12K-SG04LP3-EU | Working | [@lucize](https://github.com/lucize) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
 | Deye | SUN-12K-SG04LP3-EU | Working | [@luckylinux](https://github.com/luckylinux) | Lithium 00 | JK-B* | BLE | Atom S3 Lite | PYLON | PYLON 1.2 | [CANBus Unit (CA-IS3050G)](https://docs.m5stack.com/en/unit/can) | no | --- |
+| Deye | SUN-12K-SG04LP3-EU | Working | [@virus100b](https://github.com/virus100b) | Lithium 00 | JK-PB* (2) | RS485 | ESP32 DevKit V1 | PYLON | PYLON 1.2 | TJA1050 | yes | --- |
 | Goodwe | 3648-ES (GW5048-ES) | Working | [@jirdol](https://github.com/jirdol) | --- | JK-B* | UART | ESP32 DevKit V1 | GOODWE | PYLON + | --- | no | --- |
 | Goodwe | GW5000S-BP | Working | [@Uksa007](https://github.com/Uksa007) | Goodwe LX U5.4-L | JK-B* | UART | ESP32 DevKit V1 | GOODWE | PYLON + | --- | no | --- |
 | Goodwe | GW5000S-BP & GW3600S-BP | Working | [@OselDusan7](https://github.com/OselDusan7) | --- | JK-B* | UART | ESP32 DevKit V1 | GOODWE | PYLON + | --- | no | --- |
@@ -64,7 +65,7 @@ The following are confirmed and known to work:
 | Solis | S5-EH1P6K-L | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | JK-B* | UART | ESP32 DevKit V1 | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | no | --- |
 | Solis | RHI-3.6K-48ES-5G | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | JK-B* | UART | ESP32 DevKit V1 | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | no | --- |
 | Solis | RHI-3K-48ES | Working | [@chaosnature](https://diysolarforum.com/members/chaosnature.64395/) | AoBo | JK-B* (2) | BLE | Atom S3 Lite | SMA | SMA | [Atomic CAN base (CA-IS3050G)](https://docs.m5stack.com/en/atom/Atomic%20CAN%20Base) | yes | DIY Li-ion Growatt GBLI5001 converted. |
-| LuxPower | LXP SNA 5K | Working | [@shvmm](https://github.com/shvmm) | Li 02 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON + | SN65HVD230 **3.3V** | no | --- |
+| LuxPower | LXP SNA 5K | Working | [@shvmm](https://github.com/shvmm) | Li 02 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON + | SN65HVD230 / TJA1050 | no | --- |
 | --- | Turbo Energy | Working | [@ibikku](https://github.com/ibikku) | --- | JK-B* | UART | ESP32 DevKit V1 | --- | --- | --- | no | --- |
 | SMA | Sunny Island  | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Victron | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
