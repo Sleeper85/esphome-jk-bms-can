@@ -16,7 +16,7 @@
 
 ## Supported BMS
 
-All JK-B* and JK-PB* models with software@ version `>=6.0` are using the implemented protocol and should be supported.
+All `JK-B` and `JK-PB` models with software@ version `>=6.0` are using the implemented protocol and should be supported.
 
 See the [@syssi](https://github.com/syssi) [esphome-jk-bms](https://github.com/syssi/esphome-jk-bms) repository for more information.
 
@@ -40,7 +40,7 @@ Inverters supporting CAN PYLON/Goodwe/SMA/Victron Low Voltage protocol should wo
 
 The following are confirmed and known to work:
 
-| Brand | Model | Satus | Reported by | Inverter battery | BMS | BMS link | ESP32 board | CAN name | CAN protocol | CAN transceiver | Multi-BMS | Remarks |
+| Brand | Model | Satus | Reported by | Inverter bat. mode | BMS | BMS protocol | ESP32 board | CAN name | CAN protocol | CAN transceiver | Multi-BMS | Remarks |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Deye | SUN-3.6K-SG03LP1-EU | Working | [@Der_Hannes](https://diysolarforum.com/members/der_hannes.16949/) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | SN65HVD230 **3.3V** | no | --- |
 | Deye | SUN-5K-SG03LP1-EU | Working | [@vdiex](https://github.com/vdiex) | Lithium 00 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON 1.2 | --- | no | --- |
@@ -66,6 +66,7 @@ The following are confirmed and known to work:
 | Solis | RHI-3.6K-48ES-5G | Working | [@MrPabloUK](https://github.com/MrPabloUK) | AoBo | JK-B* | UART | ESP32 DevKit V1 | SMA | SMA | [Adafruit CAN Pal](https://learn.adafruit.com/adafruit-can-pal/overview) | no | --- |
 | Solis | RHI-3K-48ES | Working | [@chaosnature](https://diysolarforum.com/members/chaosnature.64395/) | AoBo | JK-B* (2) | BLE | Atom S3 Lite | SMA | SMA | [Atomic CAN base (CA-IS3050G)](https://docs.m5stack.com/en/atom/Atomic%20CAN%20Base) | yes | DIY Li-ion Growatt GBLI5001 converted. |
 | LuxPower | LXP SNA 5K | Working | [@shvmm](https://github.com/shvmm) | Li 02 | JK-B* | UART | ESP32 DevKit V1 | PYLON | PYLON + | SN65HVD230 / TJA1050 | no | --- |
+| EG4 | 6000XP | Working | [@ChrisG](https://diysolarforum.com/members/chrisg.483/) |  Lithium Type 2  | JK-B* (2) | BLE | ESP32 DevKit V1 / ESP32-S3 DevKitC-1 | PYLON | PYLON 1.2 |  MCP2515 | yes | --- |
 | --- | Turbo Energy | Working | [@ibikku](https://github.com/ibikku) | --- | JK-B* | UART | ESP32 DevKit V1 | --- | --- | --- | no | --- |
 | SMA | Sunny Island  | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Victron | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
