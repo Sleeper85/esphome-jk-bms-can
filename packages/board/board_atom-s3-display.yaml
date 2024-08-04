@@ -1,6 +1,6 @@
-# Updated : 2024.05.19
-# Version : 1.1
-# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+# Updated : 2024.07.29
+# Version : 1.4.2
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # Atom S3 - SKU:C123
 # https://docs.m5stack.com/en/core/AtomS3
@@ -11,9 +11,8 @@ esp32:
     type: esp-idf
 
 esphome:
-  # Standard uses a single line for data, Dual IO uses 2 lines for data.
   platformio_options:
-    board_build.flash_mode: dio # Needed to flash the ESP32-S3 and prevent reboot loop
+    board_build.flash_mode: dio # Standard uses a single line for data, Dual IO uses 2 lines for data (prevent reboot loop)
   on_boot:
     then:
       - lambda: |-
@@ -30,7 +29,6 @@ uart:
     tx_pin: 1
     rx_pin: 2
     baud_rate: 115200
-    rx_buffer_size: 384
 
 canbus:
   # CANBUS NODE 1
@@ -169,7 +167,7 @@ display:
            it.rectangle(0,  0, it.get_width(), it.get_height(), id(my_blue));
            it.rectangle(0, 20, it.get_width(), it.get_height(), id(my_blue));   // header bar
            it.rectangle(0, 100, it.get_width(), it.get_height(), id(my_blue));   // footer bar
-           it.printf(64, 118, id(roboto_18), id(my_yellow), TextAlign::CENTER, "%s", id(${smartbms_id}_charging_status).state.c_str());
+           it.printf(64, 118, id(roboto_18), id(my_yellow), TextAlign::CENTER, "%s", id(${yambms_id}_charging_status).state.c_str());
            if (id(esp32_online_status).state) {
              it.print(115, 5, id(roboto_12), id(my_green), TextAlign::TOP_RIGHT, "ESP OK");
            }
@@ -184,13 +182,13 @@ display:
            }
           
            it.print((128 / 2), (128 / 3) * 1, id(roboto_24), id(my_gray), TextAlign::CENTER,"SoC %");
-           it.printf((128 / 2), (128 / 3) * 2 - 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%.1f", id(${smartbms_id}_battery_soc).state);
+           it.printf((128 / 2), (128 / 3) * 2 - 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%.1f", id(${yambms_id}_battery_soc).state);
        - id: page2
          lambda: |-
            it.rectangle(0,  0, it.get_width(), it.get_height(), id(my_blue));
            it.rectangle(0, 20, it.get_width(), it.get_height(), id(my_blue));   // header bar
            it.rectangle(0, 100, it.get_width(), it.get_height(), id(my_blue));   // footer bar
-           it.printf(64, 118, id(roboto_18), id(my_yellow), TextAlign::CENTER, "%s", id(${smartbms_id}_charging_status).state.c_str());
+           it.printf(64, 118, id(roboto_18), id(my_yellow), TextAlign::CENTER, "%s", id(${yambms_id}_charging_status).state.c_str());
            if (id(esp32_online_status).state) {
              it.print(115, 5, id(roboto_12), id(my_green), TextAlign::TOP_RIGHT, "ESP OK");
            }
@@ -204,13 +202,13 @@ display:
              it.print(0, 5, id(roboto_12), id(my_red), TextAlign::TOP_LEFT, "CAN KO");
            }      
            it.print((128 / 2), (128 / 3) * 1, id(roboto_24), id(my_gray), TextAlign::CENTER,"Current A");
-           it.printf((128 / 2), (128 / 3) * 2 - 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%.1f", id(${smartbms_id}_current).state);
+           it.printf((128 / 2), (128 / 3) * 2 - 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%.1f", id(${yambms_id}_current).state);
        - id: page3
          lambda: |-
            it.rectangle(0,  0, it.get_width(), it.get_height(), id(my_blue));
            it.rectangle(0, 20, it.get_width(), it.get_height(), id(my_blue));   // header bar
            it.rectangle(0, 100, it.get_width(), it.get_height(), id(my_blue));   // footer bar
-           it.printf(64, 118, id(roboto_18), id(my_yellow), TextAlign::CENTER, "%s", id(${smartbms_id}_charging_status).state.c_str());
+           it.printf(64, 118, id(roboto_18), id(my_yellow), TextAlign::CENTER, "%s", id(${yambms_id}_charging_status).state.c_str());
            if (id(esp32_online_status).state) {
              it.print(115, 5, id(roboto_12), id(my_green), TextAlign::TOP_RIGHT, "ESP OK");
            }
@@ -224,5 +222,5 @@ display:
              it.print(0, 5, id(roboto_12), id(my_red), TextAlign::TOP_LEFT, "CAN KO");
            }          
            it.print((128 / 2), (128 / 3) * 1 + 5, id(roboto_24), id(my_gray), TextAlign::CENTER,"Voltage V");
-           it.printf((128 / 2), (128 / 3) * 2 - 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%.1f", id(${smartbms_id}_total_voltage).state);  
+           it.printf((128 / 2), (128 / 3) * 2 - 5, id(roboto_32), id(my_gray), TextAlign::CENTER, "%.1f", id(${yambms_id}_total_voltage).state);  
           

@@ -1,6 +1,6 @@
-# Updated : 2024.05.17
-# Version : 2.1.1
-# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+# Updated : 2024.07.29
+# Version : 1.4.2
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,9 +21,9 @@ esphome:
   # comment: 'Solar system braining and more !'
   # area: 'Technical local'
   project:
-    name: esphome.smartbms
-    version: "2.1.1"
-  min_version: 2023.9.0
+    name: Sleeper85.YamBMS
+    version: "1.4.2"
+  min_version: 2024.6.0
 
 time:
   # https://esphome.io/components/time/homeassistant
@@ -43,6 +43,16 @@ binary_sensor:
     id: esp32_online_status
     entity_category: diagnostic
 
+text_sensor:
+  # +--------------------------------------+
+  # | Uptime Human Readable                |
+  # +--------------------------------------+
+  - platform: template
+    name: ${name} ESP32 Uptime
+    id: esp32_uptime
+    icon: mdi:clock-start
+    entity_category: diagnostic
+
 sensor:
   # +--------------------------------------+
   # | Uptime sensor                        |
@@ -53,10 +63,11 @@ sensor:
     update_interval: 5s
     entity_category: diagnostic
     icon: mdi:clock-start
+    internal: true
     on_raw_value:
       then:
         - text_sensor.template.publish:
-            id: uptime_human
+            id: esp32_uptime
             state: !lambda |-
               char buf[10];
               int uptime_sec = round(id(uptime_sensor).raw_state);
@@ -64,7 +75,6 @@ sensor:
               int hours = (int)((uptime_sec % 86400) / 3600);
               int minutes = (int)((uptime_sec % 3600) / 60);
               int seconds = (int)(uptime_sec % 60);
-
               return(
                 (
                   (days ? sprintf(buf, "%02dd ", days), std::string(buf) : "") +
@@ -72,13 +82,4 @@ sensor:
                   (minutes ? sprintf(buf, "%02dm ", minutes), std::string(buf) : "") +
                   (sprintf(buf, "%02ds", seconds), std::string(buf))
                 ).c_str()
-              );  
-text_sensor:
-  # +--------------------------------------+
-  # | Uptime Human Readable                |
-  # +--------------------------------------+
-  - platform: template
-    name: ${name} Uptime Human Readable
-    id: uptime_human
-    icon: mdi:clock-start
-    entity_category: diagnostic
+              );

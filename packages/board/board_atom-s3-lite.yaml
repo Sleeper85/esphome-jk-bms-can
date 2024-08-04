@@ -1,6 +1,6 @@
-# Updated : 2024.05.19
-# Version : 1.1
-# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+# Updated : 2024.07.29
+# Version : 1.4.2
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # Atom S3 Lite - SKU:C124
 # https://docs.m5stack.com/en/core/AtomS3%20Lite
@@ -11,9 +11,8 @@ esp32:
     type: esp-idf
 
 esphome:
-  # Standard uses a single line for data, Dual IO uses 2 lines for data.
   platformio_options:
-    board_build.flash_mode: dio # Needed to flash the ESP32-S3 and prevent reboot loop
+    board_build.flash_mode: dio # Standard uses a single line for data, Dual IO uses 2 lines for data (prevent reboot loop)
   on_boot:
     then:
       - light.turn_on:
@@ -32,7 +31,6 @@ uart:
     tx_pin: 1
     rx_pin: 2
     baud_rate: 115200
-    rx_buffer_size: 384
 
 canbus:
   # CANBUS NODE 1

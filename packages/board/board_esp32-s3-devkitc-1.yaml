@@ -1,6 +1,6 @@
-# Updated : 2024.05.18
-# Version : 1.1
-# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+# Updated : 2024.07.29
+# Version : 1.4.2
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -9,9 +9,9 @@ esp32:
     type: esp-idf
 
 esphome:
-  # Standard uses a single line for data, Dual IO uses 2 lines for data.
   platformio_options:
-    board_build.flash_mode: dio # Needed to flash the ESP32-S3 and prevent reboot loop
+    board_build.flash_mode: dio             # Standard uses a single line for data, Dual IO uses 2 lines for data (prevent reboot loop)
+    board_upload.maximum_ram_size: 524288   # Total Size of the internal RAM in bits. It's the same for all ESP32-S3 ( 512KB )
   on_boot:
     then:
       - light.turn_on:
@@ -21,6 +21,14 @@ esphome:
           green: 0%
           brightness: 50%
 
+# PSRAM activation and settings
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
 uart:
   # UART 0 : uart used for ESP32 flashing and logs, can be released if necessary (tx_pin: 43, rx_pin: 44)
   # UART 1
@@ -28,13 +36,11 @@ uart:
     tx_pin: 17
     rx_pin: 18
     baud_rate: 115200
-    rx_buffer_size: 384
   # UART 2
   - id: uart_esp_2
     tx_pin: 15
     rx_pin: 16
     baud_rate: 115200
-    rx_buffer_size: 384
 
 canbus:
   # CANBUS NODE 1
