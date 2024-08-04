@@ -8,8 +8,7 @@
 
 ## Number of BMS supported
 
-**Warning:** Atom S3 provides very few GPIOs without UART expander.<br>
-**Warning:** BMS monitoring with `UART` or `RS485` is recommended.
+**Warning:** Atom S3 provides very few GPIOs without UART expander. BMS monitoring with `UART` or `RS485` is recommended.
 
 * 3x BMS with `Bluetooth` (BLE stack consumes significant amount of RAM on device and can cause crash and reboot)
 * 2x `JK-B` BMS with `UART` (the second UART must be soldered on the Atomic CAN base on GPIOs G7 and G8)
@@ -19,7 +18,7 @@ Note: these are theoretical limits, not all combinations have been tested.
 
 ## UART/IO Expander
 
-Theoretically, with the 4 GPIOs available, it would be possible to add one [WK2168 4x UART expander](https://esphome.io/components/weikai.html) for a total of 4x JK-B BMS monitored with `UART`.
+Theoretically, with the 4 GPIOs available, it would be possible to add one [WK2168 4x UART expander](https://esphome.io/components/weikai.html) for a total of 4x `JK-B` BMS monitored with `UART`.
 
 ## M5Stack Atom CAN Kit (the Plug & Play solution)
 
