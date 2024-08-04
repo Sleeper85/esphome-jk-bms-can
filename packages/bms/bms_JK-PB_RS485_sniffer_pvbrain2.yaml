@@ -1,4 +1,4 @@
-# Updated : 2024.07.23
+# Updated : 2024.08.04
 # Version : 1.4.2
 # GitHub  : https://github.com/txubelaxu/esphome-jk-bms
 
@@ -15,4 +15,4 @@ jk_rs485_sniffer:
     protocol_version: ${sniffer_protocol}
     rx_timeout: 500ms
     uart_id: ${sniffer_uart_id}
-    talk_pin: ${sniffer_talk_pin}
+    broadcast_to_all_bms: True
