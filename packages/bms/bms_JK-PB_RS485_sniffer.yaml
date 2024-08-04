@@ -21,3 +21,4 @@ jk_rs485_sniffer:
     rx_timeout: 500ms
     uart_id: ${sniffer_uart_id}
     talk_pin: ${sniffer_talk_pin}
+    broadcast_to_all_bms: True
