@@ -246,7 +246,7 @@ interval:
                         // Byte [00:01] = CVL : Charge Limit Voltage        (0.1 V)
                         // Byte [02:03] = CCL : Charge Limit Current        (0.1 A)
                         // Byte [04:05] = DCL : Discharge Limit Current     (0.1 A)
-                        // Byte [06:07] = DVL : Discharge Limit Voltage     (0.1 V)
+                        // Byte [06:07] = DVL : Discharge Limit Voltage     (0.1 V)     (SMA)
                         
                         uint8_t can_mesg[8];
                         
@@ -386,9 +386,9 @@ interval:
                         // | Flags : byte 4 to 7       |
                         // +---------------------------+
                                         
-                        can_mesg[4] = id(${yambms_id}_bms_combined).state;     // byte4 - Module in parallel (max 8)
-                        can_mesg[5] = 0x00;                                    // byte5
-                        can_mesg[6] = 0x00;                                    // byte6
+                        can_mesg[4] = id(${yambms_id}_bms_combined).state;     // byte4 - Module in parallel (8bit uint max 255)
+                        can_mesg[5] = 0x00;                                    // byte5 - "P" 0x50
+                        can_mesg[6] = 0x00;                                    // byte6 - "N" 0x4E
                         can_mesg[7] = 0x00;                                    // byte7
 
                         // LuxPower
