@@ -28,7 +28,7 @@ The ESP32 then sends the required CAN bus data to the inverter via the [CAN bus 
   - Battery name
   - Alarms: Cell over/under voltage, Charge/discharge over current, High/low Temp, BMS fault
   
-**Note: This code support multi-BMS connection per inverter (with a single ESP32) and should work with inverters that support the CAN bus protocol PYLON, SMA or Victron.
+**Note: this code support multi-BMS connection per inverter (with a single ESP32) and should work with inverters that support the CAN bus protocol PYLON, SMA or Victron.
 I'm only testing it with my Deye SUN-6K-SG03-LP1-EU inverter.<br>
 This project is still in development and testing...<br>**
 
@@ -64,6 +64,7 @@ This project is still in development and testing...<br>**
 
 ## Changelog
 
+* CANBUS 2.3.2 : Added `LuxPower` protocol with updated `can_id` 0x355, 0x356, 0x359 and 0x35C
 * YamBMS 1.4.2 : Added new `Auto CVL Boost V.` and `Rebulk SoC` functions, new debug.yaml for ESP32 and ESP32-S3, improved code and comments
 * CANBUS 2.3.1 : Improved the procedure for sending canbus frames with reduced loop time, rewritten of the canbus link validation code and added `Inverter Heartbeat Monitoring` function
 * YamBMS 1.4.1 : Rewriting of the alarm system, bug fixes and improvement of the charging logic (new status `Cut-Off`), icon allocation for each sensor, UART and CANBUS `!extend ${vars}`, New sensor `YamBMS Delta Cell V.`, Improved `Battery SOC` logic
