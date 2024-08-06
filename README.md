@@ -28,7 +28,7 @@ The ESP32 then sends the required CAN bus data to the inverter via the [CAN bus 
   - Battery name
   - Alarms: Cell over/under voltage, Charge/discharge over current, High/low Temp, BMS fault
   
-**Note: This code support multi-BMS connection per inverter (with a single ESP32) and should work with inverters that support the CAN bus protocol PYLON, SMA or Victron.
+**Note: this code support multi-BMS connection per inverter (with a single ESP32) and should work with inverters that support the CAN bus protocol PYLON, SMA or Victron.
 I'm only testing it with my Deye SUN-6K-SG03-LP1-EU inverter.<br>
 This project is still in development and testing...<br>**
 
@@ -45,12 +45,12 @@ This project is still in development and testing...<br>**
 ## Contents
 
 1) [Supported devices](documents/README/Supported_devices.md)
-2) [Charging Logic](documents/README/Charging_logic.md)
+2) [Charging logic](documents/README/Charging_logic.md)
+2) [YamBMS functions](documents/README/YamBMS_functions.md)
 3) [CAN bus protocol](documents/README/CANBUS_protocol.md)
-4) [BMS JK-B UART solution](documents/README/BMS_JK-B_UART_solution.md)
-5) [BMS JK-PB RS485 solution](documents/README/BMS_JK-PB_RS485_solution.md)
-6) [Configuration of the main YAML](documents/README/Main_YAML_config.md)
-7) [Installation procedure](documents/README/Installation_procedure.md)
+4) [Schematic and setup instructions](documents/README/Schematic_and_setup_instructions.md)
+5) [Configuration of the main YAML](documents/README/Main_YAML_config.md)
+6) [Installation procedure](documents/README/Installation_procedure.md)
 
 ## Requirements
 
@@ -64,6 +64,7 @@ This project is still in development and testing...<br>**
 
 ## Changelog
 
+* CANBUS 2.3.2 : Added `LuxPower` protocol with updated `can_id` 0x355, 0x356, 0x359 and 0x35C
 * YamBMS 1.4.2 : Added new `Auto CVL Boost V.` and `Rebulk SoC` functions, new debug.yaml for ESP32 and ESP32-S3, improved code and comments
 * CANBUS 2.3.1 : Improved the procedure for sending canbus frames with reduced loop time, rewritten of the canbus link validation code and added `Inverter Heartbeat Monitoring` function
 * YamBMS 1.4.1 : Rewriting of the alarm system, bug fixes and improvement of the charging logic (new status `Cut-Off`), icon allocation for each sensor, UART and CANBUS `!extend ${vars}`, New sensor `YamBMS Delta Cell V.`, Improved `Battery SOC` logic
