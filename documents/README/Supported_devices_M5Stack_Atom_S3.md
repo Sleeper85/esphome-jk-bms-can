@@ -1,4 +1,4 @@
-# YamBMS - M5Stack Atom S3
+# YamBMS - M5Stack Atom S3 (ESP32-S3FN8)
 
 [![Badge License: GPLv3](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Badge Version](https://img.shields.io/github/v/release/Sleeper85/esphome-jk-bms-can?include_prereleases&color=yellow&logo=DocuSign&logoColor=white)](https://github.com/Sleeper85/esphome-jk-bms-can/releases/latest)
@@ -6,9 +6,21 @@
 ![GitHub forks](https://img.shields.io/github/forks/Sleeper85/esphome-jk-bms-can)
 ![GitHub watchers](https://img.shields.io/github/watchers/Sleeper85/esphome-jk-bms-can)
 
-## Buy the M5Stack Atom CAN Kit (the Plug & Play solution)
+## Number of BMS supported
 
-**Warning: Atom S3 provides very few GPIOs, this solution can work to monitor up to 3x BMS with `Bluetooth`, 2x BMS (JK-B) with `UART` (the second UART must be soldered on the Atomic CAN base on GPIOs G7 and G8) or several BMS (JK-PB) with `RS485` (already tested with 7 BMS).**
+**Warning:** Atom S3 provides very few GPIOs without UART expander. BMS monitoring with `UART` or `RS485` is recommended.
+
+* 3x BMS with `Bluetooth` (BLE stack consumes significant amount of RAM on device and can cause crash and reboot)
+* 2x `JK-B` BMS with `UART` (the second UART must be soldered on the Atomic CAN base on GPIOs G7 and G8)
+* several `JK-PB` BMS with `RS485` (already tested with 7 BMS)
+
+Note: these are theoretical limits, not all combinations have been tested.
+
+## UART/IO Expander
+
+Theoretically, with the 4 GPIOs available, it would be possible to add one [WK2168 4x UART expander](https://esphome.io/components/weikai.html) for a total of 4x `JK-B` BMS monitored with `UART`.
+
+## M5Stack Atom CAN Kit (the Plug & Play solution)
 
 If soldering or creating your own board seems complicated to you, know that it is possible to use the Atom CAN Kit from M5Stack.<br>
 
@@ -21,3 +33,4 @@ If soldering or creating your own board seems complicated to you, know that it i
 | Atomic S3 Lite | Atomic CAN Base |
 | --- | --- |
 | <img src="../../images/Atom_S3_Lite.png" width="450"> | <img src="../../images/CAN_Transceiver_Atomic_CAN_Base.png" width="450"> |
+
