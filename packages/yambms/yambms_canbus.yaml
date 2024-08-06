@@ -329,10 +329,11 @@ interval:
                         // LuxPower
                         // Byte [04:05] : Max cell temperature     (0.1 °C)
                         // Byte [06:07] : Min cell temperature     (0.1 °C)
+                        // Added 0.1 °C safeguard to max cell temp so that max and min values are never equal.
 
                         if (id(${canbus_id}_protocol).active_index() == 5) {
-                          can_mesg[4] = int16_t(max(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10) & 0xff;
-                          can_mesg[5] = int16_t(max(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10) >> 8 & 0xff;
+                          can_mesg[4] = int16_t(max(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10 + 1) & 0xff;
+                          can_mesg[5] = int16_t(max(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10 + 1) >> 8 & 0xff;
                           can_mesg[6] = int16_t(min(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10) & 0xff;
                           can_mesg[7] = int16_t(min(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state)* 10) >> 8 & 0xff;
                         }
