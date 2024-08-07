@@ -1,4 +1,4 @@
-# Updated : 2024.07.29
+# Updated : 2024.08.07
 # Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -27,7 +27,8 @@ esphome:
 
 time:
   # https://esphome.io/components/time/homeassistant
-  - platform: homeassistant
+  # https://esphome.io/components/time/sntp
+  - platform: sntp # homeassistant
     id: my_time
 
 button:
@@ -43,43 +44,83 @@ binary_sensor:
     id: esp32_online_status
     entity_category: diagnostic
 
+sensor:
+  # https://esphome.io/components/sensor/uptime
+  - platform: uptime
+    id: uptime_seconds
+    update_interval: 10s
+    internal: true
+
+  # https://esphome.io/components/sensor/wifi_signal 
+  - platform: wifi_signal
+    name: ${name} ESP32 WiFi power
+    id: ${name}_esp32_wifi_power
+    update_interval: 10s
+    entity_category: diagnostic
+
+  - platform: copy # Reports the WiFi signal strength in %
+    source_id: ${name}_esp32_wifi_power
+    name: ${name} ESP32 WiFi power (%)
+    id: ${name}_esp32_wifi_power_percent
+    unit_of_measurement: '%'
+    entity_category: diagnostic
+    filters:
+      - lambda: 'return min(max(2 * (x + 100.0), 0.0), 100.0);'
+
+  # https://esphome.io/components/sensor/internal_temperature
+  - platform: internal_temperature
+    name: ${name} ESP32 internal temperature
+    id: ${name}_esp32_internal_temperature
+    update_interval: 10s
+    entity_category: diagnostic
+
 text_sensor:
-  # +--------------------------------------+
-  # | Uptime Human Readable                |
-  # +--------------------------------------+
+  # Uptime Human Readable
   - platform: template
     name: ${name} ESP32 Uptime
     id: esp32_uptime
+    update_interval: 10s
     icon: mdi:clock-start
     entity_category: diagnostic
+    lambda: |-
+      int uptime_sec = id(uptime_seconds).state;
+      int days = uptime_sec / 86400;
+      int hours = (uptime_sec % 86400) / 3600;
+      int minutes = (uptime_sec % 3600) / 60;
+      int seconds = uptime_sec % 60;
+      return {
+        (
+          (days ? std::to_string(days) +"d " : "") +
+          (hours ? std::to_string(hours) +"h " : "") +
+          (minutes ? std::to_string(minutes) +"m " : "") +
+          (std::to_string(seconds) +"s")
+        ).c_str()
+      };
 
-sensor:
-  # +--------------------------------------+
-  # | Uptime sensor                        |
-  # +--------------------------------------+
-  - platform: uptime
-    name: ${name} Uptime Sensor
-    id: uptime_sensor
-    update_interval: 5s
+  # https://esphome.io/components/text_sensor/wifi_info
+  - platform: wifi_info
+    ip_address:
+      name: ${name} ESP32 IP address
+      id: ${name}_esp32_ip_address
+    ssid:
+      name: ${name} ESP32 connected SSID
+      id: ${name}_esp32_connected_ssid
+    bssid:
+      name: ${name} ESP32 connected BSSID
+      id: ${name}_esp32_connected_bssid
+    mac_address:
+      name: ${name} ESP32 MAC WiFi address
+      id: ${name}_esp32_mac_wifi_address
+    scan_results:
+      name: ${name} ESP32 latest scan results
+      id: ${name}_esp32_latest_scan_results
+    dns_address:
+      name: ${name} ESP32 DNS address
+      id: ${name}_esp32_dns_address
+
+  # https://esphome.io/components/text_sensor/version
+  - platform: version
+    name: ${name} ESP32 ESPHome version
+    id: ${name}_esp32_esphome_version
+    hide_timestamp: false #true
     entity_category: diagnostic
-    icon: mdi:clock-start
-    internal: true
-    on_raw_value:
-      then:
-        - text_sensor.template.publish:
-            id: esp32_uptime
-            state: !lambda |-
-              char buf[10];
-              int uptime_sec = round(id(uptime_sensor).raw_state);
-              int days = (int)(uptime_sec / 86400);
-              int hours = (int)((uptime_sec % 86400) / 3600);
-              int minutes = (int)((uptime_sec % 3600) / 60);
-              int seconds = (int)(uptime_sec % 60);
-              return(
-                (
-                  (days ? sprintf(buf, "%02dd ", days), std::string(buf) : "") +
-                  (hours ? sprintf(buf, "%02dh ", hours), std::string(buf) : "") +
-                  (minutes ? sprintf(buf, "%02dm ", minutes), std::string(buf) : "") +
-                  (sprintf(buf, "%02ds", seconds), std::string(buf))
-                ).c_str()
-              );
