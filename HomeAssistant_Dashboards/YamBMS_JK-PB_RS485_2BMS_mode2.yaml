@@ -2202,144 +2202,144 @@ views:
                     {% endif %}
                   {% endfor %} </center>
   - title: BMS1 (PROTECTION)
-    path: protection_bms0
+    path: protection_bms1
     cards:
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_1_mos_overtemperature_protection
-            name: mos_overtemperature_protection
+            name: MOS overT
           - entity: number.yambms_jk_bms_1_mos_overtemperature_protection_recovery
-            name: mos_overtemperature_protection_recovery
+            name: MOS overT recovery
           - entity: number.yambms_jk_bms_1_charging_overtemperature_protection
-            name: charging_overtemperature_protection
+            name: charging overT
           - entity: number.yambms_jk_bms_1_discharging_overtemperature_protection
-            name: discharging_overtemperature_protection
+            name: discharging overT
           - entity: >-
               number.yambms_jk_bms_1_charging_overtemperature_protection_recovery
-            name: charging_overtemperature_protection_recovery
+            name: charging overT recovery
           - entity: >-
               number.yambms_jk_bms_1_discharging_overtemperature_protection_recovery
-            name: discharging_overtemperature_protection_recovery
+            name: discharging overT recovery
           - entity: >-
               number.yambms_jk_bms_1_charging_lowtemperature_protection_recovery
-            name: charging_lowtemperature_protection_recovery
+            name: charging lowT recovery
           - entity: number.yambms_jk_bms_1_charging_lowtemperature_protection
-            name: charging_lowtemperature_protection
+            name: charging lowT
         title: TEMPERATURE
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_1_max_charging_current
-            name: max_charging_current
+            name: MAX current
           - entity: number.yambms_jk_bms_1_charging_overcurrent_protection_delay
-            name: charging_overcurrent_protection_delay
+            name: Over current delay
           - entity: >-
               number.yambms_jk_bms_1_charging_overcurrent_protection_recovery_delay
-            name: charging_overcurrent_protection_recovery_delay
+            name: Over current recovery delay
           - entity: >-
               sensor.yambms_jk_bms_1_charging_overcurrent_protection_release_time
-            name: charging_overcurrent_protection_release_time
+            name: Over current release time
           - entity: >-
               sensor.yambms_jk_bms_1_charging_short_circuit_protection_release_time
-            name: charging_short_circuit_protection_release_time
+            name: ShortCircuit release time
           - entity: number.yambms_jk_bms_1_precharging_time_from_discharge
-            name: precharging_time_from_discharge
-        title: CHARGING
+            name: Precharging time from discharging
+        title: CHARGING protection
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_1_max_discharging_current
-            name: max_discharging_current
+            name: MAX current
           - entity: number.yambms_jk_bms_1_discharging_overcurrent_protection_delay
-            name: discharging_overcurrent_protection_delay
+            name: Over current delay
           - entity: >-
               number.yambms_jk_bms_1_discharging_overcurrent_protection_recovery_delay
-            name: discharging_overcurrent_protection_recovery_delay
+            name: Over current recovery delay
           - entity: >-
               sensor.yambms_jk_bms_1_discharging_overcurrent_protection_release_time
-            name: discharging_overcurrent_protection_release_time
+            name: Over current release time
           - entity: >-
               sensor.yambms_jk_bms_1_discharging_short_circuit_protection_release_time
-            name: discharging_short_circuit_protection_release_time
-        title: DISCHARGING
+            name: ShortCircuit release time
+        title: DISCHARGING PROTECTION
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_1_short_circuit_protection_delay
-            name: short_circuit_protection_delay
+            name: Delay
           - entity: number.yambms_jk_bms_1_short_circuit_protection_recovery_delay
-            name: short_circuit_protection_recovery_delay
-        title: SHORT CIRCUIT
+            name: Recovery delay
+        title: SHORT CIRCUIT PROTECTION
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_1_max_balancing_current
-            name: max_balancing_current
-        title: BALANCING
+            name: MAX current
+        title: BALANCING PROTECTION
   - title: BMS2 (PROTECTION)
     path: protection_bms2
     cards:
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_2_mos_overtemperature_protection
-            name: mos_overtemperature_protection
+            name: MOS overT
           - entity: number.yambms_jk_bms_2_mos_overtemperature_protection_recovery
-            name: mos_overtemperature_protection_recovery
+            name: MOS overT recovery
           - entity: number.yambms_jk_bms_2_charging_overtemperature_protection
-            name: charging_overtemperature_protection
+            name: charging overT
           - entity: number.yambms_jk_bms_2_discharging_overtemperature_protection
-            name: discharging_overtemperature_protection
+            name: discharging overT
           - entity: >-
               number.yambms_jk_bms_2_charging_overtemperature_protection_recovery
-            name: charging_overtemperature_protection_recovery
+            name: charging overT recovery
           - entity: >-
               number.yambms_jk_bms_2_discharging_overtemperature_protection_recovery
-            name: discharging_overtemperature_protection_recovery
+            name: discharging overT recovery
           - entity: >-
               number.yambms_jk_bms_2_charging_lowtemperature_protection_recovery
-            name: charging_lowtemperature_protection_recovery
+            name: charging lowT recovery
           - entity: number.yambms_jk_bms_2_charging_lowtemperature_protection
-            name: charging_lowtemperature_protection
+            name: charging lowT
         title: TEMPERATURE
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_2_max_charging_current
-            name: max_charging_current
+            name: MAX current
           - entity: number.yambms_jk_bms_2_charging_overcurrent_protection_delay
-            name: charging_overcurrent_protection_delay
+            name: Over current delay
           - entity: >-
               number.yambms_jk_bms_2_charging_overcurrent_protection_recovery_delay
-            name: charging_overcurrent_protection_recovery_delay
+            name: Over current recovery delay
           - entity: >-
               sensor.yambms_jk_bms_2_charging_overcurrent_protection_release_time
-            name: charging_overcurrent_protection_release_time
+            name: Over current release time
           - entity: >-
               sensor.yambms_jk_bms_2_charging_short_circuit_protection_release_time
-            name: charging_short_circuit_protection_release_time
+            name: ShortCircuit release time
           - entity: number.yambms_jk_bms_2_precharging_time_from_discharge
-            name: precharging_time_from_discharge
-        title: CHARGING
+            name: Precharging time from discharging
+        title: CHARGING protection
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_2_max_discharging_current
-            name: max_discharging_current
+            name: MAX current
           - entity: number.yambms_jk_bms_2_discharging_overcurrent_protection_delay
-            name: discharging_overcurrent_protection_delay
+            name: Over current delay
           - entity: >-
               number.yambms_jk_bms_2_discharging_overcurrent_protection_recovery_delay
-            name: discharging_overcurrent_protection_recovery_delay
+            name: Over current recovery delay
           - entity: >-
               sensor.yambms_jk_bms_2_discharging_overcurrent_protection_release_time
-            name: discharging_overcurrent_protection_release_time
+            name: Over current release time
           - entity: >-
               sensor.yambms_jk_bms_2_discharging_short_circuit_protection_release_time
-            name: discharging_short_circuit_protection_release_time
-        title: DISCHARGING
+            name: ShortCircuit release time
+        title: DISCHARGING PROTECTION
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_2_short_circuit_protection_delay
-            name: short_circuit_protection_delay
+            name: Delay
           - entity: number.yambms_jk_bms_2_short_circuit_protection_recovery_delay
-            name: short_circuit_protection_recovery_delay
-        title: SHORT CIRCUIT
+            name: Recovery delay
+        title: SHORT CIRCUIT PROTECTION
       - type: entities
         entities:
           - entity: number.yambms_jk_bms_2_max_balancing_current
-            name: max_balancing_current
-        title: BALANCING
+            name: MAX current
+        title: BALANCING PROTECTION
