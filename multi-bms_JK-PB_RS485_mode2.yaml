@@ -1,4 +1,4 @@
-# Updated : 2024.08.05
+# Updated : 2024.08.02
 # Version : 1.4.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -18,10 +18,11 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
 substitutions:
-  name: yambms
+  name: esp32-s3
 
 logger:
-  level: DEBUG # DEBUG / INFO / WARN
+  level:  DEBUG #VERBOSE # DEBUG / INFO / WARN
+  tx_buffer_size: 1024
 
 ota:
   platform: esphome
@@ -56,6 +57,13 @@ captive_portal:
 #  port: 80
 #  log: false
 #  ota: false
+##web_server:
+##  local: true
+##  port: 80
+##  auth:
+##     username: !secret web_server_user
+##     password: !secret web_server_password
+
 
 # +--------------------------------------+
 # | Packages                             |
@@ -64,7 +72,7 @@ packages:
   # Board : uncomment your board
   # device_board: !include packages/board/board_esp32-devkit-v1.yaml
   # device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
-  device_board: !include packages/board/board_atom-s3-lite.yaml
+  device_board: !include packages/board/board_esp32-s3-devkitc-1.yaml
   
   # device_board: !include
   #   file: packages/board/board_atom-s3-display.yaml
@@ -76,25 +84,17 @@ packages:
 
   # The sniffer represents the ESP node connected to the JK-BMS PB RS485 bus
   # If address 0x00 is not detected on the RS485 bus, the sniffer will act directly as a master BMS (mode 2, max 15 BMS)
-
-  # sniffer1: !include
-  #   file: packages/bms/bms_JK-PB_RS485_sniffer_talk_pin.yaml
-  #   vars:
-  #     sniffer_id: 'sniffer1'
-  #     sniffer_protocol: 'JK02_32S'
-  #     sniffer_uart_id: 'uart_esp_1'
-  #     sniffer_talk_pin: 8 # ESP32: 4, ESP32-S3: 8, ESP32-C3: 10
-
   sniffer1: !include
-    file: packages/bms/bms_JK-PB_RS485_sniffer.yaml
+    file: packages/bms/bms_JK-PB_RS485_sniffer_talk_pin.yaml     #packages/bms/bms_JK-PB_RS485_sniffer.yaml
     vars:
       sniffer_id: 'sniffer1'
       sniffer_protocol: 'JK02_32S'
       sniffer_uart_id: 'uart_esp_1'
+      sniffer_talk_pin: GPIO4 ##8 # ESP32: 4, ESP32-S3: 8, ESP32-C3: 10
 
   # Mode2 : configure the DIP switches of your BMS from 0x01 to 0x0F (don't use the 0x00 address, maximum 15 BMS)
   bms1: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-PB_RS485_bms_full.yaml #packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -102,13 +102,13 @@ packages:
       sniffer_id: 'sniffer1'
       # BMS vars
       bms_id: '1' # must be a number
-      bms_name: 'JK-BMS 1'
+      bms_name: 'JK-BMS-1'
       bms_rs485_address: '0x01' # BMS 1 DIP switch
       bms_update_interval: '3s' # going below '3s' can cause problems
       bms_combine_interval: '1s'
   
   bms2: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-PB_RS485_bms_full.yaml #packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -116,87 +116,88 @@ packages:
       sniffer_id: 'sniffer1'
       # BMS vars
       bms_id: '2' # must be a number
-      bms_name: 'JK-BMS 2'
+      bms_name: 'JK-BMS-2'
       bms_rs485_address: '0x02' # BMS 2 DIP switch
       bms_update_interval: '3s' # going below '3s' can cause problems
       bms_combine_interval: '1s'
 
-  bms3: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
-    vars:
-      # YamBMS ID
-      yambms_id: 'yambms1'
-      # Sniffer ID
-      sniffer_id: 'sniffer1'
-      # BMS vars
-      bms_id: '3' # must be a number
-      bms_name: 'JK-BMS 3'
-      bms_rs485_address: '0x03' # BMS 3 DIP switch
-      bms_update_interval: '3s' # going below '3s' can cause problems
-      bms_combine_interval: '1s'
-
-  bms4: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
-    vars:
-      # YamBMS ID
-      yambms_id: 'yambms1'
-      # Sniffer ID
-      sniffer_id: 'sniffer1'
-      # BMS vars
-      bms_id: '4' # must be a number
-      bms_name: 'JK-BMS 4'
-      bms_rs485_address: '0x04' # BMS 4 DIP switch
-      bms_update_interval: '3s' # going below '3s' can cause problems
-      bms_combine_interval: '1s'
-  
-  bms5: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
-    vars:
-      # YamBMS ID
-      yambms_id: 'yambms1'
-      # Sniffer ID
-      sniffer_id: 'sniffer1'
-      # BMS vars
-      bms_id: '5' # must be a number
-      bms_name: 'JK-BMS 5'
-      bms_rs485_address: '0x05' # BMS 5 DIP switch
-      bms_update_interval: '3s' # going below '3s' can cause problems
-      bms_combine_interval: '1s'
-
-  bms6: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
-    vars:
-      # YamBMS ID
-      yambms_id: 'yambms1'
-      # Sniffer ID
-      sniffer_id: 'sniffer1'
-      # BMS vars
-      bms_id: '6' # must be a number
-      bms_name: 'JK-BMS 6'
-      bms_rs485_address: '0x06' # BMS 6 DIP switch
-      bms_update_interval: '3s' # going below '3s' can cause problems
-      bms_combine_interval: '1s'
-
-  bms7: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
-    vars:
-      # YamBMS ID
-      yambms_id: 'yambms1'
-      # Sniffer ID
-      sniffer_id: 'sniffer1'
-      # BMS vars
-      bms_id: '7' # must be a number
-      bms_name: 'JK-BMS 7'
-      bms_rs485_address: '0x07' # BMS 7 DIP switch
-      bms_update_interval: '3s' # going below '3s' can cause problems
-      bms_combine_interval: '1s'
+  #bms3: !include
+  #  file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+  #  vars:
+  #    # YamBMS ID
+  #    yambms_id: 'yambms1'
+  #    # Sniffer ID
+  #    sniffer_id: 'sniffer1'
+  #    # BMS vars
+  #    bms_id: '3' # must be a number
+  #    bms_name: 'JK-BMS 3'
+  #    bms_rs485_address: '0x03' # BMS 3 DIP switch
+  #    bms_update_interval: '3s' # going below '3s' can cause problems
+  #    bms_combine_interval: '1s'
+  #
+  #bms4: !include
+  #  file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+  #  vars:
+  #    # YamBMS ID
+  #    yambms_id: 'yambms1'
+  #    # Sniffer ID
+  #    sniffer_id: 'sniffer1'
+  #    # BMS vars
+  #    bms_id: '4' # must be a number
+  #    bms_name: 'JK-BMS 4'
+  #    bms_rs485_address: '0x04' # BMS 4 DIP switch
+  #    bms_update_interval: '3s' # going below '3s' can cause problems
+  #    bms_combine_interval: '1s'
+  # 
+  #bms5: !include
+  #  file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+  #  vars:
+  #    # YamBMS ID
+  #    yambms_id: 'yambms1'
+  #    # Sniffer ID
+  #    sniffer_id: 'sniffer1'
+  #    # BMS vars
+  #    bms_id: '5' # must be a number
+  #    bms_name: 'JK-BMS 5'
+  #    bms_rs485_address: '0x05' # BMS 5 DIP switch
+  #    bms_update_interval: '3s' # going below '3s' can cause problems
+  #    bms_combine_interval: '1s'
+  #
+  #bms6: !include
+  #  file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+  #  vars:
+  #    # YamBMS ID
+  #    yambms_id: 'yambms1'
+  #    # Sniffer ID
+  #    sniffer_id: 'sniffer1'
+  #    # BMS vars
+  #    bms_id: '6' # must be a number
+  #    bms_name: 'JK-BMS 6'
+  #    bms_rs485_address: '0x06' # BMS 6 DIP switch
+  #    bms_update_interval: '3s' # going below '3s' can cause problems
+  #    bms_combine_interval: '1s'
+  #
+  #bms7: !include
+  #  file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+  #  vars:
+  #    # YamBMS ID
+  #    yambms_id: 'yambms1'
+  #    # Sniffer ID
+  #    sniffer_id: 'sniffer1'
+  #    # BMS vars
+  #    bms_id: '7' # must be a number
+  #    bms_name: 'JK-BMS 7'
+  #    bms_rs485_address: '0x07' # BMS 7 DIP switch
+  #    bms_update_interval: '3s' # going below '3s' can cause problems
+  #    bms_combine_interval: '1s'
+  #
 
   yambms1: !include
     file: packages/yambms/yambms.yaml
     vars:
       # Please read the cut-off charging logic README to understand how the YamBMS works
       yambms_id: 'yambms1'
-      yambms_name: 'YamBMS 1'
+      yambms_name: 'Smart BMS 1' #'YamBMS 1'
       yambms_update_interval: '1s'
       # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.
       yambms_input_number_mode: 'slider'
@@ -227,19 +228,19 @@ packages:
       yambms_cutoff_cvmin: '3.37' # LFP 3.37 - Li-ion 3.90
       yambms_cutoff_cvmax: '3.65' # LFP 3.65 - Li-ion 4.20
 
-  canbus1: !include
-    file: packages/yambms/yambms_canbus.yaml
-    vars:
-      # YamBMS ID
-      yambms_id: 'yambms1'
-      # CANBUS vars
-      canbus_id: 'canbus1'
-      canbus_name: 'CANBUS 1'
-      canbus_node_id: 'canbus_node1'
-      canbus_light_id: 'esp_light'
-      # The CANBUS link will be considered down if no response from the inverter (ID 0x305) for 5s
-      # The Deye inverter sends the ACK (can_id 0x305) only when it receives the can_id 0x356
-      canbus_link_timer: '5'
+#  canbus1: !include
+#    file: packages/yambms/yambms_canbus.yaml
+#    vars:
+#      # YamBMS ID
+#      yambms_id: 'yambms1'
+#      # CANBUS vars
+#      canbus_id: 'canbus1'
+#      canbus_name: 'CANBUS 1'
+#      canbus_node_id: 'canbus_node1'
+#      canbus_light_id: 'esp_light'
+#      # The CANBUS link will be considered down if no response from the inverter (ID 0x305) for 5s
+#      # The Deye inverter sends the ACK (can_id 0x305) only when it receives the can_id 0x356
+#      canbus_link_timer: '5'
 
 # +--------------------------------------+
 # | DEBUG ( logger level must be DEBUG ) |
