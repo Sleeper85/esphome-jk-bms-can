@@ -1,5 +1,5 @@
-# Updated : 2024.07.17
-# Version : 1.4.1
+# Updated : 2024.08.07
+# Version : 1.4.2
 # GitHub  : https://github.com/SeByDocKy/pvbrain2
 
 packages:
@@ -19,15 +19,17 @@ packages:
   device_canbus_node2: !include device_canbus_mcp2515.yaml
 
 time:
-# https://esphome.io/components/time/homeassistant
-  - platform: homeassistant
+  # https://esphome.io/components/time/homeassistant
+  # https://esphome.io/components/time/sntp
+  - platform: sntp # homeassistant
     id: my_time
- 
+
 binary_sensor:
 # https://esphome.io/components/binary_sensor/status  
   - platform: status
-    name: ${name}_status   
-   
+    name: ${name}_status
+    id: ${name}_status
+
 light:
 # https://esphome.io/components/light/status_led
   - platform: status_led
@@ -48,8 +50,8 @@ light:
 
 # https://esphome.io/components/light/esp32_rmt_led_strip
   - platform: esp32_rmt_led_strip
-    id: on_board_light_io48
     name: ${name}_on_board_light_io48
+    id: on_board_light_io48
     rgb_order: GRB
     pin: GPIO48
     num_leds: 1
@@ -78,8 +80,8 @@ switch:
 sensor:
 # https://esphome.io/components/sensor/wifi_signal 
   - platform: wifi_signal
-    id: ${name}_wifi_power
     name: ${name}_wifi_power
+    id: ${name}_wifi_power
     update_interval: 10s
     entity_category: diagnostic
 
@@ -101,49 +103,56 @@ sensor:
 
 # https://esphome.io/components/sensor/uptime
   - platform: uptime
-    id: uptime_sec
+    id: uptime_seconds
+    update_interval: 10s
+    internal: true
 
 text_sensor:
 # https://esphome.io/components/text_sensor/wifi_info
   - platform: wifi_info
     ip_address:
       name: ${name}_ip_address
+      id: ${name}_ip_address
     ssid:
       name: ${name}_connected_ssid
+      id: ${name}_connected_ssid
     bssid:
       name: ${name}_connected_bssid
+      id: ${name}_connected_bssid
     mac_address:
       name: ${name}_mac_wifi_address
+      id: ${name}_mac_wifi_address
     scan_results:
       name: ${name}_latest_scan_results
+      id: ${name}_latest_scan_results
     dns_address:
       name: ${name}_dns_address
+      id: ${name}_dns_address
 
 # https://esphome.io/components/text_sensor/version
   - platform: version
     name: ${name}_esphomelib_version
+    id: ${name}_esphomelib_version
     hide_timestamp: false #true
     entity_category: diagnostic
 
   - platform: template
     name: ${name}_uptime
-    lambda: |-
-      int seconds = (id(uptime_sec).state);
-      int days = seconds / (24 * 3600);
-      seconds = seconds % (24 * 3600); 
-      int hours = seconds / 3600;
-      seconds = seconds % 3600;
-      int minutes = seconds /  60;
-      seconds = seconds % 60;
-      if ( days ) {
-        return { (std::to_string(days) +"d " + std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
-      } else if ( hours ) {
-        return { (std::to_string(hours) +"h " + std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
-      } else if ( minutes ) {
-        return { (std::to_string(minutes) +"m "+ std::to_string(seconds) +"s ").c_str() };
-      } else {
-        return { (std::to_string(seconds) +"s ").c_str() };
-      }
+    id: ${name}_uptime
+    update_interval: 10s
     icon: mdi:clock-start
-    update_interval: 113s
     entity_category: diagnostic
+    lambda: |-
+      int uptime_sec = id(uptime_seconds).state;
+      int days = uptime_sec / 86400;
+      int hours = (uptime_sec % 86400) / 3600;
+      int minutes = (uptime_sec % 3600) / 60;
+      int seconds = uptime_sec % 60;
+      return {
+        (
+          (days ? std::to_string(days) +"d " : "") +
+          (hours ? std::to_string(hours) +"h " : "") +
+          (minutes ? std::to_string(minutes) +"m " : "") +
+          (std::to_string(seconds) +"s")
+        ).c_str()
+      };
