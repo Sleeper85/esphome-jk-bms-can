@@ -1,6 +1,8 @@
-# Updated : 2024.07.09
-# Version : 1.1.2
-# GitHub  : https://github.com/Sleeper85/esphome-jk-bms-can
+# Updated : 2024.08.08
+# Version : 1.4.3
+# GitHub  : https://github.com/txubelaxu/esphome-jk-bms
+
+# YamBMS ( Yet another multi-BMS Merging Solution )
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -15,120 +17,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
-title: Home
+title: JK-BMS monitor
 views:
-  - title: YamBMS
-    path: yambms
+  - title: WHOLE SYSTEM
+    path: default_view
     badges: []
     cards:
-      - type: vertical-stack
-        cards:
-          - type: custom:stack-in-card
-            keep:
-              margin: false
-              box_shadow: false
-              background: false
-            cards:
-              - type: grid
-                square: false
-                columns: 1
-                cards:
-                  - type: markdown
-                    content: >-
-
-                      {%- set total_bms = namespace(value=0) %} {%- set
-                      total_online_bms = namespace(value=0) %} {% for idx in
-                      range(0, 16)-%} 
-                        {% if states('binary_sensor.yambms_jk_bms_%d_status_online' % idx)=='on' or states('binary_sensor.rs485_bms%d_status_online' % idx)=='off' %}
-                         {% set total_bms.value = total_bms.value +1 %}
-                         {% if states('binary_sensor.yambms_jk_bms_%d_status_online' % idx)=='on' %}
-                            {% set total_online_bms.value = total_online_bms.value +1 %}
-                         {% endif %}
-                        {%- endif %}
-                         
-                      {% endfor %} <CENTER><b><font size=5>ONLINE BMSs:</B>
-                      {{total_online_bms.value}}/{{total_bms.value}}</font></CENTER>
-              - type: grid
-                square: false
-                columns: 1
-                cards:
-                  - type: markdown
-                    content: >-
-                      {%- set power_draw =
-                      states('sensor.yambms_jk_bms_1_battery_power')|float +
-                      states('sensor.yambms_jk_bms_2_battery_power')|float %} 
-                      {%- set power_charging =
-                      states('sensor.yambms_jk_bms_1_battery_power_charging')|float
-                      +
-                      states('sensor.yambms_jk_bms_2_battery_power_charging')|float
-                      %}  {%- set power_discharging =
-                      states('sensor.yambms_jk_bms_1_battery_power_discharging')|float
-                      +
-                      states('sensor.yambms_jk_bms_2_battery_power_discharging')|float
-                      %} 
-
-                      {%- set power_label = "(charging)" if (power_charging)>0 
-                            else "(discharging)" if (power_discharging)>0 
-                            else "" %} 
-
-                      {%- set power_value = power_charging if
-                      (power_charging)>0 
-                            else power_discharging if (power_discharging)>0 
-                            else power_draw %} 
-
-                      {%- set font_start = '<b><font color=#41CD52 size=6>' if
-                      (power_charging)>0 
-                            else '<b><font color=#3090C7 size=6>' if (power_discharging)>0 
-                            else '<b><font color=#aaaaaa size=6>' %}      
-                            
-                      {%- set font_end = '</font></b>' if (power_charging)>0 or
-                      (power_discharging)>0 else '' %} 
-
-                      <center>{{font_start}}{{ "%.3f" % power_value }}W
-                      {{power_label}}{{font_end}}</center>  
-
-                      {% macro pad_right(w, s) %} {{ s }} {% set slen =  w -
-                      (s|length) %} 
-                        {% for idx in range(slen)%} &nbsp; {%endfor %}
-                      {%- endmacro %} 
-
-                      {% macro green(s) %} <font color=#41CD52 size=2
-                      family=Consolas> {{ s }} </font> {%- endmacro %}
-                      <div>         
-              - type: grid
-                square: false
-                columns: 2
-                cards:
-                  - type: markdown
-                    content: >-
-                      {%- set total_voltage =
-                      (states('sensor.yambms_jk_bms_1_battery_voltage')|float
-                      +
-                      states('sensor.yambms_jk_bms_2_battery_voltage')|float)/2
-                      %}
-
-                      <center><b><font color=#41CD52 size=6>{{"%.3f" %
-                      total_voltage}}V</font></b><br> </center>   {% macro
-                      pad_right(w, s) %} {{ s }} {% set slen =  w - (s|length)
-                      %} 
-                        {% for idx in range(slen)%} &nbsp; {%endfor %}
-                      {%- endmacro %} 
-
-                      {% macro green(s) %} <font color=#41CD52 size=2
-                      family=Consolas> {{ s }} </font> {%- endmacro %}
-                      <div>          
-                  - type: markdown
-                    content: >-
-                      {%- set total_current =
-                      (states('sensor.yambms_jk_bms_1_battery_current')|float)+(states('sensor.yambms_jk_bms_2_battery_current')|float)
-                      %}
-                                  
-                      <center><b><font color=#41CD52 size=6>{{"%.3f" %
-                      total_current}}A</font></b><br> </center> {% macro
-                      pad_right(w, s) %}  {{ s }} {% set slen =  w - (s|length)
-                      %} {% for idx in range(slen)%} &nbsp; {%endfor %} {%-
-                      endmacro %} {% macro green(s) %} <font color=#41CD52
-                      family=Consolas> {{ s }} </font> {%- endmacro %}
+      - type: entities
+        entities:
+          - entity: sensor.yambms_smart_bms_1_charging_instruction
+            name: Instruction
+          - entity: sensor.yambms_smart_bms_1_charging_status
+            name: Status
+          - entity: sensor.yambms_smart_bms_1_capacity_remaining_s
+            name: Remaining
+          - entity: sensor.yambms_smart_bms_1_battery_capacity_s
+            name: Battery Capacity (Σ)
+          - entity: sensor.yambms_smart_bms_1_charging_cycles_o
+            name: Cycles
+          - entity: sensor.yambms_smart_bms_1_current_s
+            name: Current
+          - entity: sensor.yambms_smart_bms_1_power_s
+            name: Power
+          - entity: sensor.yambms_smart_bms_1_total_voltage_o
+            name: Voltage
       - type: vertical-stack
         cards:
           - type: custom:stack-in-card
@@ -311,6 +223,167 @@ views:
                       </table>
       - type: entities
         entities:
+          - entity: button.yambms_esp32_restart
+          - entity: sensor.yambms_smart_bms_1_battery_capacity_s
+          - entity: sensor.yambms_smart_bms_1_capacity_remaining_s
+          - entity: sensor.yambms_smart_bms_1_cell_count
+          - entity: sensor.yambms_smart_bms_1_cell_ovp_min
+          - entity: sensor.yambms_smart_bms_1_cell_ovpr_min
+          - entity: sensor.yambms_smart_bms_1_cell_uvpr_max
+          - entity: sensor.yambms_smart_bms_1_charging_cycles_o
+          - entity: sensor.yambms_smart_bms_1_charging_instruction
+          - entity: sensor.yambms_smart_bms_1_charging_status
+          - entity: sensor.yambms_smart_bms_1_current_s
+          - entity: sensor.yambms_smart_bms_1_max_cell_voltage
+          - entity: sensor.yambms_smart_bms_1_max_charge_current_s
+          - entity: sensor.yambms_smart_bms_1_max_discharge_current_s
+          - entity: sensor.yambms_smart_bms_1_max_voltage_cell
+          - entity: sensor.yambms_smart_bms_1_min_cell_voltage
+          - entity: sensor.yambms_smart_bms_1_min_voltage_cell
+          - entity: sensor.yambms_smart_bms_1_power_s
+          - entity: sensor.yambms_smart_bms_1_total_voltage_o
+          - entity: sensor.yambms_smart_bms_1_warning
+        title: SMART BMS STATUS
+      - type: vertical-stack
+        cards:
+          - type: custom:stack-in-card
+            keep:
+              margin: false
+              box_shadow: false
+              background: false
+            cards:
+              - type: grid
+                square: false
+                columns: 1
+                cards:
+                  - type: markdown
+                    content: >-
+
+                      {%- set total_bms = namespace(value=0) %} {%- set
+                      total_online_bms = namespace(value=0) %} {% for idx in
+                      range(0, 16)-%} 
+                        {% if states('binary_sensor.yambms_jk_bms_%d_status_online' % idx)=='on' or states('binary_sensor.rs485_bms%d_status_online' % idx)=='off' %}
+                         {% set total_bms.value = total_bms.value +1 %}
+                         {% if states('binary_sensor.yambms_jk_bms_%d_status_online' % idx)=='on' %}
+                            {% set total_online_bms.value = total_online_bms.value +1 %}
+                         {% endif %}
+                        {%- endif %}
+                         
+                      {% endfor %} <CENTER><b><font size=5>ONLINE BMSs:</B>
+                      {{total_online_bms.value}}/{{total_bms.value}}</font></CENTER>
+              - type: grid
+                square: false
+                columns: 1
+                cards:
+                  - type: markdown
+                    content: >-
+                      {%- set power_draw =
+                      states('sensor.yambms_jk_bms_1_battery_power')|float +
+                      states('sensor.yambms_jk_bms_2_battery_power')|float %} 
+                      {%- set power_charging =
+                      states('sensor.yambms_jk_bms_1_battery_power_charging')|float
+                      +
+                      states('sensor.yambms_jk_bms_2_battery_power_charging')|float
+                      %}  {%- set power_discharging =
+                      states('sensor.yambms_jk_bms_1_battery_power_discharging')|float
+                      +
+                      states('sensor.yambms_jk_bms_2_battery_power_discharging')|float
+                      %} 
+
+                      {%- set power_label = "(charging)" if (power_charging)>0 
+                            else "(discharging)" if (power_discharging)>0 
+                            else "" %} 
+
+                      {%- set power_value = power_charging if
+                      (power_charging)>0 
+                            else power_discharging if (power_discharging)>0 
+                            else power_draw %} 
+
+                      {%- set font_start = '<b><font color=#41CD52 size=6>' if
+                      (power_charging)>0 
+                            else '<b><font color=#3090C7 size=6>' if (power_discharging)>0 
+                            else '<b><font color=#aaaaaa size=6>' %}      
+                            
+                      {%- set font_end = '</font></b>' if (power_charging)>0 or
+                      (power_discharging)>0 else '' %} 
+
+                      <center>{{font_start}}{{ "%.3f" % power_value }}W
+                      {{power_label}}{{font_end}}</center>  
+
+                      {% macro pad_right(w, s) %} {{ s }} {% set slen =  w -
+                      (s|length) %} 
+                        {% for idx in range(slen)%} &nbsp; {%endfor %}
+                      {%- endmacro %} 
+
+                      {% macro green(s) %} <font color=#41CD52 size=2
+                      family=Consolas> {{ s }} </font> {%- endmacro %}
+                      <div>         
+              - type: grid
+                square: false
+                columns: 2
+                cards:
+                  - type: markdown
+                    content: >-
+                      {%- set total_voltage =
+                      (states('sensor.yambms_jk_bms_1_battery_voltage')|float
+                      +
+                      states('sensor.yambms_jk_bms_2_battery_voltage')|float)/2
+                      %}
+
+                      <center><b><font color=#41CD52 size=6>{{"%.3f" %
+                      total_voltage}}V</font></b><br> </center>   {% macro
+                      pad_right(w, s) %} {{ s }} {% set slen =  w - (s|length)
+                      %} 
+                        {% for idx in range(slen)%} &nbsp; {%endfor %}
+                      {%- endmacro %} 
+
+                      {% macro green(s) %} <font color=#41CD52 size=2
+                      family=Consolas> {{ s }} </font> {%- endmacro %}
+                      <div>          
+                  - type: markdown
+                    content: >-
+                      {%- set total_current =
+                      (states('sensor.yambms_jk_bms_1_battery_current')|float)+(states('sensor.yambms_jk_bms_2_battery_current')|float)
+                      %}
+                                  
+                      <center><b><font color=#41CD52 size=6>{{"%.3f" %
+                      total_current}}A</font></b><br> </center> {% macro
+                      pad_right(w, s) %}  {{ s }} {% set slen =  w - (s|length)
+                      %} {% for idx in range(slen)%} &nbsp; {%endfor %} {%-
+                      endmacro %} {% macro green(s) %} <font color=#41CD52
+                      family=Consolas> {{ s }} </font> {%- endmacro %}
+      - type: entities
+        entities:
+          - entity: sensor.yambms_jk_bms_1_temperature_powertube
+            name: powertube
+          - entity: sensor.yambms_jk_bms_1_temperature_sensor_1
+            name: T1
+          - entity: sensor.yambms_jk_bms_1_temperature_sensor_2
+            name: T2
+          - entity: sensor.yambms_jk_bms_1_temperature_sensor_3
+            name: T3
+          - entity: sensor.yambms_jk_bms_1_temperature_sensor_4
+            name: T4
+          - entity: sensor.yambms_jk_bms_1_temperature_sensor_5
+            name: T5
+        title: Temperatures BMS 01
+      - type: entities
+        entities:
+          - entity: sensor.yambms_jk_bms_2_temperature_powertube
+            name: Powertube
+          - entity: sensor.yambms_jk_bms_2_temperature_sensor_1
+            name: T1
+          - entity: sensor.yambms_jk_bms_2_temperature_sensor_2
+            name: T2
+          - entity: sensor.yambms_jk_bms_2_temperature_sensor_3
+            name: T3
+          - entity: sensor.yambms_jk_bms_2_temperature_sensor_4
+            name: T4
+          - entity: sensor.yambms_jk_bms_2_temperature_sensor_5
+            name: T5
+        title: Temperatures BMS 02
+      - type: entities
+        entities:
           - entity: binary_sensor.yambms_canbus_1_status
             name: CANBUS 1 Status
           - entity: binary_sensor.yambms_esp32_online_status
@@ -319,18 +392,19 @@ views:
             name: JK-BMS 1 status online
           - entity: binary_sensor.yambms_jk_bms_2_status_online
             name: JK-BMS 2 status online
-          - entity: sensor.yambms_yambms_1_alarm
-            name: YamBMS 1 Alarm
-          - entity: sensor.yambms_yambms_1_last_complete_charge
-            name: YamBMS 1 Last Complete Charge
-          - entity: sensor.yambms_yambms_1_last_complete_charge_human_readable
-            name: YamBMS 1 Last Complete Charge Human Readable
-          - entity: sensor.yambms_yambms_1_warning
-            name: YamBMS 1 Warning
+          - entity: sensor.yambms_smart_bms_1_alarm
+            name: Smart BMS 1 Alarm
+          - entity: sensor.yambms_smart_bms_1_last_complete_charge
+            name: Smart BMS 1 Last Complete Charge
+          - entity: sensor.yambms_smart_bms_1_last_complete_charge_human_readable
+            name: Smart BMS 1 Last Complete Charge Human Readable
+          - entity: sensor.yambms_smart_bms_1_warning
+            name: Smart BMS 1 Warning
           - entity: sensor.yambms_uptime_human_readable
             name: Uptime Human Readable
           - entity: sensor.yambms_uptime_sensor
             name: Uptime Sensor
+          - entity: sensor.yambms_esp32_uptime
         title: Esp32-S3
   - title: BMS Summary
     path: bmss-summary
@@ -548,31 +622,31 @@ views:
                   - type: markdown
                     content: >-
                       <div> {%- set ovp =
-                      states('sensor.yambms_jk_bms_1_cell_overvoltage_protection')
+                      states('number.yambms_jk_bms_1_cell_overvoltage_protection')
                       %}  {%- set slv =
-                      states('sensor.yambms_jk_bms_1_cell_smart_sleep_voltage')
+                      states('number.yambms_jk_bms_1_cell_smart_sleep_voltage')
                       %}  {%- set rcv =
-                      states('sensor.yambms_jk_bms_1_cell_request_charge_voltage')
+                      states('number.yambms_jk_bms_1_cell_request_charge_voltage')
                       %}  {%- set bsv =
-                      states('sensor.yambms_jk_bms_1_cell_balancing_starting_voltage')
+                      states('number.yambms_jk_bms_1_cell_balancing_starting_voltage')
                       %}  {%- set soc100 =
-                      states('sensor.yambms_jk_bms_1_cell_soc100_voltage') %} 
+                      states('number.yambms_jk_bms_1_cell_soc100_voltage') %} 
                       {%- set ovpr =
-                      states('sensor.yambms_jk_bms_1_cell_overvoltage_protection_recovery')
+                      states('number.yambms_jk_bms_1_cell_overvoltage_protection_recovery')
                       %}  {%- set rfv =
-                      states('sensor.yambms_jk_bms_1_cell_request_float_voltage')
+                      states('number.yambms_jk_bms_1_cell_request_float_voltage')
                       %}  {%- set uvpr =
-                      states('sensor.yambms_jk_bms_1_cell_undervoltage_protection_recovery')
+                      states('number.yambms_jk_bms_1_cell_undervoltage_protection_recovery')
                       %}  {%- set soc0 =
-                      states('sensor.yambms_jk_bms_1_cell_soc0_voltage') %} 
+                      states('number.yambms_jk_bms_1_cell_soc0_voltage') %} 
                       {%- set uvp =
-                      states('sensor.yambms_jk_bms_1_cell_undervoltage_protection')
+                      states('number.yambms_jk_bms_1_cell_undervoltage_protection')
                       %}  {%- set poff =
-                      states('sensor.yambms_jk_bms_1_cell_power_off_voltage')
+                      states('number.yambms_jk_bms_1_cell_power_off_voltage')
                       %}  {%- set rcvt =
-                      states('sensor.yambms_jk_bms_1_cell_request_charge_voltage_time')
+                      states('number.yambms_jk_bms_1_cell_request_charge_voltage_time')
                       %}     {%- set rfvt =
-                      states('sensor.yambms_jk_bms_1_cell_request_float_voltage_time') 
+                      states('number.yambms_jk_bms_1_cell_request_float_voltage_time') 
                       %}    {%- set TimeOVPR =
                       states('sensor.yambms_jk_bms_1_cell_overvoltage_protection_release_time') 
                       %}  {%- set TimeUVPR =
@@ -689,7 +763,7 @@ views:
                       -}}    {{
                       green(states('sensor.yambms_jk_bms_1_battery_capacity_remaining')
                       + " Ah") }} <br>{{ pad_right(20, "Total Capacity:") -}} {{
-                      green(states('sensor.yambms_jk_bms_1_battery_capacity_total_setting')
+                      green(states('number.yambms_jk_bms_1_battery_capacity_total_setting')
                       + " Ah")}}</div>
                                 
                       </div>
@@ -709,7 +783,7 @@ views:
                        {{ pad_right(20, 'Balance Curr:') }}   
                       {{green(states('sensor.yambms_jk_bms_1_balancing_current')
                       + ' A') }}  <br>{{ pad_right(20, 'Balancing Trig.:') }}   
-                        {{green(states('sensor.yambms_jk_bms_1_balancing_trigger_voltage') + ' V') }} 
+                        {{green(states('number.yambms_jk_bms_1_balancing_trigger_voltage') + ' V') }} 
                       </div>
       - type: vertical-stack
         cards:
@@ -825,9 +899,10 @@ views:
                       {%- set balancing_direction =
                       states('sensor.yambms_jk_bms_2_balancing_direction')%}  
                       {%- set is_working = "charging" if
-                      (balancing_direction|int)>0 
-                            else "discharging" if (balancing_direction|int)<0 
-                            else 'idle' %} 
+                      (balancing_direction|int)==1 
+                            else "discharging" if (balancing_direction|int)==2 
+                            else "idle" if (balancing_direction|int)==0
+                            else 'unknown' %} 
                       {%- set font_start = '<b><font size=2 color="#41CD52">' if
                       (balancing_direction|int)>0 
                             else '<b><font size=2 color=#3090C7>' if (balancing_direction|int)<0 
@@ -922,31 +997,31 @@ views:
                   - type: markdown
                     content: >-
                       <div> {%- set ovp =
-                      states('sensor.yambms_jk_bms_2_cell_overvoltage_protection')
+                      states('number.yambms_jk_bms_2_cell_overvoltage_protection')
                       %}  {%- set slv =
-                      states('sensor.yambms_jk_bms_2_cell_smart_sleep_voltage')
+                      states('number.yambms_jk_bms_2_cell_smart_sleep_voltage')
                       %}  {%- set rcv =
-                      states('sensor.yambms_jk_bms_2_cell_request_charge_voltage')
+                      states('number.yambms_jk_bms_2_cell_request_charge_voltage')
                       %}  {%- set bsv =
-                      states('sensor.yambms_jk_bms_2_cell_balancing_starting_voltage')
+                      states('number.yambms_jk_bms_2_cell_balancing_starting_voltage')
                       %}  {%- set soc100 =
-                      states('sensor.yambms_jk_bms_2_cell_soc100_voltage') %} 
+                      states('number.yambms_jk_bms_2_cell_soc100_voltage') %} 
                       {%- set ovpr =
-                      states('sensor.yambms_jk_bms_2_cell_overvoltage_protection_recovery')
+                      states('number.yambms_jk_bms_2_cell_overvoltage_protection_recovery')
                       %}  {%- set rfv =
-                      states('sensor.yambms_jk_bms_2_cell_request_float_voltage')
+                      states('number.yambms_jk_bms_2_cell_request_float_voltage')
                       %}  {%- set uvpr =
-                      states('sensor.yambms_jk_bms_2_cell_undervoltage_protection_recovery')
+                      states('number.yambms_jk_bms_2_cell_undervoltage_protection_recovery')
                       %}  {%- set soc0 =
-                      states('sensor.yambms_jk_bms_2_cell_soc0_voltage') %} 
+                      states('number.yambms_jk_bms_2_cell_soc0_voltage') %} 
                       {%- set uvp =
-                      states('sensor.yambms_jk_bms_2_cell_undervoltage_protection')
+                      states('number.yambms_jk_bms_2_cell_undervoltage_protection')
                       %}  {%- set poff =
-                      states('sensor.yambms_jk_bms_2_cell_power_off_voltage')
+                      states('number.yambms_jk_bms_2_cell_power_off_voltage')
                       %}  {%- set rcvt =
-                      states('sensor.yambms_jk_bms_2_cell_request_charge_voltage_time')
+                      states('number.yambms_jk_bms_2_cell_request_charge_voltage_time')
                       %}     {%- set rfvt =
-                      states('sensor.yambms_jk_bms_2_cell_request_float_voltage_time') 
+                      states('number.yambms_jk_bms_2_cell_request_float_voltage_time') 
                       %}    {%- set TimeOVPR =
                       states('sensor.yambms_jk_bms_2_cell_overvoltage_protection_release_time') 
                       %}  {%- set TimeUVPR =
@@ -1063,7 +1138,7 @@ views:
                       -}}    {{
                       green(states('sensor.yambms_jk_bms_2_battery_capacity_remaining')
                       + " Ah") }} <br>{{ pad_right(20, "Total Capacity:") -}} {{
-                      green(states('sensor.yambms_jk_bms_2_battery_capacity_total_setting')
+                      green(states('number.yambms_jk_bms_2_battery_capacity_total_setting')
                       + " Ah")}}</div>
                                 
                       </div>
@@ -1083,7 +1158,7 @@ views:
                        {{ pad_right(20, 'Balance Curr:') }}   
                       {{green(states('sensor.yambms_jk_bms_2_balancing_current')
                       + ' A') }}  <br>{{ pad_right(20, 'Balancing Trig.:') }}   
-                        {{green(states('sensor.yambms_jk_bms_2_balancing_trigger_voltage') + ' V') }} 
+                        {{green(states('number.yambms_jk_bms_2_balancing_trigger_voltage') + ' V') }} 
                       </div>
   - title: BMS1 (cells)
     cards:
@@ -2146,144 +2221,144 @@ views:
                     {% endif %}
                   {% endfor %} </center>
   - title: BMS1 (PROTECTION)
-    path: protection_bms0
-    cards:
-      - type: entities
-        entities:
-          - entity: sensor.yambms_jk_bms_1_mos_overtemperature_protection
-            name: mos_overtemperature_protection
-          - entity: sensor.yambms_jk_bms_1_mos_overtemperature_protection_recovery
-            name: mos_overtemperature_protection_recovery
-          - entity: sensor.yambms_jk_bms_1_charging_overtemperature_protection
-            name: charging_overtemperature_protection
-          - entity: sensor.yambms_jk_bms_1_discharging_overtemperature_protection
-            name: discharging_overtemperature_protection
-          - entity: >-
-              sensor.yambms_jk_bms_1_charging_overtemperature_protection_recovery
-            name: charging_overtemperature_protection_recovery
-          - entity: >-
-              sensor.yambms_jk_bms_1_discharging_overtemperature_protection_recovery
-            name: discharging_overtemperature_protection_recovery
-          - entity: >-
-              sensor.yambms_jk_bms_1_charging_lowtemperature_protection_recovery
-            name: charging_lowtemperature_protection_recovery
-          - entity: sensor.yambms_jk_bms_1_charging_lowtemperature_protection
-            name: charging_lowtemperature_protection
-        title: TEMPERATURE
-      - type: entities
-        entities:
-          - entity: sensor.yambms_jk_bms_1_max_charging_current
-            name: max_charging_current
-          - entity: sensor.yambms_jk_bms_1_charging_overcurrent_protection_delay
-            name: charging_overcurrent_protection_delay
-          - entity: >-
-              sensor.yambms_jk_bms_1_charging_overcurrent_protection_recovery_delay
-            name: charging_overcurrent_protection_recovery_delay
-          - entity: >-
-              sensor.yambms_jk_bms_1_charging_overcurrent_protection_release_time
-            name: charging_overcurrent_protection_release_time
-          - entity: >-
-              sensor.yambms_jk_bms_1_charging_short_circuit_protection_release_time
-            name: charging_short_circuit_protection_release_time
-          - entity: sensor.yambms_jk_bms_1_precharging_time_from_discharge
-            name: precharging_time_from_discharge
-        title: CHARGING
-      - type: entities
-        entities:
-          - entity: sensor.yambms_jk_bms_1_max_discharging_current
-            name: max_discharging_current
-          - entity: sensor.yambms_jk_bms_1_discharging_overcurrent_protection_delay
-            name: discharging_overcurrent_protection_delay
-          - entity: >-
-              sensor.yambms_jk_bms_1_discharging_overcurrent_protection_recovery_delay
-            name: discharging_overcurrent_protection_recovery_delay
-          - entity: >-
-              sensor.yambms_jk_bms_1_discharging_overcurrent_protection_release_time
-            name: discharging_overcurrent_protection_release_time
-          - entity: >-
-              sensor.yambms_jk_bms_1_discharging_short_circuit_protection_release_time
-            name: discharging_short_circuit_protection_release_time
-        title: DISCHARGING
-      - type: entities
-        entities:
-          - entity: sensor.yambms_jk_bms_1_short_circuit_protection_delay
-            name: short_circuit_protection_delay
-          - entity: sensor.yambms_jk_bms_1_short_circuit_protection_recovery_delay
-            name: short_circuit_protection_recovery_delay
-        title: SHORT CIRCUIT
-      - type: entities
-        entities:
-          - entity: sensor.yambms_jk_bms_1_max_balancing_current
-            name: max_balancing_current
-        title: BALANCING
-  - title: BMS2 (PROTECTION)
     path: protection_bms1
     cards:
       - type: entities
         entities:
-          - entity: sensor.yambms_jk_bms_2_mos_overtemperature_protection
-            name: mos_overtemperature_protection
-          - entity: sensor.yambms_jk_bms_2_mos_overtemperature_protection_recovery
-            name: mos_overtemperature_protection_recovery
-          - entity: sensor.yambms_jk_bms_2_charging_overtemperature_protection
-            name: charging_overtemperature_protection
-          - entity: sensor.yambms_jk_bms_2_discharging_overtemperature_protection
-            name: discharging_overtemperature_protection
+          - entity: number.yambms_jk_bms_1_mos_overtemperature_protection
+            name: MOS overT
+          - entity: number.yambms_jk_bms_1_mos_overtemperature_protection_recovery
+            name: MOS overT recovery
+          - entity: number.yambms_jk_bms_1_charging_overtemperature_protection
+            name: charging overT
+          - entity: number.yambms_jk_bms_1_discharging_overtemperature_protection
+            name: discharging overT
           - entity: >-
-              sensor.yambms_jk_bms_2_charging_overtemperature_protection_recovery
-            name: charging_overtemperature_protection_recovery
+              number.yambms_jk_bms_1_charging_overtemperature_protection_recovery
+            name: charging overT recovery
           - entity: >-
-              sensor.yambms_jk_bms_2_discharging_overtemperature_protection_recovery
-            name: discharging_overtemperature_protection_recovery
+              number.yambms_jk_bms_1_discharging_overtemperature_protection_recovery
+            name: discharging overT recovery
           - entity: >-
-              sensor.yambms_jk_bms_2_charging_lowtemperature_protection_recovery
-            name: charging_lowtemperature_protection_recovery
-          - entity: sensor.yambms_jk_bms_2_charging_lowtemperature_protection
-            name: charging_lowtemperature_protection
+              number.yambms_jk_bms_1_charging_lowtemperature_protection_recovery
+            name: charging lowT recovery
+          - entity: number.yambms_jk_bms_1_charging_lowtemperature_protection
+            name: charging lowT
         title: TEMPERATURE
       - type: entities
         entities:
-          - entity: sensor.yambms_jk_bms_2_max_charging_current
-            name: max_charging_current
-          - entity: sensor.yambms_jk_bms_2_charging_overcurrent_protection_delay
-            name: charging_overcurrent_protection_delay
+          - entity: number.yambms_jk_bms_1_max_charging_current
+            name: MAX current
+          - entity: number.yambms_jk_bms_1_charging_overcurrent_protection_delay
+            name: Over current delay
           - entity: >-
-              sensor.yambms_jk_bms_2_charging_overcurrent_protection_recovery_delay
-            name: charging_overcurrent_protection_recovery_delay
+              number.yambms_jk_bms_1_charging_overcurrent_protection_recovery_delay
+            name: Over current recovery delay
+          - entity: >-
+              sensor.yambms_jk_bms_1_charging_overcurrent_protection_release_time
+            name: Over current release time
+          - entity: >-
+              sensor.yambms_jk_bms_1_charging_short_circuit_protection_release_time
+            name: ShortCircuit release time
+          - entity: number.yambms_jk_bms_1_precharging_time_from_discharge
+            name: Precharging time from discharging
+        title: CHARGING protection
+      - type: entities
+        entities:
+          - entity: number.yambms_jk_bms_1_max_discharging_current
+            name: MAX current
+          - entity: number.yambms_jk_bms_1_discharging_overcurrent_protection_delay
+            name: Over current delay
+          - entity: >-
+              number.yambms_jk_bms_1_discharging_overcurrent_protection_recovery_delay
+            name: Over current recovery delay
+          - entity: >-
+              sensor.yambms_jk_bms_1_discharging_overcurrent_protection_release_time
+            name: Over current release time
+          - entity: >-
+              sensor.yambms_jk_bms_1_discharging_short_circuit_protection_release_time
+            name: ShortCircuit release time
+        title: DISCHARGING PROTECTION
+      - type: entities
+        entities:
+          - entity: number.yambms_jk_bms_1_short_circuit_protection_delay
+            name: Delay
+          - entity: number.yambms_jk_bms_1_short_circuit_protection_recovery_delay
+            name: Recovery delay
+        title: SHORT CIRCUIT PROTECTION
+      - type: entities
+        entities:
+          - entity: number.yambms_jk_bms_1_max_balancing_current
+            name: MAX current
+        title: BALANCING PROTECTION
+  - title: BMS2 (PROTECTION)
+    path: protection_bms2
+    cards:
+      - type: entities
+        entities:
+          - entity: number.yambms_jk_bms_2_mos_overtemperature_protection
+            name: MOS overT
+          - entity: number.yambms_jk_bms_2_mos_overtemperature_protection_recovery
+            name: MOS overT recovery
+          - entity: number.yambms_jk_bms_2_charging_overtemperature_protection
+            name: charging overT
+          - entity: number.yambms_jk_bms_2_discharging_overtemperature_protection
+            name: discharging overT
+          - entity: >-
+              number.yambms_jk_bms_2_charging_overtemperature_protection_recovery
+            name: charging overT recovery
+          - entity: >-
+              number.yambms_jk_bms_2_discharging_overtemperature_protection_recovery
+            name: discharging overT recovery
+          - entity: >-
+              number.yambms_jk_bms_2_charging_lowtemperature_protection_recovery
+            name: charging lowT recovery
+          - entity: number.yambms_jk_bms_2_charging_lowtemperature_protection
+            name: charging lowT
+        title: TEMPERATURE
+      - type: entities
+        entities:
+          - entity: number.yambms_jk_bms_2_max_charging_current
+            name: MAX current
+          - entity: number.yambms_jk_bms_2_charging_overcurrent_protection_delay
+            name: Over current delay
+          - entity: >-
+              number.yambms_jk_bms_2_charging_overcurrent_protection_recovery_delay
+            name: Over current recovery delay
           - entity: >-
               sensor.yambms_jk_bms_2_charging_overcurrent_protection_release_time
-            name: charging_overcurrent_protection_release_time
+            name: Over current release time
           - entity: >-
               sensor.yambms_jk_bms_2_charging_short_circuit_protection_release_time
-            name: charging_short_circuit_protection_release_time
-          - entity: sensor.yambms_jk_bms_2_precharging_time_from_discharge
-            name: precharging_time_from_discharge
-        title: CHARGING
+            name: ShortCircuit release time
+          - entity: number.yambms_jk_bms_2_precharging_time_from_discharge
+            name: Precharging time from discharging
+        title: CHARGING protection
       - type: entities
         entities:
-          - entity: sensor.yambms_jk_bms_2_max_discharging_current
-            name: max_discharging_current
-          - entity: sensor.yambms_jk_bms_2_discharging_overcurrent_protection_delay
-            name: discharging_overcurrent_protection_delay
+          - entity: number.yambms_jk_bms_2_max_discharging_current
+            name: MAX current
+          - entity: number.yambms_jk_bms_2_discharging_overcurrent_protection_delay
+            name: Over current delay
           - entity: >-
-              sensor.yambms_jk_bms_2_discharging_overcurrent_protection_recovery_delay
-            name: discharging_overcurrent_protection_recovery_delay
+              number.yambms_jk_bms_2_discharging_overcurrent_protection_recovery_delay
+            name: Over current recovery delay
           - entity: >-
               sensor.yambms_jk_bms_2_discharging_overcurrent_protection_release_time
-            name: discharging_overcurrent_protection_release_time
+            name: Over current release time
           - entity: >-
               sensor.yambms_jk_bms_2_discharging_short_circuit_protection_release_time
-            name: discharging_short_circuit_protection_release_time
-        title: DISCHARGING
+            name: ShortCircuit release time
+        title: DISCHARGING PROTECTION
       - type: entities
         entities:
-          - entity: sensor.yambms_jk_bms_2_short_circuit_protection_delay
-            name: short_circuit_protection_delay
-          - entity: sensor.yambms_jk_bms_2_short_circuit_protection_recovery_delay
-            name: short_circuit_protection_recovery_delay
-        title: SHORT CIRCUIT
+          - entity: number.yambms_jk_bms_2_short_circuit_protection_delay
+            name: Delay
+          - entity: number.yambms_jk_bms_2_short_circuit_protection_recovery_delay
+            name: Recovery delay
+        title: SHORT CIRCUIT PROTECTION
       - type: entities
         entities:
-          - entity: sensor.yambms_jk_bms_2_max_balancing_current
-            name: max_balancing_current
-        title: BALANCING
+          - entity: number.yambms_jk_bms_2_max_balancing_current
+            name: MAX current
+        title: BALANCING PROTECTION
