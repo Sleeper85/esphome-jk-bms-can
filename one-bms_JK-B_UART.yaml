@@ -1,8 +1,8 @@
-# Updated : 2024.08.02
-# Version : 1.4.2
+# Updated : 2024.08.08
+# Version : 1.4.3
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
-# JK-BMS-CAN ( PYLON, Seplos, GoodWe, SMA and Victron CAN bus protocol )
+# YamBMS ( Yet another multi-BMS Merging Solution )
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -75,6 +75,18 @@ packages:
 
   device_base: !include packages/base/device_base.yaml
 
+  # shunt1: !include
+  #   file: packages/shunt/shunt_victron_smartshunt.yaml # shunt_junctek_khf.yaml
+  #   vars:
+  #     # YamBMS ID
+  #     yambms_id: 'yambms1'
+  #     # Shunt vars
+  #     shunt_id: '1' # must be a number
+  #     shunt_name: 'Shunt 1'
+  #     shunt_update_interval: '3s'
+  #     shunt_combine_interval: '1s'
+  #     shunt_uart_id: uart_esp_0
+
   bms1: !include
     file: packages/bms/bms_JK-B_UART_minimal.yaml
     vars:
@@ -141,8 +153,8 @@ packages:
 # | DEBUG ( logger level must be DEBUG ) |
 # +--------------------------------------+
 
-  # device_debug: !include
-  #   file: packages/base/device_debug_ESP32.yaml
-  #   vars:
-  #     debug_name: 'Debug'
-  #     debug_update_interval: '5s'
+  device_debug: !include
+    file: packages/base/device_debug_ESP32.yaml
+    vars:
+      debug_name: 'Debug'
+      debug_update_interval: '5s'

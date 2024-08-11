@@ -1,5 +1,5 @@
-# Updated : 2024.07.29
-# Version : 1.4.2
+# Updated : 2024.08.08
+# Version : 1.4.3
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # This YAML is free software: you can redistribute it and/or
@@ -22,7 +22,7 @@ globals:
     initial_value: "false"
 
 switch:
-# Combine Enable-Switch (user controlled switch to en/dis-able combine)
+  # Combine Enable-Switch (user controlled switch to en/dis-able combine)
   - platform: template
     name: "${name} ${bms_name} Combine enabled"
     id: bms${bms_id}_switch_combine
@@ -30,13 +30,13 @@ switch:
     optimistic: true
 
 binary_sensor:
-# Combine Availability (indicated, if the BMS is able to be included in combine)
+  # Combine Availability (indicated, if the BMS is able to be included in combine)
   - platform: template
     name: "${name} ${bms_name} Combine Availability"
     id: bms${bms_id}_availability
     lambda: return (((id(bms${bms_id}_switch_charging).state) || (id(bms${bms_id}_switch_discharging).state)) && (id(bms${bms_id}_errors_bitmask).state == 0));
 
-# Can be combined (indicated, if the BMS can be combined)
+  # Can be combined (indicated, if the BMS can be combined)
   - platform: template
     name: "${name} ${bms_name} Can be combined"
     id: bms${bms_id}_can_be_combined
@@ -87,10 +87,10 @@ interval:
           }
 
           // Combine continuously (all BMS)
-          if (id(${yambms_id}_combined_bms_counter) < id(${yambms_id}_bms_counter)) {
+          if (id(${yambms_id}_processed_bms_counter) < id(${yambms_id}_bms_counter)) {
             
             // BMS combined counter
-            id(${yambms_id}_combined_bms_counter) += 1;
+            id(${yambms_id}_processed_bms_counter) += 1;
 
             // +-----------------------------------------------+
             // | Errors bitmask (16bit)                        |
@@ -98,9 +98,9 @@ interval:
 
             if (id(bms${bms_id}_errors_bitmask).state > 1) {
               uint16_t bms_errors_bitmask = id(bms${bms_id}_errors_bitmask).state;     // errors_bitmask (16bit)
-              id(${yambms_id}_errors_bitmask_alarm_var) |= bms_errors_bitmask;         // Alarm   - OR bitwise
-              id(${yambms_id}_errors_bitmask_warning_var) |= bms_errors_bitmask;       // Warning - OR bitwise
-              id(${yambms_id}_errors_bitmask_counter_var) += 1;                        // errors_bitmask_counter
+              id(${yambms_id}_var_errors_bitmask_alarm) |= bms_errors_bitmask;         // Alarm   - OR bitwise
+              id(${yambms_id}_var_errors_bitmask_warning) |= bms_errors_bitmask;       // Warning - OR bitwise
+              id(${yambms_id}_var_errors_bitmask_counter) += 1;                        // errors_bitmask_counter
             }
 
             // +-----------------------------------------------+
@@ -109,13 +109,13 @@ interval:
             else if (id(bms${bms_id}_can_be_combined).state) {
 
               // total_voltage TOTAL
-              id(${yambms_id}_total_total_voltage) += id(bms${bms_id}_total_voltage).state;
+              id(${yambms_id}_bms_total_voltage) += id(bms${bms_id}_total_voltage).state;
               
               // current TOTAL
-              id(${yambms_id}_total_current) += id(bms${bms_id}_current).state;
+              id(${yambms_id}_bms_total_current) += id(bms${bms_id}_current).state;
               
               // power TOTAL
-              id(${yambms_id}_total_power) += id(bms${bms_id}_power).state;
+              id(${yambms_id}_bms_total_power) += id(bms${bms_id}_power).state;
 
               // max_charge_current TOTAL
               if (id(bms${bms_id}_switch_charging).state) id(${yambms_id}_total_max_charge_current) += id(bms${bms_id}_max_charge_current).state;
@@ -127,7 +127,7 @@ interval:
               id(${yambms_id}_total_capacity_remaining_ah) += id(bms${bms_id}_capacity_remaining_ah).state;
 
               // soc MEAN
-              id(${yambms_id}_total_soc) += id(bms${bms_id}_state_of_charge).state;
+              id(${yambms_id}_bms_total_soc) += id(bms${bms_id}_state_of_charge).state;
                             
               // charging_cycles MEAN
               id(${yambms_id}_total_charging_cycles) += id(bms${bms_id}_charging_cycles).state;

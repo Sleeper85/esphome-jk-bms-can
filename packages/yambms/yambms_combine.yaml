@@ -1,6 +1,8 @@
-# Updated : 2024.07.29
-# Version : 1.4.2
+# Updated : 2024.08.08
+# Version : 1.4.3
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
+
+# YamBMS ( Yet another multi-BMS Merging Solution )
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,19 +26,19 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
-  - id: ${yambms_id}_combined_bms_counter
+  - id: ${yambms_id}_processed_bms_counter
     type: int
     restore_value: no
     initial_value: '0'
-  - id: ${yambms_id}_errors_bitmask_counter_var
+  - id: ${yambms_id}_var_errors_bitmask_counter
     type: int
     restore_value: no
     initial_value: '0'
-  - id: ${yambms_id}_errors_bitmask_alarm_var
+  - id: ${yambms_id}_var_errors_bitmask_alarm
     type: int
     restore_value: no
     initial_value: '0'
-  - id: ${yambms_id}_errors_bitmask_warning_var
+  - id: ${yambms_id}_var_errors_bitmask_warning
     type: int
     restore_value: no
     initial_value: '0'
@@ -80,22 +82,6 @@ globals:
     type: float
     restore_value: no
     initial_value: '0.0'
-  - id: ${yambms_id}_total_total_voltage
-    type: float
-    restore_value: no
-    initial_value: '0.0'
-  - id: ${yambms_id}_total_current
-    type: float
-    restore_value: no
-    initial_value: '0.0'
-  - id: ${yambms_id}_total_power
-    type: float
-    restore_value: no
-    initial_value: '0.0'
-  - id: ${yambms_id}_total_soc
-    type: float
-    restore_value: no
-    initial_value: '0.0'
   - id: ${yambms_id}_total_capacity_remaining_ah
     type: float
     restore_value: no
@@ -132,6 +118,42 @@ globals:
     type: float
     restore_value: no
     initial_value: '0.0'
+  - id: ${yambms_id}_bms_total_voltage
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_bms_total_current
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_bms_total_power
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_bms_total_soc
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_shunt_voltage
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_shunt_current
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_shunt_power
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_shunt_soc
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_combine_shunt
+    type: bool
+    restore_value: no
+    initial_value: "false"
 
 # Combine continuously
 interval:
@@ -139,40 +161,58 @@ interval:
     then:
       - lambda: |-
           // If all BMS have communicated their informations
-          if (id(${yambms_id}_combined_bms_counter) == id(${yambms_id}_bms_counter)) {
+          if (id(${yambms_id}_processed_bms_counter) == id(${yambms_id}_bms_counter)) {
 
             // +-----------------------------------------------+
             // | Errors bitmask (16bit)                        |
             // +-----------------------------------------------+
 
             // Alarm - OR bitwise
-            if (id(${yambms_id}_errors_bitmask_counter_var) == id(${yambms_id}_bms_counter)) {
-              id(${yambms_id}_errors_bitmask_alarm).publish_state(id(${yambms_id}_errors_bitmask_alarm_var));
-              id(${yambms_id}_errors_bitmask_alarm_var) = 0; // global var reset
+            if (id(${yambms_id}_var_errors_bitmask_counter) == id(${yambms_id}_bms_counter)) {
+              id(${yambms_id}_errors_bitmask_alarm).publish_state(id(${yambms_id}_var_errors_bitmask_alarm));
+              id(${yambms_id}_var_errors_bitmask_alarm) = 0; // global var reset
             }
             else id(${yambms_id}_errors_bitmask_alarm).publish_state(0);
             // Warning - OR bitwise
-            id(${yambms_id}_errors_bitmask_warning).publish_state(id(${yambms_id}_errors_bitmask_warning_var));
-            id(${yambms_id}_errors_bitmask_warning_var) = 0; // global var reset
+            id(${yambms_id}_errors_bitmask_warning).publish_state(id(${yambms_id}_var_errors_bitmask_warning));
+            id(${yambms_id}_var_errors_bitmask_warning) = 0; // global var reset
             // errors_bitmask_counter
-            id(${yambms_id}_errors_bitmask_counter).publish_state(id(${yambms_id}_errors_bitmask_counter_var));
-            id(${yambms_id}_errors_bitmask_counter_var) = 0; // global var reset
+            id(${yambms_id}_errors_bitmask_counter).publish_state(id(${yambms_id}_var_errors_bitmask_counter));
+            id(${yambms_id}_var_errors_bitmask_counter) = 0; // global var reset
 
             // +-----------------------------------------------+
 
             // total_voltage MEAN
             float total_voltage = 0.0;
-            if (id(${yambms_id}_can_be_combined_bms_counter) > 0) total_voltage = (id(${yambms_id}_total_total_voltage) / id(${yambms_id}_can_be_combined_bms_counter));
-            id(${yambms_id}_total_voltage).publish_state(total_voltage);
-            id(${yambms_id}_total_total_voltage) = 0.0; // global var reset
+            // Shunt
+            if (id(${yambms_id}_combine_shunt) == true) total_voltage = id(${yambms_id}_shunt_voltage);
+            // BMS
+            else if (id(${yambms_id}_can_be_combined_bms_counter) > 0) total_voltage = (id(${yambms_id}_bms_total_voltage) / id(${yambms_id}_can_be_combined_bms_counter));
+            id(${yambms_id}_total_voltage).publish_state(total_voltage);     // publish sensor
+            id(${yambms_id}_bms_total_voltage) = 0.0;                        // global var reset
             
             // current TOTAL
-            id(${yambms_id}_current).publish_state(id(${yambms_id}_total_current));
-            id(${yambms_id}_total_current) = 0.0; // global var reset
+            // Shunt
+            if (id(${yambms_id}_combine_shunt) == true) id(${yambms_id}_current).publish_state(id(${yambms_id}_shunt_current));
+            // BMS 
+            else id(${yambms_id}_current).publish_state(id(${yambms_id}_bms_total_current));
+            id(${yambms_id}_bms_total_current) = 0.0; // global var reset
             
             // power TOTAL
-            id(${yambms_id}_power).publish_state(id(${yambms_id}_total_power));
-            id(${yambms_id}_total_power) = 0.0; // global var reset
+            // Shunt
+            if (id(${yambms_id}_combine_shunt) == true) id(${yambms_id}_power).publish_state(id(${yambms_id}_shunt_power));
+            // BMS
+            else id(${yambms_id}_power).publish_state(id(${yambms_id}_bms_total_power));
+            id(${yambms_id}_bms_total_power) = 0.0; // global var reset
+
+            // state_of_charge MEAN
+            float soc = 0.0;
+            // Shunt
+            if (id(${yambms_id}_combine_shunt) == true) soc = id(${yambms_id}_shunt_soc);
+            // BMS
+            else if (id(${yambms_id}_can_be_combined_bms_counter) > 0) soc = (id(${yambms_id}_bms_total_soc) / id(${yambms_id}_can_be_combined_bms_counter));
+            id(${yambms_id}_state_of_charge).publish_state(soc);     // publish sensor
+            id(${yambms_id}_bms_total_soc) = 0.0;                    // global var reset
 
             // max_charge_current TOTAL
             id(${yambms_id}_max_charge_current).publish_state(id(${yambms_id}_total_max_charge_current) * 0.8);
@@ -186,12 +226,6 @@ interval:
             id(${yambms_id}_capacity_remaining_ah).publish_state(id(${yambms_id}_total_capacity_remaining_ah));
             id(${yambms_id}_total_capacity_remaining_ah) = 0.0; // global var reset
             
-            // state_of_charge MEAN
-            float soc = 0.0;
-            if (id(${yambms_id}_can_be_combined_bms_counter) > 0) soc = (id(${yambms_id}_total_soc) / id(${yambms_id}_can_be_combined_bms_counter));
-            id(${yambms_id}_state_of_charge).publish_state(soc);
-            id(${yambms_id}_total_soc) = 0.0; // global var reset
-
             // charging_cycles MEAN
             float charging_cycles = 0.0;
             if (id(${yambms_id}_can_be_combined_bms_counter) > 0) charging_cycles = (id(${yambms_id}_total_charging_cycles) / id(${yambms_id}_can_be_combined_bms_counter));
@@ -261,9 +295,9 @@ interval:
               id(${yambms_id}_max_temperature_sensor_2) = -100.0; // global var reset
             }
 
-            // Reset combined_bms_counter (new cycle)
+            // Reset processed_bms_counter (new cycle)
             // The bms are once again authorized to communicate their informations
-            id(${yambms_id}_combined_bms_counter) = 0;
+            id(${yambms_id}_processed_bms_counter) = 0;
           }
 
 binary_sensor:
@@ -426,7 +460,7 @@ sensor:
   # state_of_charge MEAN
   - platform: template
     id: ${yambms_id}_state_of_charge
-    name: "${name} ${yambms_name} SOC (Ø)"
+    name: "${name} ${yambms_name} SoC (Ø)"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: '%'
@@ -578,7 +612,7 @@ sensor:
         - throttle: 10s
         - delta: 1
 
-  # errors_bitmask_counter
+  # BMS in alarm (errors_bitmask_counter)
   - platform: template
     id: ${yambms_id}_errors_bitmask_counter
     name: "${name} ${yambms_name} BMS in alarm"
@@ -589,6 +623,47 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 1
+
+  # BMS count
+  - platform: template
+    name: ${name} ${yambms_name} BMS count
+    id: ${yambms_id}_bms_count
+    update_interval: ${yambms_update_interval}
+    accuracy_decimals: 0
+    icon: mdi:counter
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: return id(${yambms_id}_bms_counter);
+
+  # BMS combined
+  - platform: template
+    name: ${name} ${yambms_name} BMS combined
+    id: ${yambms_id}_bms_combined
+    update_interval: ${yambms_update_interval}
+    accuracy_decimals: 0
+    icon: mdi:counter
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: return id(${yambms_id}_can_be_combined_bms_counter);
+
+  # Shunt combined
+  - platform: template
+    name: ${name} ${yambms_name} Shunt combined
+    id: ${yambms_id}_shunt_combined
+    update_interval: ${yambms_update_interval}
+    accuracy_decimals: 0
+    icon: mdi:counter
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: |-
+      if (id(${yambms_id}_combine_shunt)) return 1;
+      else return 0;
 
 # power_tube_temperature MIN_MAX
 # - platform: template

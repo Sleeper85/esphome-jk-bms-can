@@ -1,7 +1,9 @@
-# Updated : 2024.08.02
-# Version : 1.4.2
+# Updated : 2024.08.08
+# Version : 1.4.3
 # GitHub  : https://github.com/SeByDocKy/pvbrain2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
+
+# YamBMS ( Yet another multi-BMS Merging Solution )
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -76,6 +78,18 @@ captive_portal:
 # +--------------------------------------+
 packages:
   device_base: !include pvbrain2/base/device_base.yaml
+
+  # shunt1: !include
+  #   file: packages/shunt/shunt_victron_smartshunt.yaml # shunt_junctek_khf.yaml
+  #   vars:
+  #     # YamBMS ID
+  #     yambms_id: 'yambms1'
+  #     # Shunt vars
+  #     shunt_id: '1' # must be a number
+  #     shunt_name: 'Shunt 1'
+  #     shunt_update_interval: '3s'
+  #     shunt_combine_interval: '1s'
+  #     shunt_uart_id: uart_esp_0
 
   # Max 3 BLE connections.
   # The BLE software stack on the ESP32 consumes a significant amount of RAM on the device.
@@ -162,11 +176,11 @@ packages:
 # | DEBUG ( logger level must be DEBUG ) |
 # +--------------------------------------+
 
-  # device_debug: !include
-  #   file: pvbrain2/base/device_debug.yaml
-  #   vars:
-  #     debug_name: 'Debug'
-  #     debug_update_interval: '5s'
-  #     # Size of your PSRAM in bits
-  #     # 8Mb='8388608' | 6Mb='6291456' | 4Mb='4194304' | 2Mb='2097152' | NoPSRAM='0'
-  #     debug_psram_size: '8388608'
+  device_debug: !include
+    file: pvbrain2/base/device_debug.yaml
+    vars:
+      debug_name: 'Debug'
+      debug_update_interval: '5s'
+      # Size of your PSRAM in bits
+      # 8Mb='8388608' | 6Mb='6291456' | 4Mb='4194304' | 2Mb='2097152' | NoPSRAM='0'
+      debug_psram_size: '8388608'

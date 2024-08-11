@@ -1,6 +1,8 @@
-# Updated : 2024.07.29
-# Version : 1.4.2
+# Updated : 2024.08.08
+# Version : 1.4.3
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
+
+# YamBMS ( Yet another multi-BMS Merging Solution )
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -99,6 +101,12 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
     optimistic: true
     entity_category: config
+  - platform: template
+    name: "${name} ${yambms_name} Request force charge"
+    id: ${yambms_id}_switch_request_force_charge
+    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: true
+    entity_category: config
 
 number:
   # +--------------------------------------+
@@ -184,6 +192,32 @@ number:
     optimistic: true
     entity_category: config
     internal: ${yambms_inverter_offset_v_slider}
+  - platform: template
+    name: "${name} ${yambms_name} Request Force Charge Start SoC"
+    id: "${yambms_id}_request_force_charge_start_soc"
+    step: 1
+    min_value: 0
+    max_value: 100
+    restore_value: true
+    mode: "${yambms_input_number_mode}"
+    initial_value: 10
+    unit_of_measurement: '%'
+    icon: mdi:battery-low
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "${name} ${yambms_name} Request Force Charge Stop SoC"
+    id: "${yambms_id}_request_force_charge_stop_soc"
+    step: 1
+    min_value: 0
+    max_value: 100
+    restore_value: true
+    mode: "${yambms_input_number_mode}"
+    initial_value: 30
+    unit_of_measurement: '%'
+    icon: mdi:battery-medium
+    optimistic: true
+    entity_category: config
 
 # +--------------------------------------+
 # | Scripts                              |
@@ -199,6 +233,59 @@ script:
       - lambda: id(${yambms_id}_charge_status) = "EOC";
 
 sensor:
+  # +--------------------------------------+
+  # | Total Daily Energy                   |
+  # +--------------------------------------+
+  # Battery Charging Power
+  - platform: template
+    name: ${name} ${yambms_name} Battery Charging Power
+    id: ${yambms_id}_battery_charging_power
+    update_interval: ${yambms_update_interval}
+    unit_of_measurement: 'W'
+    device_class: power
+    accuracy_decimals: 0
+    lambda: |-
+      if (id(${yambms_id}_power).state > 0)
+        return id(${yambms_id}_power).state;
+      else return 0;
+
+  # Battery Discharging Power
+  - platform: template
+    name: ${name} ${yambms_name} Battery Discharging Power
+    id: ${yambms_id}_battery_discharging_power
+    update_interval: ${yambms_update_interval}
+    unit_of_measurement: 'W'
+    device_class: power
+    accuracy_decimals: 0
+    lambda: |-
+      if (id(${yambms_id}_power).state <= 0)
+        return (id(${yambms_id}_power).state * -1); // Must be positive energy
+      else return 0;
+
+  # Daily Charging Energy
+  - platform: total_daily_energy
+    name: "${name} ${yambms_name} Daily Charging Energy"
+    power_id: ${yambms_id}_battery_charging_power
+    unit_of_measurement: 'kWh'
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+
+  # Daily Discharging Energy
+  - platform: total_daily_energy
+    name: "${name} ${yambms_name} Daily Discharging Energy"
+    power_id: ${yambms_id}_battery_discharging_power
+    unit_of_measurement: 'kWh'
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      # Multiplication factor from W to kW is 0.001
+      - multiply: 0.001
+
   # +--------------------------------------+
   # | Last Complete Charge                 |
   # +--------------------------------------+
@@ -217,6 +304,7 @@ sensor:
                    char str[19];
                    strftime(str, sizeof(str), " %H:%M %d %b %Y", localtime(&id(${yambms_id}_eoc_timestamp)));
                    return  {str};
+
   # +--------------------------------------+
   # |  Requested Charge Voltage  (CVL)     |
   # +--------------------------------------+
@@ -241,6 +329,7 @@ sensor:
       else if (id(${yambms_id}_charging_instruction).state == "Float") return (id(${yambms_id}_float_voltage).state + id(${yambms_id}_inverter_offset_v).state);
       // Stop Charging
       else return (id(${yambms_id}_rebulk_voltage).state + id(${yambms_id}_inverter_offset_v).state);
+
   # +--------------------------------------+
   # |  Requested Charge Current  (CCL)     |
   # +--------------------------------------+
@@ -263,6 +352,7 @@ sensor:
       }
       // Charging Not Allowed
       else return 0;
+
   # +--------------------------------------+
   # |  Requested Discharge Voltage  (DVL)  |
   # +--------------------------------------+
@@ -278,6 +368,7 @@ sensor:
         - throttle: 10s
         - delta: 0.1
     lambda: return (id(${yambms_id}_cell_uvpr).state * id(${yambms_id}_cell_count).state);
+
   # +--------------------------------------+
   # |  Requested Discharge Current  (DCL)  |
   # +--------------------------------------+
@@ -300,48 +391,6 @@ sensor:
       }
       // Stop Discharging
       else return 0;
-  # +--------------------------------------+
-  # | BMS count                            |
-  # +--------------------------------------+
-  - platform: template
-    name: ${name} ${yambms_name} BMS count
-    id: ${yambms_id}_bms_count
-    update_interval: ${yambms_update_interval}
-    accuracy_decimals: 0
-    icon: mdi:counter
-    filters:
-      - or:
-        - throttle: 10s
-        - delta: 1
-    lambda: return id(${yambms_id}_bms_counter);
-  # +--------------------------------------+
-  # | BMS combined                         |
-  # +--------------------------------------+
-  - platform: template
-    name: ${name} ${yambms_name} BMS combined
-    id: ${yambms_id}_bms_combined
-    update_interval: ${yambms_update_interval}
-    accuracy_decimals: 0
-    icon: mdi:counter
-    filters:
-      - or:
-        - throttle: 10s
-        - delta: 1
-    lambda: return id(${yambms_id}_can_be_combined_bms_counter);
-
-      # Converting total battery Ah into number of PYLON modules
-      #int batt_capacity = id(${yambms_id}_battery_capacity).state;
-      #int batt_module;
-      #if (batt_capacity == 0) batt_module = 0;
-      #else if (batt_capacity <= 100) batt_module = 1;
-      #else if (batt_capacity <= 200) batt_module = 2;
-      #else if (batt_capacity <= 300) batt_module = 3;
-      #else if (batt_capacity <= 400) batt_module = 4;
-      #else if (batt_capacity <= 500) batt_module = 5;
-      #else if (batt_capacity <= 600) batt_module = 6;
-      #else if (batt_capacity <= 700) batt_module = 7;
-      #else batt_module = 8;
-      #return batt_module;
 
   # +--------------------------------------+
   # | Battery State of Charge (SOC)        |
@@ -367,6 +416,7 @@ sensor:
       // Useful for some inverters, will not send 100% until charging is complete
       else if (id(${yambms_id}_eoc) == true) return soc;              // End Of Charge => Sending BMS SOC
       else return 98;                                                 // Otherwise => Sending 98%
+
   # +--------------------------------------+
   # | Battery State of Health (SOH)        |
   # +--------------------------------------+
@@ -382,6 +432,7 @@ sensor:
         - throttle: 10s
         - delta: 1
     lambda: return round(((id(${yambms_id}_charging_cycles).state/${yambms_max_cycles})-1)*-100);
+
   # +--------------------------------------+
   # | Cell Count                           |
   # +--------------------------------------+
@@ -714,4 +765,21 @@ binary_sensor:
       else if (id(${yambms_id}_total_voltage).state <= id(${yambms_id}_requested_discharge_voltage).state) return false;
       // Discharging Allowed
       else return true;
-          
+      
+  # +--------------------------------------+
+  # | Requested Force Charge               |
+  # +--------------------------------------+
+  - platform: template
+    name: "${name} ${yambms_name} Requested Force Charge"
+    id: ${yambms_id}_requested_force_charge
+    icon: mdi:battery-charging-low
+    lambda: |-
+      if (id(${yambms_id}_switch_request_force_charge).state) {
+        int soc = id(${yambms_id}_state_of_charge).state;
+        if (soc <= id(${yambms_id}_request_force_charge_start_soc).state) return true;
+        else if (soc >= id(${yambms_id}_request_force_charge_stop_soc).state) return false;
+        else if (id(${yambms_id}_requested_force_charge).state) return true;
+        else return false;
+      }
+      else return false;
+      
