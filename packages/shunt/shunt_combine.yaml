@@ -1,0 +1,56 @@
+# Updated : 2024.08.08
+# Version : 1.1.1
+# GitHub  : https://github.com/Sleeper85/esphome-yambms
+
+# YamBMS ( Yet another multi-BMS Merging Solution )
+
+# This YAML is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+
+switch:
+  # Combine Enable-Switch (user controlled switch to en/dis-able combine)
+  - platform: template
+    name: "${name} ${shunt_name} Combine enabled"
+    id: shunt${shunt_id}_switch_combine
+    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: true
+
+binary_sensor:
+  # Combine Availability (indicated, if the Shunt is able to be included in combine)
+  - platform: template
+    name: "${name} ${shunt_name} Combine Availability"
+    id: shunt${shunt_id}_availability
+    lambda: return (id(shunt${shunt_id}_voltage).state > 0);
+
+  # Can be combined (indicated, if the Shunt can be combined)
+  - platform: template
+    name: "${name} ${shunt_name} Can be combined"
+    id: shunt${shunt_id}_can_be_combined
+    lambda: return ((id(shunt${shunt_id}_availability).state) && (id(shunt${shunt_id}_switch_combine).state));
+
+interval:
+  - interval: ${shunt_combine_interval}
+    then:
+      - lambda: |-
+          // Combine shunt
+          if (id(shunt${shunt_id}_can_be_combined).state) {
+            id(${yambms_id}_shunt_voltage) = id(shunt${shunt_id}_voltage).state;
+            id(${yambms_id}_shunt_current) = id(shunt${shunt_id}_current).state;
+            id(${yambms_id}_shunt_power) = id(shunt${shunt_id}_power).state;
+            id(${yambms_id}_shunt_soc) = id(shunt${shunt_id}_soc).state;
+            // Update combine state
+            id(${yambms_id}_combine_shunt) = true;
+          }
+          // Uncombine shunt
+          else id(${yambms_id}_combine_shunt) = false;
