@@ -55,6 +55,9 @@ In Home Assistant under **" Settings > Devices and services > Add Intergration "
 ## ESPHome other bash command
 
 ```bash
+# clean files before compiling again
+esphome clean multi-bms_JK-ALL_BLE.yaml
+
 # test the config
 esphome config multi-bms_JK-ALL_BLE.yaml
 
