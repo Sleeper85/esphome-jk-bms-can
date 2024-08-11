@@ -1,6 +1,8 @@
-# Updated : 2024.07.19
+# Updated : 2024.08.08
 # Version : 2.4.1
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
+
+# YamBMS ( Yet another multi-BMS Merging Solution )
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
