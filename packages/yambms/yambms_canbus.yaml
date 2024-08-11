@@ -1,6 +1,8 @@
-# Updated : 2024.08.06
+# Updated : 2024.08.08
 # Version : 2.3.3
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
+
+# YamBMS ( Yet another multi-BMS Merging Solution )
 
 # This YAML is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -85,24 +87,6 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
     optimistic: true
     entity_category: diagnostic
-  - platform: template
-    name: "${name} ${canbus_name} Request full charge"
-    id: ${canbus_id}_switch_request_charge_bit3
-    restore_mode: RESTORE_DEFAULT_OFF
-    optimistic: true
-    entity_category: config
-  - platform: template
-    name: "${name} ${canbus_name} Request force charge 2"
-    id: ${canbus_id}_switch_request_charge_bit4
-    restore_mode: RESTORE_DEFAULT_OFF
-    optimistic: true
-    entity_category: config
-  - platform: template
-    name: "${name} ${canbus_name} Request force charge 1"
-    id: ${canbus_id}_switch_request_charge_bit5
-    restore_mode: RESTORE_DEFAULT_OFF
-    optimistic: true
-    entity_category: config
 
 sensor:
   # 0x305 Inverter ACK interval
@@ -454,11 +438,11 @@ interval:
                         // | Byte 0 : Request flag          |
                         // +--------------------------------+
                         // Bit 3 : Request full charge
-                        if (id(${canbus_id}_switch_request_charge_bit3).state) can_mesg[0] = can_mesg[0] | 0x8;
+                        // if () can_mesg[0] = can_mesg[0] | 0x8;
                         // Bit 4 : Request force charge 2 (Deye will charge the battery from the grid to the charging voltage specified by the CAN bus and displays `Request Force Charge` on the screen)
-                        if (id(${canbus_id}_switch_request_charge_bit4).state) can_mesg[0] = can_mesg[0] | 0x10;
+                        if (id(${yambms_id}_requested_force_charge).state) can_mesg[0] = can_mesg[0] | 0x10;
                         // Bit 5 : Request force charge 1 (Deye will charge the battery from the grid to the charging voltage specified by the CAN bus and displays `Request Force Charge` on the screen)
-                        if (id(${canbus_id}_switch_request_charge_bit5).state) can_mesg[0] = can_mesg[0] | 0x20;
+                        // if () can_mesg[0] = can_mesg[0] | 0x20;
                         // Bit 6 : Discharge enable 
                         if (id(${yambms_id}_discharging_instruction).state == true) can_mesg[0] = can_mesg[0] | 0x40;
                         // Bit 7 : Charge enable  
