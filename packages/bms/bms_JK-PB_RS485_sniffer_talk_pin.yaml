@@ -1,5 +1,5 @@
-# Updated : 2024.08.08
-# Version : 1.2.1
+# Updated : 2024.08.12
+# Version : 1.2.2
 # GitHub  : https://github.com/txubelaxu/esphome-jk-bms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -36,4 +36,15 @@ jk_rs485_sniffer:
     rx_timeout: 500ms
     uart_id: ${sniffer_uart_id}
     talk_pin: ${sniffer_talk_pin}
-    broadcast_to_all_bms: True
+ 
+switch:
+  - platform: template
+    name: ${name} JK-PB sniffer Broadcast changes to all BMS
+    icon: "mdi:cast"
+    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: true
+    entity_category: config
+    turn_on_action:
+      - lambda: id(${sniffer_id}).set_broadcast_changes_to_all_bms(true);  
+    turn_off_action:
+      - lambda: id(${sniffer_id}).set_broadcast_changes_to_all_bms(false); 
