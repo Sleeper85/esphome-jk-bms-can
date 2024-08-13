@@ -1,5 +1,5 @@
-# Updated : 2024.08.08
-# Version : 1.1.2
+# Updated : 2024.08.13
+# Version : 1.1.3
 # GitHub  : https://github.com/txubelaxu/esphome-jk-bms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -25,21 +25,21 @@ views:
     cards:
       - type: entities
         entities:
-          - entity: sensor.yambms_smart_bms_1_charging_instruction
+          - entity: sensor.yambms_yambms_1_charging_instruction
             name: Instruction
-          - entity: sensor.yambms_smart_bms_1_charging_status
+          - entity: sensor.yambms_yambms_1_charging_status
             name: Status
-          - entity: sensor.yambms_smart_bms_1_capacity_remaining_s
+          - entity: sensor.yambms_yambms_1_capacity_remaining_s
             name: Remaining
-          - entity: sensor.yambms_smart_bms_1_battery_capacity_s
+          - entity: sensor.yambms_yambms_1_battery_capacity_s
             name: Battery Capacity (Σ)
-          - entity: sensor.yambms_smart_bms_1_charging_cycles_o
+          - entity: sensor.yambms_yambms_1_charging_cycles_o
             name: Cycles
-          - entity: sensor.yambms_smart_bms_1_current_s
+          - entity: sensor.yambms_yambms_1_current_s
             name: Current
-          - entity: sensor.yambms_smart_bms_1_power_s
+          - entity: sensor.yambms_yambms_1_power_s
             name: Power
-          - entity: sensor.yambms_smart_bms_1_total_voltage_o
+          - entity: sensor.yambms_yambms_1_total_voltage_o
             name: Voltage
       - type: vertical-stack
         cards:
@@ -224,25 +224,25 @@ views:
       - type: entities
         entities:
           - entity: button.yambms_esp32_restart
-          - entity: sensor.yambms_smart_bms_1_battery_capacity_s
-          - entity: sensor.yambms_smart_bms_1_capacity_remaining_s
-          - entity: sensor.yambms_smart_bms_1_cell_count
-          - entity: sensor.yambms_smart_bms_1_cell_ovp_min
-          - entity: sensor.yambms_smart_bms_1_cell_ovpr_min
-          - entity: sensor.yambms_smart_bms_1_cell_uvpr_max
-          - entity: sensor.yambms_smart_bms_1_charging_cycles_o
-          - entity: sensor.yambms_smart_bms_1_charging_instruction
-          - entity: sensor.yambms_smart_bms_1_charging_status
-          - entity: sensor.yambms_smart_bms_1_current_s
-          - entity: sensor.yambms_smart_bms_1_max_cell_voltage
-          - entity: sensor.yambms_smart_bms_1_max_charge_current_s
-          - entity: sensor.yambms_smart_bms_1_max_discharge_current_s
-          - entity: sensor.yambms_smart_bms_1_max_voltage_cell
-          - entity: sensor.yambms_smart_bms_1_min_cell_voltage
-          - entity: sensor.yambms_smart_bms_1_min_voltage_cell
-          - entity: sensor.yambms_smart_bms_1_power_s
-          - entity: sensor.yambms_smart_bms_1_total_voltage_o
-          - entity: sensor.yambms_smart_bms_1_warning
+          - entity: sensor.yambms_yambms_1_battery_capacity_s
+          - entity: sensor.yambms_yambms_1_capacity_remaining_s
+          - entity: sensor.yambms_yambms_1_cell_count
+          - entity: sensor.yambms_yambms_1_cell_ovp_min
+          - entity: sensor.yambms_yambms_1_cell_ovpr_min
+          - entity: sensor.yambms_yambms_1_cell_uvpr_max
+          - entity: sensor.yambms_yambms_1_charging_cycles_o
+          - entity: sensor.yambms_yambms_1_charging_instruction
+          - entity: sensor.yambms_yambms_1_charging_status
+          - entity: sensor.yambms_yambms_1_current_s
+          - entity: sensor.yambms_yambms_1_max_cell_voltage
+          - entity: sensor.yambms_yambms_1_max_charge_current_s
+          - entity: sensor.yambms_yambms_1_max_discharge_current_s
+          - entity: sensor.yambms_yambms_1_max_voltage_cell
+          - entity: sensor.yambms_yambms_1_min_cell_voltage
+          - entity: sensor.yambms_yambms_1_min_voltage_cell
+          - entity: sensor.yambms_yambms_1_power_s
+          - entity: sensor.yambms_yambms_1_total_voltage_o
+          - entity: sensor.yambms_yambms_1_warning
         title: SMART BMS STATUS
       - type: vertical-stack
         cards:
@@ -392,13 +392,13 @@ views:
             name: JK-BMS 1 status online
           - entity: binary_sensor.yambms_jk_bms_2_status_online
             name: JK-BMS 2 status online
-          - entity: sensor.yambms_smart_bms_1_alarm
+          - entity: sensor.yambms_yambms_1_alarm
             name: Smart BMS 1 Alarm
-          - entity: sensor.yambms_smart_bms_1_last_complete_charge
+          - entity: sensor.yambms_yambms_1_last_complete_charge
             name: Smart BMS 1 Last Complete Charge
-          - entity: sensor.yambms_smart_bms_1_last_complete_charge_human_readable
+          - entity: sensor.yambms_yambms_1_last_complete_charge_human_readable
             name: Smart BMS 1 Last Complete Charge Human Readable
-          - entity: sensor.yambms_smart_bms_1_warning
+          - entity: sensor.yambms_yambms_1_warning
             name: Smart BMS 1 Warning
           - entity: sensor.yambms_uptime_human_readable
             name: Uptime Human Readable
