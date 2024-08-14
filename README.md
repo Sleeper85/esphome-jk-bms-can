@@ -5,6 +5,7 @@
 ![GitHub stars](https://img.shields.io/github/stars/Sleeper85/esphome-jk-bms-can)
 ![GitHub forks](https://img.shields.io/github/forks/Sleeper85/esphome-jk-bms-can)
 ![GitHub watchers](https://img.shields.io/github/watchers/Sleeper85/esphome-jk-bms-can)
+[!["Buy Me A Coffee"](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg)](https://www.buymeacoffee.com/sleeper85)
 
 **ESPHome component to monitor a Jikong Battery Management System (JK-BMS) and communicate with inverters supporting CAN bus protocol compatible with Pylontech, GoodWe, Seplos, SMA or Victron.**
 
