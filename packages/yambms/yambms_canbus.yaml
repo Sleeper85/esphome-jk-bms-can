@@ -1,5 +1,5 @@
-# Updated : 2024.08.08
-# Version : 2.3.3
+# Updated : 2024.08.28
+# Version : 2.3.4
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -21,7 +21,7 @@ globals:
   - id: ${canbus_id}_send_canbus_data
     type: bool
     restore_value: no
-    initial_value: 'true'
+    initial_value: 'false'
   - id: ${canbus_id}_auto_bms_name
     type: int
     restore_value: no
@@ -50,6 +50,7 @@ select:
       - "SEPLOS"
       - "SMA"
       - "BYD"
+      - "YamBMS"
     restore_value: true
     initial_option: "Automatic"
     optimistic: true
@@ -62,7 +63,7 @@ select:
     name: ${name} ${canbus_name} Protocol
     id: ${canbus_id}_protocol
     options:
-      - "RESERVED"
+      - "Disabled"
       - "PYLON 1.2"
       - "PYLON +"
       - "SMA"
@@ -146,10 +147,10 @@ canbus:
             }
 
 interval:
-  # Test inverter 0x305 ACK
   - interval: 120s
     then:
       - lambda: |-
+          // Test inverter 0x305 ACK
           if (id(${canbus_id}_send_canbus_data) == false) {
             id(${canbus_id}_send_canbus_data) = true;                      // Sending CANBUS frames allowed
             id(${canbus_id}_script_canbus_link_timer).execute();           // Restart CANBUS link timer
@@ -194,8 +195,8 @@ interval:
                 // Victron CAN frames
                 else if (id(${canbus_id}_protocol).active_index() == 4) {
                     
-                    int can_frame[] = {1, 2, 3, 4, 7, 8, 12, 13, 14, 15, 16, 17, 19, 22};
-                    int max_index = 13;
+                    int can_frame[] = {1, 2, 3, 4, 7, 8, 12, 13, 14, 15, 16, 17, 19, 22, 23};
+                    int max_index = 14;
                     if (index >= max_index) index = 0;
                     else index++;
                     id(${canbus_id}_can_frame) = can_frame[index];
@@ -516,13 +517,13 @@ interval:
                       data: !lambda |-
                         //                SMA                 Victron
                         // Byte [00:01] : Bat-Type            Product ID
-                        // Byte [02:03] : BMS Version         Firmware version (2.2 => HEX [02:02])
+                        // Byte [02:03] : BMS Version         Firmware version (2.3 => HEX [02:03])
                         // Byte [04:05] : Bat-Capacity        Available Capacity Ah
                         // Byte [06:07] : Manufacturer ID     Hardware version
                         
                         uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                         can_mesg[2] = 0x02;
-                        can_mesg[3] = 0x02;
+                        can_mesg[3] = 0x03;
                         can_mesg[4] = uint16_t(id(${yambms_id}_battery_capacity).state) & 0xff;
                         can_mesg[5] = uint16_t(id(${yambms_id}_battery_capacity).state) >> 8 & 0xff;
                         
@@ -605,6 +606,7 @@ interval:
                         
                         uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                         can_mesg[0] = id(${yambms_id}_bms_combined).state;
+                        can_mesg[6] = (id(${yambms_id}_bms_count).state - id(${yambms_id}_bms_combined).state);
                         
                         ESP_LOGI("canbus", "send can_id: 0x372 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                         return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
@@ -737,3 +739,19 @@ interval:
                       data: !lambda |-
                         ESP_LOGI("canbus", "send can_id: 0x382 [ASCII] Product : YamBMS");
                         return {0x59, 0x61, 0x6D, 0x42, 0x4D, 0x53, 0x00, 0x00}; // YamBMS
+
+            - if: # 0x360 - Force charge instruction ( Victron )
+                condition:
+                  lambda: return id(${canbus_id}_can_frame) == 23;
+                then:
+                  - canbus.send:
+                      canbus_id: ${canbus_node_id}
+                      can_id: 0x360
+                      data: !lambda |-
+                        uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+                        // Byte 0 : Force charge instruction
+                        if (id(${yambms_id}_requested_force_charge).state) can_mesg[0] = 0xFF;
+
+                        ESP_LOGI("canbus", "send can_id: 0x360 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
+                        return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
