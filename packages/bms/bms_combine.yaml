@@ -1,4 +1,4 @@
-# Updated : 2024.08.28
+# Updated : 2024.08.30
 # Version : 1.4.4
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -17,6 +17,10 @@
 
 globals:
   - id: bms${bms_id}_combined_once
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: bms${bms_id}_combined
     type: bool
     restore_value: no
     initial_value: "false"
@@ -42,23 +46,22 @@ binary_sensor:
     id: bms${bms_id}_can_be_combined
     lambda: return ((id(bms${bms_id}_availability).state) && (id(bms${bms_id}_switch_combine).state));
 
-# Combine once without conditions
-esphome:
-  on_boot:
-    then:
-      # BMS counter (total)
-      - lambda: id(${yambms_id}_bms_counter) += 1;
-      # Installed battery capacity (total)
-      - lambda: id(${yambms_id}_total_installed_battery_capacity) += id(bms${bms_id}_battery_capacity).state;
-
 interval:
   - interval: ${bms_combine_interval}
     then:
       - lambda: |-
-          // Combine once, only if the device is able to be included in combine
+          // Combine only if the device is able to be included in combine
           if (id(bms${bms_id}_can_be_combined).state)
           {
+            // Combine once only
             if (id(bms${bms_id}_combined_once) == false)
+            {
+              id(${yambms_id}_bms_counter) += 1;
+              id(${yambms_id}_total_installed_battery_capacity) += id(bms${bms_id}_battery_capacity).state;
+              id(bms${bms_id}_combined_once) = true;
+            }
+            // Combine (not continuously)
+            if (id(bms${bms_id}_combined) == false)
             {
               // Can be combined bms counter
               id(${yambms_id}_can_be_combined_bms_counter) += 1;
@@ -70,11 +73,11 @@ interval:
               id(${yambms_id}_total_battery_capacity) += id(bms${bms_id}_battery_capacity).state;
               
               // Combined
-              id(bms${bms_id}_combined_once) = true;
+              id(bms${bms_id}_combined) = true;
             }
           }
-          // Uncombine once
-          else if (id(bms${bms_id}_combined_once) == true)
+          // Uncombine (not continuously)
+          else if (id(bms${bms_id}_combined) == true)
           {
             // Can be combined bms counter
             id(${yambms_id}_can_be_combined_bms_counter) -= 1;
@@ -86,7 +89,7 @@ interval:
             id(${yambms_id}_total_battery_capacity) -= id(bms${bms_id}_battery_capacity).state;
             
             // Uncombined
-            id(bms${bms_id}_combined_once) = false;
+            id(bms${bms_id}_combined) = false;
           }
 
           // Combine continuously (all BMS)
