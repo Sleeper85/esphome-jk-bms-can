@@ -1,4 +1,4 @@
-# Updated : 2024.08.28
+# Updated : 2024.08.30
 # Version : 2.3.5
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -532,8 +532,8 @@ interval:
                         uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
                         can_mesg[2] = 0x02;
                         can_mesg[3] = 0x03;
-                        can_mesg[4] = uint16_t(id(${yambms_id}_battery_capacity).state) & 0xff;
-                        can_mesg[5] = uint16_t(id(${yambms_id}_battery_capacity).state) >> 8 & 0xff;
+                        can_mesg[4] = uint16_t(id(${yambms_id}_capacity_remaining_ah).state) & 0xff;
+                        can_mesg[5] = uint16_t(id(${yambms_id}_capacity_remaining_ah).state) >> 8 & 0xff;
                         
                         ESP_LOGI("canbus", "send can_id: 0x35F hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
                         return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
