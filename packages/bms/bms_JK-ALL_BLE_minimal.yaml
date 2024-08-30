@@ -1,5 +1,5 @@
-# Updated : 2024.08.08
-# Version : 1.2.1
+# Updated : 2024.08.28
+# Version : 1.2.2
 # GitHub  : https://github.com/syssi/esphome-jk-bms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -16,6 +16,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+substitutions:
+  bms_model: "JK"
+  bms_protocol: "BLE"
 
 packages:
   bms_base: !include bms_base.yaml
@@ -37,7 +41,7 @@ ota:
 
 esp32_ble_tracker:
   scan_parameters:
-    interval: 500ms
+    active: false
   on_ble_advertise:
     then:
       - lambda: |-
