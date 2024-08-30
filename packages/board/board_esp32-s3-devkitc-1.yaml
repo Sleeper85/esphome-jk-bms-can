@@ -1,5 +1,5 @@
-# Updated : 2024.08.08
-# Version : 1.2.1
+# Updated : 2024.08.28
+# Version : 1.2.2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -16,6 +16,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+substitutions:
+  board_chip: "ESP32-S3"
+  board_name: "DevKitC-1"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -41,11 +45,13 @@ psram:
   mode: octal
   speed: 80MHz
 
+# <<: !include board_psram_settings.yaml
+
 logger:
   hardware_uart: USB_SERIAL_JTAG
 
 uart:
-  # UART 0 : uart used for ESP32 flashing and logs, can be released if necessary (tx_pin: 43, rx_pin: 44)
+  # UART 0 : USB UART port used for ESP32 flashing and logs, can be released if necessary (tx_pin: 43, rx_pin: 44)
   # UART 1
   - id: uart_esp_1
     tx_pin: 17
@@ -61,8 +67,8 @@ canbus:
   # CANBUS NODE 1
   - platform: esp32_can
     id: canbus_node1
-    tx_pin: 38
-    rx_pin: 39
+    tx_pin: 38 # to CAN board CTX
+    rx_pin: 39 # to CAN board CRX (with 4.7K resistor except for SN65HVD230)
     can_id: 1
     bit_rate: 500kbps
 

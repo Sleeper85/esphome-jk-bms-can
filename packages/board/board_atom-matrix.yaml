@@ -1,5 +1,5 @@
 # Updated : 2024.08.28
-# Version : 1.2.2
+# Version : 1.1.1
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -19,50 +19,50 @@
 
 substitutions:
   board_chip: "ESP32"
-  board_name: "DevKit V1"
+  board_name: "Atom Matrix"
 
+# Atom Matrix - SKU:C008-B
+# https://docs.m5stack.com/en/core/ATOM%20Matrix
 esp32:
-  board: esp32doit-devkit-v1
+  board: m5stack-atom
   framework:
     type: esp-idf
 
 esphome:
-  platformio_options:
-    board_build.flash_mode: dio # Standard uses a single line for data, Dual IO uses 2 lines for data (prevent reboot loop)
+  on_boot:
+    then:
+      - light.turn_on:
+          id: esp_light
+          red: 50%
+          blue: 50%
+          green: 0%
+          brightness: 50%
 
 uart:
-  # UART 0 : uart used for ESP32 flashing and logs, can be released if necessary (tx_pin: 1, rx_pin: 3)
   # UART 1
   - id: uart_esp_1
-    tx_pin: 17
-    rx_pin: 16
-    baud_rate: 115200
-  # UART 2
-  - id: uart_esp_2
-    tx_pin: 19
-    rx_pin: 18
+    tx_pin: 32
+    rx_pin: 26
     baud_rate: 115200
 
 canbus:
   # CANBUS NODE 1
   - platform: esp32_can
     id: canbus_node1
-    tx_pin: 23 # to CAN board CTX
-    rx_pin: 22 # to CAN board CRX (with 4.7K resistor except for SN65HVD230)
+    tx_pin: 22
+    rx_pin: 19
     can_id: 1
     bit_rate: 500kbps
 
-output:
-  # ESP LED
-  - platform: gpio
-    pin: 2
-    id: esp_led
-    inverted: true
-
 light:
-  # ESP Light
-  - platform: binary
-    output: esp_led
+  # https://esphome.io/components/light/esp32_rmt_led_strip
+  - platform: esp32_rmt_led_strip
     id: esp_light
-    name: "${name} On board light"
+    name: ${name} ESP Light
+    rgb_order: GRB
+    pin: 27
+    num_leds: 1
+    rmt_channel: 0
+    chipset: ws2812
+    entity_category: config
     internal: true
