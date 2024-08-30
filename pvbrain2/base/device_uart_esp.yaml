@@ -1,18 +1,19 @@
-logger:
-  baud_rate: 0 # Release 'uart esp 0' and prevent boot loops
+# logger:
+#   baud_rate: 0 # Release 'uart_esp_0' and prevent boot loops
 
 uart:
-  - id: uart_esp_0
-    tx_pin: GPIO43
-    rx_pin: GPIO44
-    baud_rate: 115200
-
+  # UART 0 : USB UART port used for ESP32 flashing and logs, can be released if necessary (tx_pin: 43, rx_pin: 44)
+  # - id: uart_esp_0
+  #   tx_pin: 43
+  #   rx_pin: 44
+  #   baud_rate: 115200
+  
   - id: uart_esp_1
-    tx_pin: GPIO17
-    rx_pin: GPIO18
+    tx_pin: 17
+    rx_pin: 18
     baud_rate: 115200
-    
+  # UART 2
   - id: uart_esp_2
-    tx_pin: GPIO15
-    rx_pin: GPIO16
+    tx_pin: 15
+    rx_pin: 16
     baud_rate: 115200
