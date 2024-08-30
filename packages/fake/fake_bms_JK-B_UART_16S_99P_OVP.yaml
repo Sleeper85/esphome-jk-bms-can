@@ -31,9 +31,9 @@ interval:
 # Address Content: Description      Decoded content                         Coeff./Unit
 # 0x79: Individual Cell voltage
 # 0x30: Cell count               48 / 3 bytes = 16 cells
-# 0x01 0x0E 0x39: Cell 1         3641 * 0.001 = 3.650V                        0.001 V
-# 0x02 0x0E 0x3A: Cell 2         3642 * 0.001 = 3.641V                        0.001 V
-# 0x03 0x0E 0x3B: Cell 3         3643 * 0.001 = 3.642V                        0.001 V
+# 0x01 0x0E 0x39: Cell 1         3641 * 0.001 = 3.641V                        0.001 V
+# 0x02 0x0E 0x3A: Cell 2         3642 * 0.001 = 3.642V                        0.001 V
+# 0x03 0x0E 0x3B: Cell 3         3643 * 0.001 = 3.643V                        0.001 V
 # 0x04 0x0E 0x3C: Cell 4         3644                                         0.001 V
 # 0x05 0x0E 0x3D: Cell 5         3645                                         0.001 V
 # 0x06 0x0E 0x3E: Cell 6         3646                                         0.001 V
