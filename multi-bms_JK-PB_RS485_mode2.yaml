@@ -1,5 +1,5 @@
-# Updated : 2024.08.08
-# Version : 1.4.3
+# Updated : 2024.08.28
+# Version : 1.4.4
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -21,7 +21,7 @@ substitutions:
   name: yambms
 
 logger:
-  level: DEBUG # DEBUG / INFO / WARN
+  level: WARN # DEBUG / INFO / WARN
 
 ota:
   platform: esphome
@@ -47,6 +47,9 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   domain: !secret domain
+  ap:
+    ssid: "YamBMS Fallback Hotspot"
+    password: "Y4mBM$85"
 
 captive_portal:
 
@@ -212,32 +215,26 @@ packages:
       yambms_update_interval: '1s'
       # Input numbers can be displayed as a slider or an input box, options are 'slider' or 'box'.
       yambms_input_number_mode: 'slider'
-      # Number of cells in series, 16S by default
-      # In the case where a cell is defective with a BMS reporting one cell less than reality, this avoids sending bad charging parameters to the inverter.
+      # Please check and fill in the options below correctly according to your battery chemistry and number of cells in series.
+      # These parameters are important and used for charging logic.
+      # Battery Chemistry
+      yambms_battery_chemistry: '1' # 1-LFP | 2-Li-ion | 3-LTO
+      # Number of cells in series
       yambms_cell_count: '16'
-      # Bulk / Absorption Voltage : corresponds to the Bulk voltage that will be used to charge the battery. (55.2V = 3.45V/Cell for 16S battery)
+      # Bulk / Absorption Voltage : corresponds to the Bulk voltage that will be used to charge the battery. (LFP : 55.2V = 3.45V/Cell for 16S battery)
       yambms_bulk_v: '55.2'
-      # Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of the absorption phase. (53.6V = 3.35V/Cell for 16S battery)
+      # Float Voltage : corresponds to the voltage at which the battery would be maintained at the end of charge. (LFP : 53.6V = 3.35V/Cell for 16S battery)
       yambms_float_v: '53.6'
-      # Rebulk voltage, voltage less than FLOAT at which BMS requests rebulk. (52.8V = 3.3V/Cell for 16S battery)
+      # Rebulk voltage, voltage from which a new Bulk charge can start. (LFP : 52.8V = 3.3V/Cell for 16S battery)
       yambms_rebulk_v: '52.8'
-      # Allows the charging process to complete within 30 minutes even if the cells are still equalizing
+      # Maximum time in minutes that the cut-off step can last before charging is complete
+      # If your cells are properly balanced this step ends at the fastest after the `cut-off timer`
       # This timer can be deactivated with a switch
       yambms_eoc_timer: '30'
       # Time in seconds during which the end of charge conditions must be respected (cut-off + cells not equalizing)
       yambms_cutoff_timer: '60'
-      # Absorption Offset V.
-      yambms_absorption_offset_v: '0.1'
-      yambms_absorption_offset_v_slider: 'true' # true: the slider is hidden, false: the slider is available
-      # Inverter Offset V. allows you to correct the inverter charging voltage.
-      # Requested Charging Voltage = Bulk. V + Inverter Offset V.
-      yambms_inverter_offset_v: "0.0"
-      yambms_inverter_offset_v_slider: 'true' # true: the slider is hidden, false: the slider is available
       # Maximum charging cycles is used to calculate the battey SOH, LF280K v3 =8000.0, LF280K v2 =6000.0, LF280=3000.0 (decimal is required)
       yambms_max_cycles: '6000.0'
-      # Cutoff Charging Logic
-      yambms_cutoff_cvmin: '3.37' # LFP 3.37 - Li-ion 3.90
-      yambms_cutoff_cvmax: '3.65' # LFP 3.65 - Li-ion 4.20
 
   canbus1: !include
     file: packages/yambms/yambms_canbus.yaml

@@ -1,5 +1,5 @@
-# Updated : 2024.08.08
-# Version : 1.4.3
+# Updated : 2024.08.28
+# Version : 1.4.4
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -22,6 +22,8 @@
 # +--------------------------------------+
 packages:
   yambms_combine: !include yambms_combine.yaml
+  # Update service
+  yambms_service: !include yambms_service.yaml
   # If not necessary, the following packages can be commented out
   yambms_auto_cvl: !include yambms_auto_cvl.yaml
   yambms_auto_ccl: !include yambms_auto_ccl.yaml
@@ -35,20 +37,82 @@ substitutions:
   # LFP Recommended Operating Temperature Range : 10~45°C
   # Number of cycles at 25°C : 6000
   # Number of cycles at 45°C : 2500
-  # 60°C  : Never charging or discharging
-  # 0°C   : Never charging
-  # -30°C : Never discharging
+  # >= 60°C  : Never charging or discharging
+  # <= 0°C   : Never charging
+  # <= -30°C : Never discharging
   # +----------------------------------------------------------------+
   # Over Temp Protection, Temp > OTP = Stop Charging and Discharging
   yambms_otp: "45.0"
   # Under Temp Protection, Temp < UTP = Stop Charging
   yambms_utp: "1.0"
 
+# Execute once
+esphome:
+  on_boot:
+    then:
+      - lambda: |-
+          //
+          // Source : https://batteryuniversity.com/article/bu-216-summary-table-of-lithium-based-batteries
+          //
+          if (${yambms_battery_chemistry} == 1) // LFP
+          {
+            // LFP
+            id(${yambms_id}_mominal_v) = 3.20;
+            id(${yambms_id}_min_charge_v) = 3.37; // Fully charged at rest
+            id(${yambms_id}_max_charge_v) = 3.65;
+          }
+          else if (${yambms_battery_chemistry} == 2) // Li-ion
+          {
+            // Li-ion
+            id(${yambms_id}_mominal_v) = 3.60;
+            id(${yambms_id}_min_charge_v) = 3.90;
+            id(${yambms_id}_max_charge_v) = 4.20;
+          }
+          else if (${yambms_battery_chemistry} == 3) // LTO
+          {
+            // LTO
+            id(${yambms_id}_mominal_v) = 2.40;
+            id(${yambms_id}_min_charge_v) = 2.55; // Fully charged at rest
+            id(${yambms_id}_max_charge_v) = 2.85;
+          }
+          int cell_count = ${yambms_cell_count};
+          // Bulk V.
+          id(${yambms_id}_bulk_voltage).traits.set_min_value(round(cell_count * id(${yambms_id}_min_charge_v) * 10) / 10);
+          id(${yambms_id}_bulk_voltage).traits.set_max_value(round(cell_count * id(${yambms_id}_max_charge_v) * 10) / 10);
+          // Float V.
+          id(${yambms_id}_float_voltage).traits.set_min_value(round(cell_count * (id(${yambms_id}_min_charge_v) - 0.1) * 10) / 10);
+          id(${yambms_id}_float_voltage).traits.set_max_value(round(cell_count * (id(${yambms_id}_min_charge_v) + 0.1) * 10) / 10);
+          // Rebulk V.
+          id(${yambms_id}_rebulk_voltage).traits.set_min_value(round(cell_count * id(${yambms_id}_mominal_v) * 10) / 10);
+          id(${yambms_id}_rebulk_voltage).traits.set_max_value(round(cell_count * id(${yambms_id}_min_charge_v) * 10) / 10);
+
 globals:
+  - id: ${yambms_id}_service
+    type: bool
+    restore_value: no
+    initial_value: 'true'
   - id: ${yambms_id}_charge_status
     type: std::string
     restore_value: no
     initial_value: '"Wait"'
+  - id: ${yambms_id}_canbus_name
+    type: std::string
+    restore_value: no
+  - id: ${yambms_id}_canbus_protocol
+    type: std::string
+    restore_value: no
+  - id: ${yambms_id}_mominal_v
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_min_charge_v
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_max_charge_v
+    type: float
+    restore_value: no
+    initial_value: '0.0'
   - id: ${yambms_id}_auto_cvl
     type: float
     restore_value: no
@@ -112,12 +176,15 @@ number:
   # +--------------------------------------+
   # | Slider / Box                         |
   # +--------------------------------------+
+  #
+  # Min/max values ​​are updated automatically based on battery chemistry and cell count.
+  #
   - platform: template
     name: "${name} ${yambms_name} Bulk voltage"
     id: "${yambms_id}_bulk_voltage"
     step: 0.1
-    min_value: 54.0 # LFP 3.375V * 16 cells
-    max_value: 60.2 # Li-ion 4.3V * 14 cells
+    min_value: 54.0 # LFP 3.37 * 16 cells
+    max_value: 58.4 # LFP 3.65 * 16 cells
     restore_value: true
     mode: "${yambms_input_number_mode}"
     initial_value: "${yambms_bulk_v}"
@@ -129,8 +196,8 @@ number:
     name: "${name} ${yambms_name} Float voltage"
     id: "${yambms_id}_float_voltage"
     step: 0.1
-    min_value: 52.8 # LFP 3.3V * 16 cells
-    max_value: 60.2 # Li-ion 4.3V * 14 cells
+    min_value: 52.8 # LFP 3.30 * 16 cells
+    max_value: 55.2 # LFP 3.45 * 16 cells
     restore_value: true
     mode: "${yambms_input_number_mode}"
     initial_value: "${yambms_float_v}"
@@ -142,8 +209,8 @@ number:
     name: "${name} ${yambms_name} Rebulk V."
     id: "${yambms_id}_rebulk_voltage"
     step: 0.1
-    min_value: 51.2 # LFP 3.2V * 16 cells
-    max_value: 54.6 # Li-ion 3.9V * 14 cells
+    min_value: 51.2 # LFP 3.20 * 16 cells
+    max_value: 54.0 # LFP 3.37 * 16 cells
     restore_value: true
     mode: "${yambms_input_number_mode}"
     initial_value: "${yambms_rebulk_v}"
@@ -172,12 +239,12 @@ number:
     max_value: 1
     restore_value: true
     mode: "${yambms_input_number_mode}"
-    initial_value: "${yambms_absorption_offset_v}"
+    initial_value: 0.1
     unit_of_measurement: V
     icon: mdi:sine-wave
     optimistic: true
     entity_category: config
-    internal: ${yambms_absorption_offset_v_slider}
+    # internal: true
   - platform: template
     name: "${name} ${yambms_name} Inverter Offset V."
     id: "${yambms_id}_inverter_offset_v"
@@ -186,12 +253,38 @@ number:
     max_value: 1
     restore_value: true
     mode: "${yambms_input_number_mode}"
-    initial_value: "${yambms_inverter_offset_v}"
+    initial_value: 0.0
     unit_of_measurement: V
     icon: mdi:sine-wave
     optimistic: true
     entity_category: config
-    internal: ${yambms_inverter_offset_v_slider}
+    # internal: true
+  - platform: template
+    name: "${name} ${yambms_name} Max charge current (%)"
+    id: "${yambms_id}_max_charge_current_pct"
+    step: 1
+    min_value: 0
+    max_value: 90
+    restore_value: true
+    mode: "${yambms_input_number_mode}"
+    initial_value: 80
+    unit_of_measurement: '%'
+    icon: mdi:current-dc
+    optimistic: true
+    entity_category: config
+  - platform: template
+    name: "${name} ${yambms_name} Max discharge current (%)"
+    id: "${yambms_id}_max_discharge_current_pct"
+    step: 1
+    min_value: 0
+    max_value: 90
+    restore_value: true
+    mode: "${yambms_input_number_mode}"
+    initial_value: 80
+    unit_of_measurement: '%'
+    icon: mdi:current-dc
+    optimistic: true
+    entity_category: config
   - platform: template
     name: "${name} ${yambms_name} Request Force Charge Start SoC"
     id: "${yambms_id}_request_force_charge_start_soc"
@@ -337,7 +430,7 @@ sensor:
     name: ${name} ${yambms_name} Requested Charge Current
     id: ${yambms_id}_requested_charge_current
     unit_of_measurement: A
-    device_class: current
+    icon: mdi:current-dc
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 1
     filters:
@@ -376,7 +469,7 @@ sensor:
     name: ${name} ${yambms_name} Requested Discharge Current
     id: ${yambms_id}_requested_discharge_current
     unit_of_measurement: A
-    device_class: current
+    icon: mdi:current-dc
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 1
     filters:
@@ -486,8 +579,6 @@ text_sensor:
       else if ((id(${yambms_id}_charge_status) == "Float") & (!id(${yambms_id}_switch_float).state)) id(${yambms_id}_charge_status) = "EOC";
       // No Force Bulk => Wait
       else if ((id(${yambms_id}_charge_status) == "Force Bulk") & (!id(${yambms_id}_switch_force_bulk).state)) id(${yambms_id}_charge_status) = "Wait";
-      // Force Float => Float
-      // else if (id(${yambms_id}_switch_force_float).state) id(${yambms_id}_charge_status) = "Float";
 
       // +-----------------------------------------------+
       // | Charge ON : BMS and ESP charging switch is ON |
@@ -528,8 +619,8 @@ text_sensor:
           // +-----------------------------------------------+
           if (id(${yambms_id}_current).state >= 0) {
             
-            float cv_min = ${yambms_cutoff_cvmin};
-            float cv_max = ${yambms_cutoff_cvmax};
+            float cv_min = id(${yambms_id}_min_charge_v);
+            float cv_max = id(${yambms_id}_max_charge_v);
             float cutoff_current = (id(${yambms_id}_battery_capacity).state * 0.05 * (cell_bulk_v - cv_min) / (cv_max - cv_min));
             float cutoff_voltage = (cv_min + (cv_max - cv_min)/(0.05 + cell_absorption_offset_v) * (id(${yambms_id}_current).state / id(${yambms_id}_battery_capacity).state));
             
@@ -706,11 +797,11 @@ text_sensor:
       // Preventive Warning ?
       if (id(${yambms_id}_bms_combined).state > 0){
         // Over Temp Protection
-        if (max(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state) > ${yambms_otp}) {
+        if (id(${yambms_id}_max_temperature).state > ${yambms_otp}) {
           return {"OTP"};
         }
         // Under Temp Protection
-        else if (min(id(${yambms_id}_temperature_sensor_1).state, id(${yambms_id}_temperature_sensor_2).state) < ${yambms_utp}) {
+        else if (id(${yambms_id}_min_temperature).state < ${yambms_utp}) {
           return {"UTP"};
         }
       }

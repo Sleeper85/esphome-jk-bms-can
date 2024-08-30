@@ -1,5 +1,5 @@
-# Updated : 2024.08.08
-# Version : 1.4.3
+# Updated : 2024.08.28
+# Version : 1.4.4
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -18,6 +18,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
 globals:
+  # BMS
   - id: ${yambms_id}_bms_counter
     type: int
     restore_value: no
@@ -82,11 +83,15 @@ globals:
     type: float
     restore_value: no
     initial_value: '0.0'
-  - id: ${yambms_id}_total_capacity_remaining_ah
+  - id: ${yambms_id}_total_installed_battery_capacity
     type: float
     restore_value: no
     initial_value: '0.0'
   - id: ${yambms_id}_total_battery_capacity
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_total_capacity_remaining_ah
     type: float
     restore_value: no
     initial_value: '0.0'
@@ -110,14 +115,22 @@ globals:
     type: float
     restore_value: no
     initial_value: '0.0'
-  - id: ${yambms_id}_max_temperature_sensor_1
+  - id: ${yambms_id}_var_min_temperature
     type: float
     restore_value: no
-    initial_value: '0.0'
-  - id: ${yambms_id}_max_temperature_sensor_2
+    initial_value: '100.0'
+  - id: ${yambms_id}_var_min_temperature_sensor
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: ${yambms_id}_var_max_temperature
     type: float
     restore_value: no
-    initial_value: '0.0'
+    initial_value: '-100.0'
+  - id: ${yambms_id}_var_max_temperature_sensor
+    type: int
+    restore_value: no
+    initial_value: '0'
   - id: ${yambms_id}_bms_total_voltage
     type: float
     restore_value: no
@@ -134,35 +147,50 @@ globals:
     type: float
     restore_value: no
     initial_value: '0.0'
-  - id: ${yambms_id}_shunt_voltage
-    type: float
-    restore_value: no
-    initial_value: '0.0'
-  - id: ${yambms_id}_shunt_current
-    type: float
-    restore_value: no
-    initial_value: '0.0'
-  - id: ${yambms_id}_shunt_power
-    type: float
-    restore_value: no
-    initial_value: '0.0'
-  - id: ${yambms_id}_shunt_soc
-    type: float
-    restore_value: no
-    initial_value: '0.0'
-  - id: ${yambms_id}_combine_shunt
+  # Shunt
+  - id: ${yambms_id}_shunt_use
     type: bool
     restore_value: no
     initial_value: "false"
+  - id: ${yambms_id}_shunt_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: ${yambms_id}_can_be_combined_shunt_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: ${yambms_id}_processed_shunt_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: ${yambms_id}_shunt_total_voltage
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_shunt_total_current
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_shunt_total_power
+    type: float
+    restore_value: no
+    initial_value: '0.0'
+  - id: ${yambms_id}_shunt_total_soc
+    type: float
+    restore_value: no
+    initial_value: '0.0'
 
 # Combine continuously
 interval:
   - interval: ${yambms_update_interval}
     then:
       - lambda: |-
-          // If all BMS have communicated their informations
-          if (id(${yambms_id}_processed_bms_counter) == id(${yambms_id}_bms_counter)) {
-
+          // If all device have communicated their informations
+          int device_counter = (id(${yambms_id}_bms_counter) + id(${yambms_id}_shunt_counter));
+          int processed_device_counter = (id(${yambms_id}_processed_bms_counter) + id(${yambms_id}_processed_shunt_counter));
+          if (device_counter == processed_device_counter)
+          {
             // +-----------------------------------------------+
             // | Errors bitmask (16bit)                        |
             // +-----------------------------------------------+
@@ -182,53 +210,70 @@ interval:
 
             // +-----------------------------------------------+
 
-            // total_voltage MEAN
+            // MEAN total_voltage
             float total_voltage = 0.0;
             // Shunt
-            if (id(${yambms_id}_combine_shunt) == true) total_voltage = id(${yambms_id}_shunt_voltage);
+            if (id(${yambms_id}_shunt_use) == true)
+              total_voltage = (id(${yambms_id}_shunt_total_voltage) / id(${yambms_id}_can_be_combined_shunt_counter));
             // BMS
-            else if (id(${yambms_id}_can_be_combined_bms_counter) > 0) total_voltage = (id(${yambms_id}_bms_total_voltage) / id(${yambms_id}_can_be_combined_bms_counter));
-            id(${yambms_id}_total_voltage).publish_state(total_voltage);     // publish sensor
-            id(${yambms_id}_bms_total_voltage) = 0.0;                        // global var reset
+            else if (id(${yambms_id}_can_be_combined_bms_counter) > 0)
+              total_voltage = (id(${yambms_id}_bms_total_voltage) / id(${yambms_id}_can_be_combined_bms_counter));
+            // Publish sensor and global var reset
+            id(${yambms_id}_total_voltage).publish_state(total_voltage);
+            id(${yambms_id}_bms_total_voltage) = 0.0;
+            id(${yambms_id}_shunt_total_voltage) = 0.0;
             
-            // current TOTAL
+            // TOTAL current
             // Shunt
-            if (id(${yambms_id}_combine_shunt) == true) id(${yambms_id}_current).publish_state(id(${yambms_id}_shunt_current));
+            if (id(${yambms_id}_shunt_use) == true)
+              id(${yambms_id}_current).publish_state(id(${yambms_id}_shunt_total_current));
             // BMS 
-            else id(${yambms_id}_current).publish_state(id(${yambms_id}_bms_total_current));
-            id(${yambms_id}_bms_total_current) = 0.0; // global var reset
+            else
+              id(${yambms_id}_current).publish_state(id(${yambms_id}_bms_total_current));
+            // Global var reset
+            id(${yambms_id}_bms_total_current) = 0.0;
+            id(${yambms_id}_shunt_total_current) = 0.0;
             
-            // power TOTAL
+            // TOTAL power
             // Shunt
-            if (id(${yambms_id}_combine_shunt) == true) id(${yambms_id}_power).publish_state(id(${yambms_id}_shunt_power));
+            if (id(${yambms_id}_shunt_use) == true)
+              id(${yambms_id}_power).publish_state(id(${yambms_id}_shunt_total_power));
             // BMS
-            else id(${yambms_id}_power).publish_state(id(${yambms_id}_bms_total_power));
-            id(${yambms_id}_bms_total_power) = 0.0; // global var reset
+            else
+              id(${yambms_id}_power).publish_state(id(${yambms_id}_bms_total_power));
+            // Global var reset
+            id(${yambms_id}_bms_total_power) = 0.0;
+            id(${yambms_id}_shunt_total_power) = 0.0;
 
-            // state_of_charge MEAN
+            // MEAN state_of_charge
             float soc = 0.0;
             // Shunt
-            if (id(${yambms_id}_combine_shunt) == true) soc = id(${yambms_id}_shunt_soc);
+            if (id(${yambms_id}_shunt_use) == true)
+              soc = (id(${yambms_id}_shunt_total_soc) / id(${yambms_id}_can_be_combined_shunt_counter));
             // BMS
-            else if (id(${yambms_id}_can_be_combined_bms_counter) > 0) soc = (id(${yambms_id}_bms_total_soc) / id(${yambms_id}_can_be_combined_bms_counter));
-            id(${yambms_id}_state_of_charge).publish_state(soc);     // publish sensor
-            id(${yambms_id}_bms_total_soc) = 0.0;                    // global var reset
+            else if (id(${yambms_id}_can_be_combined_bms_counter) > 0)
+              soc = (id(${yambms_id}_bms_total_soc) / id(${yambms_id}_can_be_combined_bms_counter));
+            // Publish sensor and global var reset
+            id(${yambms_id}_state_of_charge).publish_state(soc);
+            id(${yambms_id}_bms_total_soc) = 0.0;
+            id(${yambms_id}_shunt_total_soc) = 0.0;
 
-            // max_charge_current TOTAL
-            id(${yambms_id}_max_charge_current).publish_state(id(${yambms_id}_total_max_charge_current) * 0.8);
-            id(${yambms_id}_total_max_charge_current) = 0.0; // global var reset
-
-            // max_discharge_current TOTAL
-            id(${yambms_id}_max_discharge_current).publish_state(id(${yambms_id}_total_max_discharge_current) * 0.8);
-            id(${yambms_id}_total_max_discharge_current) = 0.0; // global var reset
-                       
-            // capacity_remaining_ah TOTAL
+            // TOTAL capacity_remaining_ah
             id(${yambms_id}_capacity_remaining_ah).publish_state(id(${yambms_id}_total_capacity_remaining_ah));
             id(${yambms_id}_total_capacity_remaining_ah) = 0.0; // global var reset
-            
-            // charging_cycles MEAN
+
+            // TOTAL max_charge_current
+            id(${yambms_id}_max_charge_current).publish_state(id(${yambms_id}_total_max_charge_current) * (id(${yambms_id}_max_charge_current_pct).state / 100));
+            id(${yambms_id}_total_max_charge_current) = 0.0; // global var reset
+
+            // TOTAL max_discharge_current
+            id(${yambms_id}_max_discharge_current).publish_state(id(${yambms_id}_total_max_discharge_current) * (id(${yambms_id}_max_discharge_current_pct).state / 100));
+            id(${yambms_id}_total_max_discharge_current) = 0.0; // global var reset
+
+            // MEAN charging_cycles
             float charging_cycles = 0.0;
-            if (id(${yambms_id}_can_be_combined_bms_counter) > 0) charging_cycles = (id(${yambms_id}_total_charging_cycles) / id(${yambms_id}_can_be_combined_bms_counter));
+            if (id(${yambms_id}_can_be_combined_bms_counter) > 0)
+              charging_cycles = (id(${yambms_id}_total_charging_cycles) / id(${yambms_id}_can_be_combined_bms_counter));
             id(${yambms_id}_charging_cycles).publish_state(charging_cycles);
             id(${yambms_id}_total_charging_cycles) = 0.0; // global var reset
             
@@ -248,56 +293,54 @@ interval:
             id(${yambms_id}_bms_switch_discharging_counter) = 0; // global var reset
 
             // MIN/MAX values
-            // balance_trigger_voltage MAX
-            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_balance_trigger_voltage) > 0.0)) {
-              id(${yambms_id}_balance_trigger_voltage).publish_state(id(${yambms_id}_max_balance_trigger_voltage));
-              id(${yambms_id}_max_balance_trigger_voltage) = 0.0; // global var reset
-            }
-            // min_cell_voltage MIN
-            // min_voltage_cell MIN (cell number)
-            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_min_min_cell_voltage) < 5.0)) {
-              id(${yambms_id}_min_cell_voltage).publish_state(id(${yambms_id}_min_min_cell_voltage));
-              id(${yambms_id}_min_voltage_cell).publish_state(id(${yambms_id}_min_min_voltage_cell));
-              id(${yambms_id}_min_min_cell_voltage) = 5.0; // global var reset
-              id(${yambms_id}_min_min_voltage_cell) = 0; // global var reset
-            }
-            // max_cell_voltage MAX
-            // max_voltage_cell MAX (cell number)
-            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_max_cell_voltage) > 0.0)) {
-              id(${yambms_id}_max_cell_voltage).publish_state(id(${yambms_id}_max_max_cell_voltage));
-              id(${yambms_id}_max_voltage_cell).publish_state(id(${yambms_id}_max_max_voltage_cell));
-              id(${yambms_id}_max_max_cell_voltage) = 0.0; // global var reset
-              id(${yambms_id}_max_max_voltage_cell) = 0; // global var reset
-            }
-            // cell_ovp MIN
-            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_min_cell_ovp) < 5.0)) {
-              id(${yambms_id}_cell_ovp).publish_state(id(${yambms_id}_min_cell_ovp));
-              id(${yambms_id}_min_cell_ovp) = 5.0; // global var reset
-            }
-            // cell_ovpr MIN
-            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_min_cell_ovpr) < 5.0)) {
-              id(${yambms_id}_cell_ovpr).publish_state(id(${yambms_id}_min_cell_ovpr));
-              id(${yambms_id}_min_cell_ovpr) = 5.0; // global var reset
-            }
-            // cell_uvpr MAX
-            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_cell_uvpr) > 0.0)) {
-              id(${yambms_id}_cell_uvpr).publish_state(id(${yambms_id}_max_cell_uvpr));
-              id(${yambms_id}_max_cell_uvpr) = 0.0; // global var reset
-            }
-            // temperature_sensor_1 MAX
-            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_temperature_sensor_1) > -100.0)) {
-              id(${yambms_id}_temperature_sensor_1).publish_state(id(${yambms_id}_max_temperature_sensor_1));
-              id(${yambms_id}_max_temperature_sensor_1) = -100.0; // global var reset
-            }
-            // temperature_sensor_2 MAX
-            if ((id(${yambms_id}_can_be_combined_bms_counter) == 0) | (id(${yambms_id}_max_temperature_sensor_2) > -100.0)) {
-              id(${yambms_id}_temperature_sensor_2).publish_state(id(${yambms_id}_max_temperature_sensor_2));
-              id(${yambms_id}_max_temperature_sensor_2) = -100.0; // global var reset
-            }
+            // MAX balance_trigger_voltage
+            id(${yambms_id}_balance_trigger_voltage).publish_state(id(${yambms_id}_max_balance_trigger_voltage));
+            id(${yambms_id}_max_balance_trigger_voltage) = 0.0; // global var reset
 
-            // Reset processed_bms_counter (new cycle)
-            // The bms are once again authorized to communicate their informations
+            // MIN min_cell_voltage
+            // MIN min_voltage_cell (cell number)
+            id(${yambms_id}_min_cell_voltage).publish_state(id(${yambms_id}_min_min_cell_voltage));
+            id(${yambms_id}_min_voltage_cell).publish_state(id(${yambms_id}_min_min_voltage_cell));
+            id(${yambms_id}_min_min_cell_voltage) = 5.0; // global var reset
+            id(${yambms_id}_min_min_voltage_cell) = 0; // global var reset
+
+            // MAX max_cell_voltage
+            // MAX max_voltage_cell (cell number)
+            id(${yambms_id}_max_cell_voltage).publish_state(id(${yambms_id}_max_max_cell_voltage));
+            id(${yambms_id}_max_voltage_cell).publish_state(id(${yambms_id}_max_max_voltage_cell));
+            id(${yambms_id}_max_max_cell_voltage) = 0.0; // global var reset
+            id(${yambms_id}_max_max_voltage_cell) = 0; // global var reset
+
+            // MIN cell_ovp
+            id(${yambms_id}_cell_ovp).publish_state(id(${yambms_id}_min_cell_ovp));
+            id(${yambms_id}_min_cell_ovp) = 5.0; // global var reset
+
+            // MIN cell_ovpr
+            id(${yambms_id}_cell_ovpr).publish_state(id(${yambms_id}_min_cell_ovpr));
+            id(${yambms_id}_min_cell_ovpr) = 5.0; // global var reset
+
+            // MAX cell_uvpr
+            id(${yambms_id}_cell_uvpr).publish_state(id(${yambms_id}_max_cell_uvpr));
+            id(${yambms_id}_max_cell_uvpr) = 0.0; // global var reset
+
+            // MIN temperature
+            // MIN temperature_sensor
+            id(${yambms_id}_min_temperature).publish_state(id(${yambms_id}_var_min_temperature));
+            id(${yambms_id}_min_temperature_sensor).publish_state(id(${yambms_id}_var_min_temperature_sensor));
+            id(${yambms_id}_var_min_temperature) = 100.0;      // global var reset
+            id(${yambms_id}_var_min_temperature_sensor) = 0;   // global var reset
+
+            // MAX temperature
+            // MAX temperature_sensor
+            id(${yambms_id}_max_temperature).publish_state(id(${yambms_id}_var_max_temperature));
+            id(${yambms_id}_max_temperature_sensor).publish_state(id(${yambms_id}_var_max_temperature_sensor));
+            id(${yambms_id}_var_max_temperature) = -100.0;     // global var reset
+            id(${yambms_id}_var_max_temperature_sensor) = 0;   // global var reset
+
+            // Reset processed device counter (new cycle)
+            // The device are once again authorized to communicate their informations
             id(${yambms_id}_processed_bms_counter) = 0;
+            id(${yambms_id}_processed_shunt_counter) = 0;
           }
 
 binary_sensor:
@@ -335,7 +378,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: A
-    device_class: current
+    icon: mdi:current-dc
     filters:
       - or:
         - throttle: 10s
@@ -348,7 +391,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: A
-    device_class: current
+    icon: mdi:current-dc
     filters:
       - or:
         - throttle: 10s
@@ -438,7 +481,7 @@ sensor:
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 1
     unit_of_measurement: A
-    device_class: current
+    icon: mdi:current-dc
     filters:
       - or:
         - throttle: 10s
@@ -471,10 +514,10 @@ sensor:
         - delta: 1
     internal: true # source for ${yambms_id}_battery_soc
 
-  # capacity_remaining_ah SUM
+  # battery_capacity SUM
   - platform: template
-    id: ${yambms_id}_capacity_remaining_ah
-    name: "${name} ${yambms_name} Capacity Remaining (Σ)"
+    id: ${yambms_id}_installed_battery_capacity
+    name: "${name} ${yambms_name} Installed Battery Capacity (Σ)"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 0
     unit_of_measurement: Ah
@@ -483,6 +526,7 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 1
+    lambda: return id(${yambms_id}_total_installed_battery_capacity);
 
   # battery_capacity SUM
   - platform: template
@@ -497,6 +541,19 @@ sensor:
         - throttle: 10s
         - delta: 1
     lambda: return id(${yambms_id}_total_battery_capacity);
+
+  # capacity_remaining_ah SUM
+  - platform: template
+    id: ${yambms_id}_capacity_remaining_ah
+    name: "${name} ${yambms_name} Capacity Remaining (Σ)"
+    update_interval: ${yambms_update_interval}
+    accuracy_decimals: 0
+    unit_of_measurement: Ah
+    device_class: energy_storage
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
 
   # cell_ovp MIN
   - platform: template
@@ -524,7 +581,7 @@ sensor:
         - throttle: 10s
         - delta: 0.001
 
-  # cell_uvr MAX
+  # cell_uvpr MAX
   - platform: template
     id: ${yambms_id}_cell_uvpr
     name: "${name} ${yambms_name} Cell UVPR (MAX)"
@@ -537,10 +594,10 @@ sensor:
         - throttle: 10s
         - delta: 0.001
 
-  # balance_trigger_voltage MAX
+  # balance_trigger_voltage MAX (Auto CVL)
   - platform: template
     id: ${yambms_id}_balance_trigger_voltage
-    name: "${name} ${yambms_name} Cell UVPR (MAX)"
+    name: "${name} ${yambms_name} Balance Trigger Voltage (MAX)"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 3
     unit_of_measurement: V
@@ -550,10 +607,10 @@ sensor:
         - throttle: 10s
         - delta: 0.001
 
-  # temperature_sensor_1 MAX
+  # MIN temperature
   - platform: template
-    id: ${yambms_id}_temperature_sensor_1
-    name: "${name} ${yambms_name} Temperature Sensor 1"
+    id: ${yambms_id}_min_temperature
+    name: "${name} ${yambms_name} Min temperature"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 1
     unit_of_measurement: °C
@@ -563,10 +620,10 @@ sensor:
         - throttle: 10s
         - delta: 0.1
 
-  # temperature_sensor_2 MAX
+  # MAX temperature
   - platform: template
-    id: ${yambms_id}_temperature_sensor_2
-    name: "${name} ${yambms_name} Temperature Sensor 2"
+    id: ${yambms_id}_max_temperature
+    name: "${name} ${yambms_name} Max temperature"
     update_interval: ${yambms_update_interval}
     accuracy_decimals: 1
     unit_of_measurement: °C
@@ -575,6 +632,30 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 0.1
+
+  # MIN temperature sensor
+  - platform: template
+    id: ${yambms_id}_min_temperature_sensor
+    name: "${name} ${yambms_name} Min temperature sensor"
+    update_interval: ${yambms_update_interval}
+    accuracy_decimals: 0
+    icon: mdi:numeric
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+
+  # MAX temperature sensor
+  - platform: template
+    id: ${yambms_id}_max_temperature_sensor
+    name: "${name} ${yambms_name} Max temperature sensor"
+    update_interval: ${yambms_update_interval}
+    accuracy_decimals: 0
+    icon: mdi:numeric
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
 
   # charging_cycles MEAN
   - platform: template
@@ -650,6 +731,19 @@ sensor:
         - delta: 1
     lambda: return id(${yambms_id}_can_be_combined_bms_counter);
 
+  # Shunt count
+  - platform: template
+    name: ${name} ${yambms_name} Shunt count
+    id: ${yambms_id}_shunt_count
+    update_interval: ${yambms_update_interval}
+    accuracy_decimals: 0
+    icon: mdi:counter
+    filters:
+      - or:
+        - throttle: 10s
+        - delta: 1
+    lambda: return id(${yambms_id}_shunt_counter);
+
   # Shunt combined
   - platform: template
     name: ${name} ${yambms_name} Shunt combined
@@ -661,9 +755,7 @@ sensor:
       - or:
         - throttle: 10s
         - delta: 1
-    lambda: |-
-      if (id(${yambms_id}_combine_shunt)) return 1;
-      else return 0;
+    lambda: return id(${yambms_id}_can_be_combined_shunt_counter);
 
 # power_tube_temperature MIN_MAX
 # - platform: template

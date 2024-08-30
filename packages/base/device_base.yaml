@@ -1,5 +1,5 @@
-# Updated : 2024.08.08
-# Version : 1.4.3
+# Updated : 2024.08.28
+# Version : 1.4.4
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
 
+substitutions:
+  yambms_version: "1.4.4"
+
 esphome:
   name: ${name}
   # friendly_name: ${name}
@@ -24,7 +27,7 @@ esphome:
   # area: 'Technical local'
   project:
     name: Sleeper85.YamBMS
-    version: "1.4.3"
+    version: ${yambms_version}
   min_version: 2024.6.0
 
 time:
@@ -49,21 +52,21 @@ binary_sensor:
 sensor:
   # https://esphome.io/components/sensor/uptime
   - platform: uptime
-    id: uptime_seconds
+    id: esp32_uptime_sec
     update_interval: 10s
     internal: true
 
   # https://esphome.io/components/sensor/wifi_signal 
   - platform: wifi_signal
     name: ${name} ESP32 WiFi power
-    id: ${name}_esp32_wifi_power
+    id: esp32_wifi_power
     update_interval: 10s
     entity_category: diagnostic
 
   - platform: copy # Reports the WiFi signal strength in %
-    source_id: ${name}_esp32_wifi_power
+    source_id: esp32_wifi_power
     name: ${name} ESP32 WiFi power (%)
-    id: ${name}_esp32_wifi_power_percent
+    id: esp32_wifi_power_percent
     unit_of_measurement: '%'
     entity_category: diagnostic
     filters:
@@ -72,7 +75,7 @@ sensor:
   # https://esphome.io/components/sensor/internal_temperature
   - platform: internal_temperature
     name: ${name} ESP32 internal temperature
-    id: ${name}_esp32_internal_temperature
+    id: esp32_internal_temperature
     update_interval: 10s
     entity_category: diagnostic
 
@@ -85,7 +88,7 @@ text_sensor:
     icon: mdi:clock-start
     entity_category: diagnostic
     lambda: |-
-      int uptime_sec = id(uptime_seconds).state;
+      int uptime_sec = id(esp32_uptime_sec).state;
       int days = uptime_sec / 86400;
       int hours = (uptime_sec % 86400) / 3600;
       int minutes = (uptime_sec % 3600) / 60;
@@ -99,30 +102,40 @@ text_sensor:
         ).c_str()
       };
 
+  # Now date and time
+  - platform: template
+    name: ${name}_esp32_date_time_now
+    id: esp32_date_time_now
+    update_interval: 10s
+    icon: mdi:clock-start
+    entity_category: diagnostic
+    internal: true
+    lambda: return id(my_time).now().strftime("%Y-%m-%d %H:%M:%S");
+
   # https://esphome.io/components/text_sensor/wifi_info
   - platform: wifi_info
     ip_address:
       name: ${name} ESP32 IP address
-      id: ${name}_esp32_ip_address
+      id: esp32_ip_address
     ssid:
       name: ${name} ESP32 connected SSID
-      id: ${name}_esp32_connected_ssid
+      id: esp32_connected_ssid
     bssid:
       name: ${name} ESP32 connected BSSID
-      id: ${name}_esp32_connected_bssid
+      id: esp32_connected_bssid
     mac_address:
       name: ${name} ESP32 MAC WiFi address
-      id: ${name}_esp32_mac_wifi_address
+      id: esp32_mac_wifi_address
     scan_results:
       name: ${name} ESP32 latest scan results
-      id: ${name}_esp32_latest_scan_results
+      id: esp32_latest_scan_results
     dns_address:
       name: ${name} ESP32 DNS address
-      id: ${name}_esp32_dns_address
+      id: esp32_dns_address
 
   # https://esphome.io/components/text_sensor/version
   - platform: version
     name: ${name} ESP32 ESPHome version
-    id: ${name}_esp32_esphome_version
+    id: esp32_esphome_version
     hide_timestamp: false #true
     entity_category: diagnostic
