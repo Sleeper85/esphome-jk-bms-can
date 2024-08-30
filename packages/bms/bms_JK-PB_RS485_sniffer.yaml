@@ -1,5 +1,5 @@
-# Updated : 2024.08.12
-# Version : 1.2.2
+# Updated : 2024.08.28
+# Version : 1.2.3
 # GitHub  : https://github.com/txubelaxu/esphome-jk-bms
 
 # YamBMS ( Yet another multi-BMS Merging Solution )
@@ -16,6 +16,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
+
+substitutions:
+  bms_model: "JK-PB"
+  bms_protocol: "RS485"
 
 external_components:
  - source: github://txubelaxu/esphome-jk-bms@main
