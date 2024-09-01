@@ -109,7 +109,7 @@ packages:
 
   # Mode2 : configure the DIP switches of your BMS from 0x01 to 0x0F (don't use the 0x00 address, maximum 15 BMS)
   bms1: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-PB_RS485_bms_full.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -123,7 +123,7 @@ packages:
       bms_combine_interval: '1s'
   
   bms2: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-PB_RS485_bms_full.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -137,7 +137,7 @@ packages:
       bms_combine_interval: '1s'
 
   bms3: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-PB_RS485_bms_full.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -151,7 +151,7 @@ packages:
       bms_combine_interval: '1s'
 
   bms4: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-PB_RS485_bms_full.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -165,7 +165,7 @@ packages:
       bms_combine_interval: '1s'
   
   bms5: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-PB_RS485_bms_full.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -179,7 +179,7 @@ packages:
       bms_combine_interval: '1s'
 
   bms6: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-PB_RS485_bms_full.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
@@ -193,7 +193,7 @@ packages:
       bms_combine_interval: '1s'
 
   bms7: !include
-    file: packages/bms/bms_JK-PB_RS485_bms_minimal.yaml
+    file: packages/bms/bms_JK-PB_RS485_bms_full.yaml
     vars:
       # YamBMS ID
       yambms_id: 'yambms1'
