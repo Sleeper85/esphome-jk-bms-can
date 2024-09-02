@@ -1,4 +1,4 @@
-# Updated : 2024.08.28
+# Updated : 2024.09.02
 # Version : 1.4.4
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -319,11 +319,17 @@ script:
   - id: ${yambms_id}_script_eoc_timer
     then:
       - delay: ${yambms_eoc_timer}min
-      - lambda: id(${yambms_id}_charge_status) = "EOC";
+      - script.execute: ${yambms_id}_script_eoc
   - id: ${yambms_id}_script_cutoff_timer
     then:
       - delay: ${yambms_cutoff_timer}s
-      - lambda: id(${yambms_id}_charge_status) = "EOC";
+      - script.execute: ${yambms_id}_script_eoc
+  - id: ${yambms_id}_script_eoc
+    then:
+      - lambda: |-
+          id(${yambms_id}_charge_status) = "EOC";
+          id(${yambms_id}_eoc) = true;                                         // SOC 100% can be sent
+          id(${yambms_id}_eoc_timestamp) = id(my_time).utcnow().timestamp;     // Store charge completion timestamp
 
 sensor:
   # +--------------------------------------+
@@ -689,22 +695,24 @@ text_sensor:
     icon: mdi:battery-plus
     lambda: |-
       // Alarm > Stop Charging
-      if ((id(${yambms_id}_alarm).state == "Alarm") | (id(${yambms_id}_alarm).state == "OVP") | (id(${yambms_id}_alarm).state == "UTP") | (id(${yambms_id}_alarm).state == "COCP") | (id(${yambms_id}_alarm).state == "OTP") | (id(${yambms_id}_alarm).state == "BMS")){
+      if ((id(${yambms_id}_alarm).state == "Alarm") | (id(${yambms_id}_alarm).state == "OVP") | (id(${yambms_id}_alarm).state == "UTP") | (id(${yambms_id}_alarm).state == "COCP") | (id(${yambms_id}_alarm).state == "OTP") | (id(${yambms_id}_alarm).state == "BMS"))
+      {
         return {"Stop"};
       }
       // Bulk Charge
-      else if ((id(${yambms_id}_charge_status) == "Bulk") | (id(${yambms_id}_charge_status) == "Force Bulk") | (id(${yambms_id}_charge_status) == "Balancing") | (id(${yambms_id}_charge_status) == "Absorption") | (id(${yambms_id}_charge_status) == "Cut-Off")) {
+      else if ((id(${yambms_id}_charge_status) != "EOC") && (id(${yambms_id}_charge_status) != "Float") && (id(${yambms_id}_charge_status) != "Wait"))
+      {
         id(${yambms_id}_eoc) = false;                                        // SOC 100% can't be sent
         return {"Bulk"};
       }
       // Float Charge
-      else if (id(${yambms_id}_charge_status) == "Float") {
+      else if (id(${yambms_id}_charge_status) == "Float")
+      {
         return {"Float"};
       }
       // End Of Charge (EOC) > Stop Charging
-      else if (id(${yambms_id}_charge_status) == "EOC") {
-        id(${yambms_id}_eoc) = true;                                         // SOC 100% can be sent
-        id(${yambms_id}_eoc_timestamp) = id(my_time).utcnow().timestamp;     // Store charge completion timestamp
+      else if (id(${yambms_id}_charge_status) == "EOC")
+      {
         return {"Stop"};
       }
       // Wait
@@ -866,7 +874,7 @@ binary_sensor:
     icon: mdi:battery-charging-low
     lambda: |-
       if (id(${yambms_id}_switch_request_force_charge).state) {
-        int soc = id(${yambms_id}_state_of_charge).state;
+        int soc = id(${yambms_id}_battery_soc).state;
         if (soc <= id(${yambms_id}_request_force_charge_start_soc).state) return true;
         else if (soc >= id(${yambms_id}_request_force_charge_stop_soc).state) return false;
         else if (id(${yambms_id}_requested_force_charge).state) return true;

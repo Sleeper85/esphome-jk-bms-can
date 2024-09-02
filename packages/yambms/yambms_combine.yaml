@@ -514,7 +514,7 @@ sensor:
         - delta: 1
     internal: true # source for ${yambms_id}_battery_soc
 
-  # battery_capacity SUM
+  # installed_battery_capacity SUM
   - platform: template
     id: ${yambms_id}_installed_battery_capacity
     name: "${name} ${yambms_name} Installed Battery Capacity (Σ)"
