@@ -1,4 +1,4 @@
-# Updated : 2024.08.28
+# Updated : 2024.09.02
 # Version : 1.4.4
 # GitHub  : https://github.com/SeByDocKy/pvbrain2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
@@ -32,9 +32,7 @@ substitutions:
   uart6_baudrate: '115200'  #Pylontech
   uart7_baudrate: '9600'    #EPEVER      {RJ45-UART7} 
   
-  # 'i2c' or 'spi'  go into pvbrain2/base/device_base.yaml to select I2C or SPI UART Hub file
-  # If SPI selected, don't forget to jump/solder the two pairs of pin together located back of WK2168 boards 
-  uart_hub_bus: 'spi'
+  #######################################################
 
 logger:
   level: WARN # DEBUG / INFO / WARN
