@@ -7,14 +7,10 @@
 ![GitHub watchers](https://img.shields.io/github/watchers/Sleeper85/esphome-jk-bms-can)
 [!["Buy Me A Coffee"](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg)](https://www.buymeacoffee.com/sleeper85)
 
-**ESPHome component to monitor a Jikong Battery Management System (JK-BMS) and communicate with inverters supporting CAN bus protocol compatible with Pylontech, GoodWe, Seplos, SMA or Victron.**
 
-**Note: Pylontech uses 15S/48V and many others uses 16S/51.2V @3.2V/cell nominal.**
-Other battery profiles that utilise the **PYLON** protocol with different cell counts may also work, eg Alpha Ess Smile, BYD Battery-Box LV Flex Lite.
-Select the correct battery profile in the inverter to match your battery pack!
-
-The ESP32 communicates with the BMS using the `BLE / UART / RS485` protocol.<br>
-The ESP32 then sends the required CAN bus data to the inverter via the [CAN bus transceiver](documents/README/Supported_devices.md#supported-can-bus-transceiver).
+| ESPHome application to monitor BMS and communicate with inverters supporting<br>CAN bus protocol compatible with Pylontech, GoodWe, SMA, Victron or Luxpower. | <a href="https://www.buymeacoffee.com/Sleeper85" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a> |
+| :--- | --- |
+| **Note: Pylontech uses 15S/48V and many others uses 16S/51.2V @3.2V/cell nominal.**<br><br>Other battery profiles that utilise the **`PYLON`** protocol with different cell counts<br>may also work, e.g. Alpha Ess Smile, BYD Battery-Box LV Flex Lite.<br>Select the correct battery profile in the inverter to match your battery pack !<br>The **`ESP32`** communicates with the BMS using the **`BLE / UART / RS485`** protocol<br>and then sends the CAN bus data to the inverter via the [CAN bus transceiver](documents/README/Supported_devices.md#supported-can-bus-transceiver). | <a href="https://www.buymeacoffee.com/Sleeper85" target="_blank"><img src="images/BMC_QR.png" alt="Buy Me A Coffee" style="height: 217px !important;width: 217px !important;" ></a> |
 
 **Sends over CAN bus to inverter:**
   - Battery Voltage
@@ -29,9 +25,9 @@ The ESP32 then sends the required CAN bus data to the inverter via the [CAN bus 
   - Battery name
   - Alarms: Cell over/under voltage, Charge/discharge over current, High/low Temp, BMS fault
   
-**Note: this code support multi-BMS connection per inverter (with a single ESP32) and should work with inverters that support the CAN bus protocol PYLON, SMA or Victron.
-I'm only testing it with my Deye SUN-6K-SG03-LP1-EU inverter.<br>
-This project is still in development and testing...<br>**
+**Note:** this code support `multi-BMS` connection per inverter with a `single ESP32` and should work with inverters that support<br>
+the CAN bus protocol `PYLON`, `SMA`, `Victron` or `LuxPower` (EG4). I'm only testing it with my `Deye SUN-6K-SG03-LP1-EU` inverter.<br>
+**This project is still in development and testing...<br>**
 
 [Dedicated topic on DIY Solar Forum](https://diysolarforum.com/threads/yambms-jk-bms-can-with-new-cut-off-charging-logic-open-source.79325/)
 
