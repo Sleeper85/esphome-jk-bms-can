@@ -38,15 +38,15 @@ The `Charging status` represents the current charging phase, see the [Charging l
 
 The `Charging instruction` is defined based on the `Charging status` and allows the correct `Requested Charge Values` ​​to be sent.
 
-The `Float charge enabled` switch allows the battery to be kept fully charged at the end of the `Bulk` charge. The voltage used will be that of the `Float volatge` slider.
+The `Float charge enabled` switch allows the battery to be kept fully charged at the end of the `Bulk` charge. The voltage used will be that of the `Float voltage` slider.
 
 The `EOC timer enabled` switch ensures that the `Cut-Off` phase lasts maximum `30 min` (default value) even if your cells are still being equalized. If your cells are equalized, the `Cut-Off` phase will end at the earliest after `60s` (default value). This prevents the risk of staying in the `Cut-Off` phase for many hours if you have several batteries and they are poorly equalized.
 
 The `Bulk voltage` slider allows you to set the voltage used during the `Bulk`, `Absorption`, `Balancing` and `Cut-Off` phases.
 
-The `Float voltage` slider allows you to set the voltage used after charging is complete if the `Float charge enabled` switch is active.
+The `Float voltage` slider allows you to set the voltage used after charging is complete if the `Float charge enabled` switch is enabled.
 
-The `Absorption Offset V.` slider has a dual purpose, it is used to display the `Absorption` status and to calculate the `Cut-Off` values, see the [Charging logic](Charging_logic.md).
+The `Absorption Offset V.` slider has a dual purpose, it's used to display the `Absorption` status and to calculate the `Cut-Off` values, see the [Charging logic](Charging_logic.md).
 
 The `Inverter Offset V.` slider allows you to correct the inverter charge voltage, either because it does not respect the requested value or because your inverter is far from your batteries and there is a voltage drop. This allows you to reach the target `Bulk` or `Float` charge voltage by adding an offset.
 
@@ -114,7 +114,7 @@ In the example below, we are in the `Float` phase at a voltage of `53.6V` and an
 
 The `Requested Discharge Voltage` is the `UVPR` value of your BMS multiplied by the number of cells, in this example (3V * 16).
 
-The `Requested Chare/Discharge Current` is the `OCP` value of your BMS multiplied by the `Max current` percentage, in this example (150A * 80%).
+The `Requested Charge/Discharge Current` is the `OCP` value of your BMS multiplied by the `Max current` percentage, in this example (150A * 80%).
 
 ## Inverter Heartbeat
 
