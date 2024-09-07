@@ -116,7 +116,7 @@ The `Requested Discharge Voltage` is the `UVPR` value of your BMS multiplied by 
 
 The `Requested Chare/Discharge Current` is the `OCP` value of your BMS multiplied by the `Max current` percentage, in this example (150A * 80%).
 
-## Inverter Heartneat
+## Inverter Heartbeat
 
 This feature allows you to monitor the heartbeat of your inverter (time between two ACK 0x305). This is useful for troubleshooting purposes and should not remain enabled continuously.
 
