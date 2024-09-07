@@ -11,6 +11,8 @@
 > [!IMPORTANT]  
 > You need to check if your inverter model is on the list of [supported inverters](Supported_devices.md#supported-inverter). In any case it must support one of the following `CAN` bus protocols.
 
+![Image](../../images/YamBMS_CANBUS_Protocol.png "YamBMS_CANBUS_Protocol")
+
 Choose the CAN protocol that will be sent to your inverter and don't forget to configure your inverter for the protocol you choose.
 
 The table below helps you choose the best protocol depending on your inverter brand.
@@ -28,9 +30,9 @@ Other configurations are possible, don't hesitate to communicate what works well
 | Victron | ESS | Victron |
 | SMA | - | SMA |
 
-![Image](../../images/YamBMS_CANBUS_Protocol.png "YamBMS_CANBUS_Protocol")
-
 ## Charging settings
+
+![Image](../../images/YamBMS_Charging_Settings.png "YamBMS_Charging_Settings")
 
 The `Charging status` represents the current charging phase, see the [Charging logic](Charging_logic.md).
 
@@ -48,27 +50,29 @@ The `Absorption Offset V.` slider has a dual purpose, it is used to display the 
 
 The `Inverter Offset V.` slider allows you to correct the inverter charge voltage, either because it does not respect the requested value or because your inverter is far from your batteries and there is a voltage drop. This allows you to reach the target `Bulk` or `Float` charge voltage by adding an offset.
 
-![Image](../../images/YamBMS_Charging_Settings.png "YamBMS_Charging_Settings")
-
 ### Max current (%)
-
-The allowed charge or discharge current is automatically calculated based on the `OCP` values ​​of your BMS. The `OCP` currents of the combined BMS (not in alarm) are added together and the requested current is a percentage `0~90%` of this value.
 
 ![Image](../../images/YamBMS_Max_Current_PCT.png "YamBMS_Max_Current_PCT")
 
+The allowed charge or discharge current is automatically calculated based on the `OCP` values ​​of your BMS. The `OCP` currents of the combined BMS (not in alarm) are added together and the requested current is a percentage `0~90%` of this value.
+
 ### ReBulk
+
+![Image](../../images/YamBMS_ReBulk.png "YamBMS_ReBulk")
 
 There are two parameters to start a new `Bulk` phase. You can set a `Rebulk SoC` or a `Rebulk V.` value, only one of these conditions must be met.
 
 If needed you can also force a `Bulk` charge with the `Force Bulk (top bal)` switch. The switch will automatically deactivate when your cells enter the `Balancing` phase.
 
-![Image](../../images/YamBMS_ReBulk.png "YamBMS_ReBulk")
-
 ### Request Force Charge
 
-This function allows you to force a charge from `GRID` when `SoC <= Start SoC`, the forced charge stops when `SoC >= Stop SoC`. Works only with `PYLON`, `LuxPower` and `Victron` protocols.
-
 ![Image](../../images/YamBMS_Request_Force_Charge.png "YamBMS_Request_Force_Charge")
+
+This function allows you to force a charge from `GRID` :
+- when `SoC <= Start SoC` the forced charge start
+- when `SoC >= Stop SoC` the forced charge stop
+
+Works only with `PYLON`, `LuxPower` and `Victron` protocols.
 
 ## Auto functions
 
@@ -102,6 +106,8 @@ Current control should work with any inverter that uses `CAN` control.
 
 ## Requested Values
 
+![Image](../../images/YamBMS_Requested_Values.png "YamBMS_Requested_Values")
+
 These 4 sensors allow you to see what is being requested of your inverter.
 
 In the example below, we are in the `Float` phase at a voltage of `53.6V` and an `Inverter Offset V.` of `0.1V`. The `Requested Charge Voltage` is therefore `53.7V`.
@@ -109,8 +115,6 @@ In the example below, we are in the `Float` phase at a voltage of `53.6V` and an
 The `Requested Discharge Voltage` is the `UVPR` value of your BMS multiplied by the number of cells, in this example (3V * 16).
 
 The `Requested Chare/Discharge Current` is the `OCP` value of your BMS multiplied by the `Max current` percentage, in this example (150A * 80%).
-
-![Image](../../images/YamBMS_Requested_Values.png "YamBMS_Requested_Values")
 
 ## Inverter Heartneat
 
