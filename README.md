@@ -7,6 +7,8 @@
 ![GitHub watchers](https://img.shields.io/github/watchers/Sleeper85/esphome-jk-bms-can)
 [!["Buy Me A Coffee"](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg)](https://www.buymeacoffee.com/sleeper85)
 
+> [!CAUTION] 
+> There is a black screen issue with `Atom S3` when you compile YamBMS with ESPHome `2024.8.0` and above. Until this bug is fixed it is necessary to compile with ESPHome `2024.7.3` (this only concerns Atom S3).
 
 | ESPHome application to monitor BMS and communicate with inverters<br>supporting CAN bus protocol compatible with Pylontech, GoodWe, SMA,<br>Victron or Luxpower (EG4). | <a href="https://www.buymeacoffee.com/Sleeper85" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a> |
 | :--- | --- |
