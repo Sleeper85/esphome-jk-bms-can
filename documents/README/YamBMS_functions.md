@@ -46,8 +46,6 @@ The `Bulk voltage` slider allows you to set the voltage used during the `Bulk`, 
 
 The `Float voltage` slider allows you to set the voltage used after charging is complete if the `Float charge enabled` switch is enabled.
 
-The `Absorption Offset V.` slider has a dual purpose, it's used to display the `Absorption` status and to calculate the `Cut-Off` values, see the [Charging logic](Charging_logic.md).
-
 The `Inverter Offset V.` slider allows you to correct the inverter charge voltage, either because it does not respect the requested value or because your inverter is far from your batteries and there is a voltage drop. This allows you to reach the target `Bulk` or `Float` charge voltage by adding an offset.
 
 ### Max current (%)
