@@ -63,6 +63,7 @@ the CAN bus protocol `PYLON`, `SMA`, `Victron` or `LuxPower` (EG4). I'm only tes
 
 ## Changelog
 
+* CANBUS 2.3.6 : Sending CAN frames stops immediately if there are no combined BMS
 * YamBMS 1.4.4 : Multi-shunt support, Simplified and new YamBMS option `battery chemistry`, slider `min/max` values ​​are automatically configured based on the battery chemistry and cell count, added `YamBMS Fallback Hotspot`, added YamBMS `Update service`, added PVbrain2 and Atom Matrix board, added PSRAM settings YAML (not enabled by default), new MIN/MAX temperature sensor, added DC current icon, fixed dual sensor `Cell UVPR (MAX)` bug, Improved `combine` code, Breaking change : Atom S3 `GPIOs 1 and 2` reversed
 * CANBUS 2.3.5 : New MIN/MAX temperature / sensor ID, Improved Victron protocol (online/offline battery modules, installed/available battery capacity)
 * CANBUS 2.3.4 : Fixed bug of canbus link validation without inverter connected

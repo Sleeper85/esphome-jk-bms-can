@@ -1,4 +1,4 @@
-# Updated : 2024.09.02
+# Updated : 2024.09.09
 # Version : 1.4.4
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
 
@@ -232,20 +232,6 @@ number:
     optimistic: true
     entity_category: config
   - platform: template
-    name: "${name} ${yambms_name} Absorption Offset V."
-    id: "${yambms_id}_absorption_offset_v"
-    step: 0.05
-    min_value: 0
-    max_value: 1
-    restore_value: true
-    mode: "${yambms_input_number_mode}"
-    initial_value: 0.1
-    unit_of_measurement: V
-    icon: mdi:sine-wave
-    optimistic: true
-    entity_category: config
-    # internal: true
-  - platform: template
     name: "${name} ${yambms_name} Inverter Offset V."
     id: "${yambms_id}_inverter_offset_v"
     step: 0.1
@@ -327,7 +313,12 @@ script:
   - id: ${yambms_id}_script_eoc
     then:
       - lambda: |-
-          id(${yambms_id}_charge_status) = "EOC";
+          // Stop timer
+          if (id(${yambms_id}_script_eoc_timer).is_running()) id(${yambms_id}_script_eoc_timer).stop();
+          if (id(${yambms_id}_script_cutoff_timer).is_running()) id(${yambms_id}_script_cutoff_timer).stop();
+          // EOC script
+          if (id(${yambms_id}_switch_float).state) id(${yambms_id}_charge_status) = "Float";
+          else id(${yambms_id}_charge_status) = "EOC";
           id(${yambms_id}_eoc) = true;                                         // SOC 100% can be sent
           id(${yambms_id}_eoc_timestamp) = id(my_time).utcnow().timestamp;     // Store charge completion timestamp
 
@@ -575,11 +566,16 @@ text_sensor:
       // YamBMS Alarm ?
       if ((id(${yambms_id}_alarm).state != "NoAlarm") & (id(${yambms_id}_alarm).state != "Warning")) id(${yambms_id}_charge_status) = "Alarm";
       // YamBMS Alarm ended ?
-      else if ((id(${yambms_id}_charge_status) == "Alarm") & ((id(${yambms_id}_alarm).state == "NoAlarm") | (id(${yambms_id}_alarm).state == "Warning"))) {
-        if (id(${yambms_id}_eoc) == true) id(${yambms_id}_charge_status) = "EOC";
+      else if ((id(${yambms_id}_charge_status) == "Alarm") & ((id(${yambms_id}_alarm).state == "NoAlarm") | (id(${yambms_id}_alarm).state == "Warning")))
+      {
+        if (id(${yambms_id}_eoc) == true)
+        {
+          if (id(${yambms_id}_switch_float).state) id(${yambms_id}_charge_status) = "Float";
+          else id(${yambms_id}_charge_status) = "EOC";
+        }
         else id(${yambms_id}_charge_status) = "Wait";
       }
-      // Float
+      // EOC => Float
       else if ((id(${yambms_id}_charge_status) == "EOC") & (id(${yambms_id}_switch_float).state)) id(${yambms_id}_charge_status) = "Float";
       // No Float => EOC
       else if ((id(${yambms_id}_charge_status) == "Float") & (!id(${yambms_id}_switch_float).state)) id(${yambms_id}_charge_status) = "EOC";
@@ -594,7 +590,7 @@ text_sensor:
         // Variables
         float cell_bulk_v = (id(${yambms_id}_bulk_voltage).state / id(${yambms_id}_cell_count).state);
         float cell_rebulk_v = (id(${yambms_id}_rebulk_voltage).state / id(${yambms_id}_cell_count).state);
-        float cell_absorption_offset_v = (id(${yambms_id}_absorption_offset_v).state / id(${yambms_id}_cell_count).state);
+        float cutoff_offset_v = 0.005;
         
         // +-----------------------------------------------+
         // | Force Bulk Logic                              |
@@ -617,25 +613,27 @@ text_sensor:
         // SoC <= 85% (default value)
         else if (id(${yambms_id}_battery_soc).state <= id(${yambms_id}_rebulk_soc).state) id(${yambms_id}_charge_status) = "Bulk";
         
-        // Charging Logic (Bulk)
-        else if ((id(${yambms_id}_charge_status) != "EOC") && (id(${yambms_id}_charge_status) != "Float")) {
-        
+        // +-----------------------------------------------+
+        // | Charging Logic (Bulk)                         |
+        // +-----------------------------------------------+
+        if ((id(${yambms_id}_charge_status) != "EOC") && (id(${yambms_id}_charge_status) != "Float"))
+        {
           // +-----------------------------------------------+
           // | Cut-Off Charging Logic                        |
           // +-----------------------------------------------+
-          if (id(${yambms_id}_current).state >= 0) {
-            
+          if (id(${yambms_id}_current).state >= 0)
+          {
             float cv_min = id(${yambms_id}_min_charge_v);
             float cv_max = id(${yambms_id}_max_charge_v);
             float cutoff_current = (id(${yambms_id}_battery_capacity).state * 0.05 * (cell_bulk_v - cv_min) / (cv_max - cv_min));
-            float cutoff_voltage = (cv_min + (cv_max - cv_min)/(0.05 + cell_absorption_offset_v) * (id(${yambms_id}_current).state / id(${yambms_id}_battery_capacity).state));
+            float cutoff_voltage = (cv_min + (cv_max - cv_min)/(0.05 + cutoff_offset_v) * (id(${yambms_id}_current).state / id(${yambms_id}_battery_capacity).state));
             
-            ESP_LOGI("main", "Cut-Off Current : %f", cutoff_current);
-            ESP_LOGI("main", "Cut-Off Voltage : %f", cutoff_voltage);
-          
             // Stop Charging
-            if ((id(${yambms_id}_current).state <= cutoff_current) & (id(${yambms_id}_max_cell_voltage).state >= cutoff_voltage)) {
-              
+            if ((id(${yambms_id}_current).state <= cutoff_current) & (id(${yambms_id}_max_cell_voltage).state >= cutoff_voltage))
+            {
+              ESP_LOGI("yambms", "Cut-Off Current : %f", cutoff_current);
+              ESP_LOGI("yambms", "Cut-Off Voltage : %f", cutoff_voltage);
+
               // Cut-Off : the end of charging is near
               id(${yambms_id}_charge_status) = "Cut-Off";
 
@@ -655,22 +653,20 @@ text_sensor:
               else if (!id(${yambms_id}_script_cutoff_timer).is_running()) id(${yambms_id}_script_cutoff_timer).execute();
             }
             // Start Charging
-            else {
+            else
+            {
               // Stop timer
               if (id(${yambms_id}_script_eoc_timer).is_running()) id(${yambms_id}_script_eoc_timer).stop();
               if (id(${yambms_id}_script_cutoff_timer).is_running()) id(${yambms_id}_script_cutoff_timer).stop();
               // Balancing : the BMS is equalizing the cells
               if (id(${yambms_id}_equalizing).state) id(${yambms_id}_charge_status) = "Balancing";
-              // Absorption : Max Cell V. >= Cell Absorption V.
-              else if (id(${yambms_id}_max_cell_voltage).state >= (cell_bulk_v - cell_absorption_offset_v)) id(${yambms_id}_charge_status) = "Absorption";
               // Bulk
               else id(${yambms_id}_charge_status) = "Bulk";
-          
             }
           }
           // Discharging (!= "EOC" | != "Float")
-          // Max Cell V < Absoprption V ?
-          else if (id(${yambms_id}_max_cell_voltage).state < (cell_bulk_v - cell_absorption_offset_v)) {
+          else if (id(${yambms_id}_max_cell_voltage).state < (cell_bulk_v - cutoff_offset_v))
+          {
             // Stop timer
             if (id(${yambms_id}_script_eoc_timer).is_running()) id(${yambms_id}_script_eoc_timer).stop();
             if (id(${yambms_id}_script_cutoff_timer).is_running()) id(${yambms_id}_script_cutoff_timer).stop();
@@ -682,7 +678,7 @@ text_sensor:
       // Charge OFF
       else id(${yambms_id}_charge_status) = "Wait";
       
-      ESP_LOGI("main", "Charge Status : %s", id(${yambms_id}_charge_status).c_str());
+      ESP_LOGI("yambms", "Charge Status : %s", id(${yambms_id}_charge_status).c_str());
       return id(${yambms_id}_charge_status);
 
   # +--------------------------------------+
