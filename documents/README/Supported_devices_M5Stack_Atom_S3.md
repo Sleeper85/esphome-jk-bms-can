@@ -22,6 +22,9 @@ Theoretically, with the 4 GPIOs available, it would be possible to add one [WK21
 
 ## M5Stack Atom CAN Kit (the Plug & Play solution)
 
+> [!IMPORTANT] 
+> If you have JK-PB series BMS (inverter BMS) and want to monitor them via RS485, please read the [README](BMS_JK-PB_RS485_solution.md) dedicated to this topic.
+
 If soldering or creating your own board seems complicated to you, know that it is possible to use the Atom CAN Kit from M5Stack.<br>
 
 **Choose Atom S3 (display) or Atom S3 Lite + Atomic CAN base.**
@@ -33,4 +36,3 @@ If soldering or creating your own board seems complicated to you, know that it i
 | Atomic S3 Lite | Atomic CAN Base |
 | --- | --- |
 | <img src="../../images/Atom_S3_Lite.png" width="450"> | <img src="../../images/CAN_Transceiver_Atomic_CAN_Base.png" width="450"> |
-
