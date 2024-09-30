@@ -1,14 +1,18 @@
+# Updated : 2024.09.30
+# Version : 1.0.2
+# GitHub  : https://github.com/SeByDocKy/pvbrain2
+
 sensor:
   - platform: bmp280
     temperature:
-      name: ${name}_${bmp_280_name}_temperature
+      name: ${name}_${environnemental_name}_temperature
       accuracy_decimals: 1
       oversampling: 16x
-      id: ${bmp_280_name}_temperature
+      id: ${environnemental_name}_temperature
     pressure:
-      name: ${name}_${bme_280_name}_pression
+      name: ${name}_${environnemental_name}_pressure
       accuracy_decimals: 1
-      id: ${bmp_280_name}_pression
-    address: ${bmp_280_address}
-    update_interval: ${bmp_update_interval}
-    i2c_id: ${bmp_280_i2c_bus}
+      id: ${environnemental_name}_pressure
+    address: ${environnemental_address}
+    update_interval: ${environnemental_update_interval}
+    i2c_id: ${environnemental_i2c_bus}

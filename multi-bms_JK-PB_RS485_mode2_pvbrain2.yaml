@@ -1,4 +1,4 @@
-# Updated : 2024.09.02
+# Updated : 2024.09.30
 # Version : 1.4.4
 # GitHub  : https://github.com/SeByDocKy/pvbrain2
 # GitHub  : https://github.com/Sleeper85/esphome-yambms
@@ -82,9 +82,9 @@ packages:
   device_base: !include packages/base/device_base.yaml
 
   # BUS
-  # bus_i2c0: !include pvbrain2/base/device_bus_i2c0.yaml
-  bus_spi1: !include pvbrain2/base/device_bus_spi1.yaml
-  # bus_dallas: !include pvbrain2/base/device_bus_one_wire.yaml
+  # bus_i2c0: !include pvbrain2/base/device_bus_i2c0.yaml # SX1509 and BME280/BMP280
+  bus_spi1: !include pvbrain2/base/device_bus_spi1.yaml # MCP2515
+  # bus_one_wire: !include pvbrain2/base/device_bus_one_wire.yaml # Dallas
 
   # Devices
   device_uart_esp: !include pvbrain2/base/device_uart_esp.yaml
