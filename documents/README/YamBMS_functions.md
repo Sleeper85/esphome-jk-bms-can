@@ -42,7 +42,7 @@ The `Float charge enabled` switch allows the battery to be kept fully charged at
 
 The `EOC timer enabled` switch ensures that the `Cut-Off` phase lasts maximum `30 min` (default value) even if your cells are still being equalized. If your cells are equalized, the `Cut-Off` phase will end at the earliest after `60s` (default value). This prevents the risk of staying in the `Cut-Off` phase for many hours if you have several batteries and they are poorly equalized.
 
-The `Bulk voltage` slider allows you to set the voltage used during the `Bulk`, `Absorption`, `Balancing` and `Cut-Off` phases.
+The `Bulk voltage` slider allows you to set the voltage used during the `Bulk`, `Balancing` and `Cut-Off` phases.
 
 The `Float voltage` slider allows you to set the voltage used after charging is complete if the `Float charge enabled` switch is enabled.
 

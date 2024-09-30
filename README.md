@@ -47,12 +47,13 @@ the CAN bus protocol `PYLON`, `SMA`, `Victron` or `LuxPower` (EG4). I'm only tes
 ## Contents
 
 1) [Supported devices](documents/README/Supported_devices.md)
-2) [Charging logic](documents/README/Charging_logic.md)
-2) [YamBMS functions](documents/README/YamBMS_functions.md)
-3) [CAN bus protocol](documents/README/CANBUS_protocol.md)
-4) [Schematic and setup instructions](documents/README/Schematic_and_setup_instructions.md)
-5) [Configuration of the main YAML](documents/README/Main_YAML_config.md)
-6) [Installation procedure](documents/README/Installation_procedure.md)
+2) [YamBMS behavior](documents/README/YamBMS_behavior.md)
+3) [YamBMS functions](documents/README/YamBMS_functions.md)
+4) [Charging logic](documents/README/Charging_logic.md)
+5) [CAN bus protocol](documents/README/CANBUS_protocol.md)
+6) [Schematic and setup instructions](documents/README/Schematic_and_setup_instructions.md)
+7) [Configuration of the main YAML](documents/README/Main_YAML_config.md)
+8) [Installation procedure](documents/README/Installation_procedure.md)
 
 ## Requirements
 
