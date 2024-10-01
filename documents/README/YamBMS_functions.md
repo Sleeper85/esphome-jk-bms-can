@@ -125,7 +125,10 @@ This heartbeat must be regular and depends on the selected `CAN protocol` and th
 The `Deye` inverter sends an ACK `0x305` in response to the reception of a CAN frame `0x356`. Knowing that CAN frames are sent every `100ms` and that the CAN protocol `PYLON 1.2` has 6 CAN frames, the heartbeat of the `Deye` inverter is `600ms`.
 
 > [!IMPORTANT]  
-> Every `2h` Deye takes more than `3s` to respond.
+> Every `2h` Deye takes more than `3s` to respond and more than `5s` at midnight.
+> This is what the `CANBUS Status` looks like when the `canbus_link_timer` is set to `3s`.
+
+![Image](../../images/YamBMS_CANBUS_Status.png "YamBMS_CANBUS_Status")
 
 ## Diagnostic
 
