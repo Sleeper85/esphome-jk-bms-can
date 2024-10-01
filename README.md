@@ -42,7 +42,7 @@ the CAN bus protocol `PYLON`, `SMA`, `Victron` or `LuxPower` (EG4). I'm only tes
 
 ## Home Assistant
 
-![Image](images/HA_Dashboard.png "HA Dashboard")
+![Image](images/YamBMS_HA_Dashboard.png "YamBMS HA Dashboard")
 
 ## Contents
 
