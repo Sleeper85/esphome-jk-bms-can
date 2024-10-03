@@ -1,5 +1,6 @@
-# logger:
-#   baud_rate: 0 # Release 'uart_esp_0' and prevent boot loops
+logger:
+  hardware_uart: UART0 # USB_SERIAL_JTAG
+  # baud_rate: 0 # Don't use physical uart and release UART0 (tx_pin: 43, rx_pin: 44)
 
 uart:
   # UART 0 : USB UART port used for ESP32 flashing and logs, can be released if necessary (tx_pin: 43, rx_pin: 44)
