@@ -114,3 +114,11 @@ With mode 2, the sniffer (ESP32) will automatically take the address 0x00 and ac
 - BMS 2 RS485 address : 0x02
 - BMS 3 RS485 address : 0x03
 - etc.
+
+## JK-PB RS485 functions
+
+### Sniffer Broadcast changes to all BMS
+
+![Image](../../images/YamBMS_JK-PB_RS485_Sniffer_Broadcast.png "YamBMS_JK-PB_RS485_Sniffer_Broadcast")
+
+When enabled, this function synchronizes the settings of all your BMS connected to the same RS485 network as soon as you make parameter changes.
