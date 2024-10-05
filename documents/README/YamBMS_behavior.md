@@ -10,7 +10,15 @@
 
 ![Image](../../images/YamBMS_Combine_switch.png "YamBMS_Combine_switch")
 
-### Shunt
+### Combine status
+
+![Image](../../images/YamBMS_Combine_Status.png "YamBMS_Combine_Status")
+
+**Combine Availability** : This status indicates whether the BMS or Shunt meets the conditions to be combined.
+
+**Can be combined** : This status indicates whether the BMS or Shunt is currently combined.
+
+## Shunt
 
 Combine condition :
 1) the `Combine` switch is enabled
@@ -20,7 +28,7 @@ If one of these two conditions is not respected, the shunt is automatically deco
 
 As soon as you import a `shunt` and it can be combined (see condition) the values ​​(Voltage, Current, Power and SoC) of the shunt(s) will take precedence over the BMS values.
 
-### BMS
+## BMS
 
 Combine condition :
 1) the `Combine` switch is enabled
