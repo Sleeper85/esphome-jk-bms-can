@@ -10,4 +10,4 @@
 > [!IMPORTANT]
 > This version is no longer supported and is replaced by the `multi-BMS` version `YamBMS`.<br>`YamBMS` works with one or multiple BMS.
 
-### >>> [YamBMS ( Yet another multi-BMS Merging Solution )](https://github.com/Sleeper85/esphome-jk-bms-can/tree/development) <<<
+### >>> [YamBMS ( Yet another multi-BMS Merging Solution )](https://github.com/Sleeper85/esphome-yambms) <<<
