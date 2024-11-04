@@ -1,4 +1,0 @@
-one_wire:
-  - platform: gpio
-    id: one_wire_hub
-    pin: 47
